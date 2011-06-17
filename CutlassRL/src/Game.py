@@ -39,10 +39,11 @@ class Game:                # Main game class
         screen.start_color()
         screen.use_default_colors()
         stdscr.keypad(1)
-        q = sys.stdin.read(1)
-        stdscr.addstr(0,0,q)
-        if q == 'q':
-            self.end()
+        while 1:
+            q = sys.stdin.read(1)
+            stdscr.addstr(0,0,q)
+            if q == 'q':
+                self.end()
     def mainloop(self):
         """Mainloop of game.
             Useless for now.
@@ -52,7 +53,7 @@ class Game:                # Main game class
             Will reset console.
         """
         screen.endwin()
-        
+        exit()
     def debug_message(self):
         """Debug message subroutine,
             Will say something like debugmsg: XXX
