@@ -16,6 +16,7 @@
 
 VERSION = 0.01;
 
+import sys
 try:
     import libtcodpy as libtcod # Loading libtcod library
 except ImportError:
@@ -32,12 +33,16 @@ class Game:                # Main game class
         """Initializer of Game class.
             Will start curses.
         """
-        screen.initscr()
+        stdscr = screen.initscr()
         screen.curs_set(0)
         screen.cbreak()
         screen.start_color()
         screen.use_default_colors()
-
+        stdscr.keypad(1)
+        q = sys.stdin.read(1)
+        stdscr.addstr(0,0,q)
+        if q == 'q':
+            self.end()
     def mainloop(self):
         """Mainloop of game.
             Useless for now.
@@ -50,5 +55,5 @@ class Game:                # Main game class
         
     def debug_message(self):
         """Debug message subroutine,
-            Will say something like DEBUG: XXX
+            Will say something like debugmsg: XXX
         """
