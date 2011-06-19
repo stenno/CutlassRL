@@ -28,29 +28,29 @@ try:
 except ImportError:
     print "Curses library is missing."
     exit()
+stdscr = screen.initscr()
 class Game:                # Main game class
     def __init__(self):
         """Initializer of Game class.
             Will start curses.
         """
-        stdscr = screen.initscr()
         screen.curs_set(0)
         screen.cbreak()
         screen.start_color()
         screen.use_default_colors()
         stdscr.keypad(1)
-        while 1:
-            q = sys.stdin.read(1)
-            stdscr.addstr(0,0,q)
-            if q == 'q':
-                self.end()
     def mainloop(self):
         """Mainloop of game.
             Useless for now.
         """
+        while 1:
+            try:
+                key = sys.stdin.read(1)
+            except KeyboardInterrupt:
+                self.end()
     def end(self):
         """End of game.
-            Will reset console.
+            Will reset console and stop curses.
         """
         screen.endwin()
         exit()
