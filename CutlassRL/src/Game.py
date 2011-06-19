@@ -39,6 +39,7 @@ except ImportError:
 stdscr = screen.initscr()
 class Game:                # Main game class
     def __init__(self):
+        global screen,stdscr
         """Initializer of Game class.
             Will start curses.
         """
@@ -49,8 +50,11 @@ class Game:                # Main game class
         stdscr.keypad(1)
         
         #Color pairs
-        screen.init_pair(1,1,-1) #Red on default
+        screen.init_pair(1,-1,-1) #Default
+        screen.init_pair(2,1,-1) #Red on default
 
+        stdscr.attron(screen.color_pair(1))
+        stdscr.attron(screen.A_DIM)
     def main_loop(self):
         """Main loop of game.
             Drawing things, generating map, playing
@@ -58,18 +62,22 @@ class Game:                # Main game class
         global map
         global tcodmap
         global x,y
+        global expmap
         x,y = 5,5
         x1,y1 = x,y
         key = ""
         map = []  
+        expmap = []
         tcodmap = libtcod.map_new(MAP_H,MAP_W)
         for mapx in xrange(MAP_W+1):
             map.append([])
+            expmap.append([])
             for mapy in xrange(MAP_H+1):
                 r = SOLID
                 if mapx <= 21 and mapx >= 2 and mapy <= 60 and mapy >= 2:
                     r = TRANSPARENT + WALKABLE
                 map[mapx].append(r)
+                expmap[mapx].append(0)
                 if r == SOLID:
                     libtcod.map_set_properties(tcodmap,mapy,mapx,False,False)
                 else:
@@ -159,7 +167,7 @@ class Game:                # Main game class
         """Drawmap function.
             Will draw map. Working with fov.
         """
-        global map 
+        global map,expmap,screen,stdscr
         mapx,mapy=0,0 
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):
@@ -169,5 +177,10 @@ class Game:                # Main game class
                     mchar = "."
                 if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
                     if not(libtcod.map_is_in_fov(tcodmap, mapy, mapx)):
-                        mchar = " "
+                        if not expmap[mapx][mapy]:
+                            mchar = " "
+                    else:
+                        expmap[mapx][mapy] = 1
+                        stdscr.attron(screen.A_BOLD)
                     self.printex(mapx,mapy,mchar,refresh=False)
+                    stdscr.attroff(screen.A_BOLD)
