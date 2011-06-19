@@ -19,14 +19,6 @@ VERSION = 0.02;
 MAP_H=80
 MAP_W=24
 
-#TODO: REMOVE THAT SHIT, MAKE CLASS FOR CELL!!!!
-SOLID       = 0
-TRANSPARENT = 1
-WALKABLE    = 2
-DOOR        = 3
-OPEN        = 4
-CLOSED      = 5
-
 import sys
 
 from Modules import *
@@ -59,6 +51,7 @@ class Game:                # Main game class
         screen.init_pair(2,1,-1) #Red on default
 
         stdscr.attron(screen.color_pair(1))
+        
     def main_loop(self):
         """Main loop of game.
             Drawing things, generating map, playing
@@ -72,24 +65,17 @@ class Game:                # Main game class
         key = ""
         
         map = []  
-        #TODO: MAP AND CELLS!
 
         for mapx in xrange(MAP_W+1):
             map.append([])
-            expmap.append([])
             for mapy in xrange(MAP_H+1):
-                r = SOLID
                 if mapx <= 21 and mapx >= 2 and mapy <= 60 and mapy >= 2:
-                    r = TRANSPARENT + WALKABLE
-                map[mapx].append(r)
-                expmap[mapx].append(0)
-                if r == SOLID:
-                    pass
+                    map[mapx].append(cell.Cell(True,True))
                 else:
-                    pass
-                
-        #TODO: FOV
-        map[10][10] = DOOR + CLOSED + SOLID;                     
+                    map[mapx].append(cell.Cell(False,False))
+                    
+        fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible, self.isBlocking)                        
+        map[10][10] = cell.Door(False)
         self.drawmap()
         self.printex(x,y ,"@", refresh=False)
         self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG        
@@ -121,12 +107,16 @@ class Game:                # Main game class
             elif key == ";":
                 pass
             elif key == "o":
-                pass
+                d = self.askDirection()
+                if not map[d[0]][d[1]].type[2]:
+                    self.printex(0, 23, "There is no door!")
             elif key == "c":
-                pass
-            if map[x1][y1] != SOLID or map[x1][y1] != TRANSPARENT + SOLID :
+                d = self.askDirection()
+            if map[x1][y1].type[0]:
                 x,y = x1,y1
-                #TODO: FOV!
+                self.resetFov()
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
+                                 self.isBlocking)                        
             else:
                 x1,y1 = x,y
             self.drawmap()
@@ -181,21 +171,65 @@ class Game:                # Main game class
         mapx,mapy=0,0 
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):
-                if map[mapx][mapy] == SOLID:
+                if not map[mapx][mapy].type[1]:
                     mchar = "#"
-                if map[mapx][mapy] == TRANSPARENT + WALKABLE:
+                if map[mapx][mapy].type[1]:
                     mchar = "."
-                if map[mapx][mapy] == DOOR + CLOSED:
-                    mchar = "+"
-                if map[mapx][mapy] == DOOR + OPEN:
-                    mchar = "/"
+                if map[mapx][mapy].type[2]:
+                    if not map[mapx][mapy].door:
+                        mchar = "+"
+                    if map[mapx][mapy].door:
+                        mchar = "/"
                 if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
-                    if 0: #TODO: IF IN FOV
-                        if not expmap[mapx][mapy]:
-                            mchar = " "
-                    else:
-                        expmap[mapx][mapy] = 1
-                        stdscr.attron(screen.A_BOLD)
-                    self.printex(mapx,mapy,mchar,refresh=False)
-                    stdscr.attroff(screen.A_BOLD)
-                    
+                        if map[mapx][mapy].visible:
+                            stdscr.attron(screen.A_BOLD)
+                            map[mapx][mapy].explored = True
+                        else:
+                            if not map[mapx][mapy].explored:
+                                mchar = " " 
+                        self.printex(mapx,mapy,mchar,refresh=False)
+                        stdscr.attroff(screen.A_BOLD)
+
+    def isBlocking(self,x,y):
+        global map
+        return not map[x][y].type[0]
+    
+    def setVisible(self,x,y):
+        global map
+        map[x][y].visible = True
+
+    def resetFov(self):
+        global map
+        for mapx in xrange(MAP_W - 1):
+            for mapy in xrange(MAP_H):        
+                map[mapx][mapy].visible = False
+    def askDirection(self):
+        global x,y
+        global map
+        x1,y1 = x,y
+        self.printex(23, 0, "What direction:",refresh = True)
+        key = self.readkey()
+        if key == "8":
+            x1-=1
+        elif key == "2":
+            x1+=1
+        elif key == "4":
+            y1-=1
+        elif key == "6":
+            y1+=1
+        elif key == "7":
+            x1-=1
+            y1-=1
+        elif key == "9":
+            x1-=1
+            y1+=1
+        elif key == "1":
+            x1+=1
+            y1-=1
+        elif key == "3":
+            x1+=1
+            y1+=1
+        else:
+            self.printex(23, 0, "Wrong direction!",refresh = True)
+            return -1
+        return x1,y1
