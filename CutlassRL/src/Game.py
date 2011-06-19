@@ -39,15 +39,59 @@ class Game:                # Main game class
         screen.start_color()
         screen.use_default_colors()
         stdscr.keypad(1)
-    def mainloop(self):
-        """Mainloop of game.
+    def main_loop(self):
+        """Main loop of game.
             Useless for now.
         """
+        x,y = 5,5
+        x1,y1 = x,y
+        key = ""
+        stdscr.addstr(10,10,"Hello, World!")      
+        stdscr.addstr(x,y ,"@")
+        stdscr.addstr(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG        
+        stdscr.refresh()
+
         while 1:
-            try:
-                key = sys.stdin.read(1)
-            except KeyboardInterrupt:
+            stdscr.refresh()
+            stdscr.addstr(x,y ," ")
+            key = sys.stdin.read(1)
+            if key == "8":
+                x1-=1
+            elif key == "2":
+                x1+=1
+            elif key == "4":
+                y1-=1
+            elif key == "6":
+                y1+=1
+            elif key == "7":
+                x1-=1
+                y1-=1
+            elif key == "9":
+                x1-=1
+                y1+=1
+            elif key == "1":
+                x1+=1
+                y1-=1
+            elif key == "3":
+                x1+=1
+                y1+=1
+            elif key == "q":
                 self.end()
+                
+            if x1 <= 22 and x1 >= 2:
+                x = x1
+            else:
+                x1 = x
+            if y1 <= 60 and y1 >= 2:
+                y = y1
+            else:
+                y1 = y
+            stdscr.addstr(10,10,"Hello, World!")      
+            stdscr.addstr(x,y ,"@")
+            stdscr.addstr(0,0," " * 50) 
+            stdscr.addstr(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG  
+            stdscr.refresh() #TODO: add printex() function!
+
     def end(self):
         """End of game.
             Will reset console and stop curses.

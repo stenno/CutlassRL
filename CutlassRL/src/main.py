@@ -22,6 +22,11 @@ VERSION = 0.01;
 import Game  # importing main game library
 
 play = Game.Game()
-play.mainloop()
+
+try:
+    play.main_loop()
+except KeyboardInterrupt:
+    play.end()
+
 play.end()
 del play
