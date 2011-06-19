@@ -156,6 +156,9 @@ class Game:                # Main game class
         return key
     
     def drawmap(self):
+        """Drawmap function.
+            Will draw map. Working with fov.
+        """
         global map 
         mapx,mapy=0,0 
         for mapx in xrange(MAP_W - 1):
