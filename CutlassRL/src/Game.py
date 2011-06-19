@@ -39,6 +39,10 @@ class Game:                # Main game class
         screen.start_color()
         screen.use_default_colors()
         stdscr.keypad(1)
+        
+        #Color pairs
+        screen.init_pair(1,1,-1) #Red on black
+
     def main_loop(self):
         """Main loop of game.
             Useless for now.
@@ -46,15 +50,13 @@ class Game:                # Main game class
         x,y = 5,5
         x1,y1 = x,y
         key = ""
-        stdscr.addstr(10,10,"Hello, World!")      
-        stdscr.addstr(x,y ,"@")
-        stdscr.addstr(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG        
-        stdscr.refresh()
+        self.printex(10,10,"Hello, World!", refresh=False)      
+        self.printex(x,y ,"@", refresh=False)
+        self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG        
 
         while 1:
-            stdscr.refresh()
-            stdscr.addstr(x,y ," ")
-            key = sys.stdin.read(1)
+            self.printex(x,y ," ",refresh=False)
+            key = self.readkey()
             if key == "8":
                 x1-=1
             elif key == "2":
@@ -86,11 +88,10 @@ class Game:                # Main game class
                 y = y1
             else:
                 y1 = y
-            stdscr.addstr(10,10,"Hello, World!")      
-            stdscr.addstr(x,y ,"@")
-            stdscr.addstr(0,0," " * 50) 
-            stdscr.addstr(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG  
-            stdscr.refresh() #TODO: add printex() function!
+            self.printex(10,10,"Hello, World!",refresh=False)      
+            self.printex(x,y ,"@",refresh=False)
+            self.printex(0,0," " * 50,refresh=False)
+            self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG  
 
     def end(self):
         """End of game.
@@ -98,7 +99,32 @@ class Game:                # Main game class
         """
         screen.endwin()
         exit()
-    def debug_message(self):
+        
+    def debug_message(self,msg):
         """Debug message subroutine,
             Will say something like debugmsg: XXX
         """
+        stdscr.attron(screen.A_BOLD)
+        self.printex(10,10,"debugmsg: %s" % msg,1)
+        stdscr.attroff(screen.A_BOLD)
+        
+    def printex(self,x,y,text = "Someone had no words to say..." ,pair = None\
+                ,refresh = True):
+        """Print function.
+            usage game.printex(<x of your text>,<y>,<Your text>,
+            <color pair>,<refresh?>)
+        """
+        if pair:
+            stdscr.attron(screen.color_pair(1))            
+            
+        stdscr.addstr(x,y,text)
+        
+        if refresh:
+            stdscr.refresh()
+            
+        if pair != None:
+            stdscr.attroff(screen.color_pair(pair))
+
+    def readkey(self):
+        key = sys.stdin.read(1)
+        return key
