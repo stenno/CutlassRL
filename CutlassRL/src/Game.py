@@ -19,24 +19,29 @@ VERSION = 0.02;
 MAP_H=80
 MAP_W=24
 
+#TODO: REMOVE THAT SHIT, MAKE CLASS FOR CELL!!!!
 SOLID       = 0
 TRANSPARENT = 1
 WALKABLE    = 2
-EXPLORED    = 3 
+DOOR        = 3
+OPEN        = 4
+CLOSED      = 5
 
 import sys
-try:
-    import libtcodpy as libtcod # Loading libtcod library
-except ImportError:
-    print "Libtcod is missing."
-    exit()
+
+from Modules import *
+
 try:
     import curses               # Game will use curses to draw things
-    screen = curses;
 except ImportError:
     print "Curses library is missing."
     exit()
+
+
+screen = curses;
 stdscr = screen.initscr()
+
+
 class Game:                # Main game class
     def __init__(self):
         global screen,stdscr
@@ -54,21 +59,21 @@ class Game:                # Main game class
         screen.init_pair(2,1,-1) #Red on default
 
         stdscr.attron(screen.color_pair(1))
-        stdscr.attron(screen.A_DIM)
     def main_loop(self):
         """Main loop of game.
             Drawing things, generating map, playing
         """
         global map
-        global tcodmap
         global x,y
-        global expmap
+        
         x,y = 5,5
         x1,y1 = x,y
+
         key = ""
+        
         map = []  
-        expmap = []
-        tcodmap = libtcod.map_new(MAP_H,MAP_W)
+        #TODO: MAP AND CELLS!
+
         for mapx in xrange(MAP_W+1):
             map.append([])
             expmap.append([])
@@ -79,12 +84,12 @@ class Game:                # Main game class
                 map[mapx].append(r)
                 expmap[mapx].append(0)
                 if r == SOLID:
-                    libtcod.map_set_properties(tcodmap,mapy,mapx,False,False)
+                    pass
                 else:
-                    libtcod.map_set_properties(tcodmap,mapy,mapx,True,True)
-        
-        libtcod.map_compute_fov(tcodmap,y,x,5,True,\
-                                libtcod.FOV_SHADOW)                       
+                    pass
+                
+        #TODO: FOV
+        map[10][10] = DOOR + CLOSED + SOLID;                     
         self.drawmap()
         self.printex(x,y ,"@", refresh=False)
         self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG        
@@ -113,10 +118,15 @@ class Game:                # Main game class
                 y1+=1
             elif key == "q":
                 self.end()
-            if map[x1][y1] != SOLID:
+            elif key == ";":
+                pass
+            elif key == "o":
+                pass
+            elif key == "c":
+                pass
+            if map[x1][y1] != SOLID or map[x1][y1] != TRANSPARENT + SOLID :
                 x,y = x1,y1
-                libtcod.map_compute_fov(tcodmap,y,x,5,True,\
-                                        libtcod.FOV_SHADOW)                
+                #TODO: FOV!
             else:
                 x1,y1 = x,y
             self.drawmap()
@@ -175,8 +185,12 @@ class Game:                # Main game class
                     mchar = "#"
                 if map[mapx][mapy] == TRANSPARENT + WALKABLE:
                     mchar = "."
+                if map[mapx][mapy] == DOOR + CLOSED:
+                    mchar = "+"
+                if map[mapx][mapy] == DOOR + OPEN:
+                    mchar = "/"
                 if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
-                    if not(libtcod.map_is_in_fov(tcodmap, mapy, mapx)):
+                    if 0: #TODO: IF IN FOV
                         if not expmap[mapx][mapy]:
                             mchar = " "
                     else:
@@ -184,3 +198,4 @@ class Game:                # Main game class
                         stdscr.attron(screen.A_BOLD)
                     self.printex(mapx,mapy,mchar,refresh=False)
                     stdscr.attroff(screen.A_BOLD)
+                    
