@@ -16,6 +16,14 @@
 
 VERSION = 0.02;
 
+MAP_H=80
+MAP_W=24
+
+SOLID       = 0
+TRANSPARENT = 1
+WALKABLE    = 2
+EXPLORED    = 3 
+
 import sys
 try:
     import libtcodpy as libtcod # Loading libtcod library
@@ -41,19 +49,37 @@ class Game:                # Main game class
         stdscr.keypad(1)
         
         #Color pairs
-        screen.init_pair(1,1,-1) #Red on black
+        screen.init_pair(1,1,-1) #Red on default
 
     def main_loop(self):
         """Main loop of game.
-            Useless for now.
+            Drawing things, generating map, playing
         """
+        global map
+        global tcodmap
+        global x,y
         x,y = 5,5
         x1,y1 = x,y
         key = ""
-        self.printex(10,10,"Hello, World!", refresh=False)      
+        map = []  
+        tcodmap = libtcod.map_new(MAP_H,MAP_W)
+        for mapx in xrange(MAP_W+1):
+            map.append([])
+            for mapy in xrange(MAP_H+1):
+                r = SOLID
+                if mapx <= 21 and mapx >= 2 and mapy <= 60 and mapy >= 2:
+                    r = TRANSPARENT + WALKABLE
+                map[mapx].append(r)
+                if r == SOLID:
+                    libtcod.map_set_properties(tcodmap,mapy,mapx,False,False)
+                else:
+                    libtcod.map_set_properties(tcodmap,mapy,mapx,True,True)
+        
+        libtcod.map_compute_fov(tcodmap,y,x,5,True,\
+                                libtcod.FOV_SHADOW)                       
+        self.drawmap()
         self.printex(x,y ,"@", refresh=False)
         self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG        
-
         while 1:
             self.printex(x,y ," ",refresh=False)
             key = self.readkey()
@@ -79,16 +105,13 @@ class Game:                # Main game class
                 y1+=1
             elif key == "q":
                 self.end()
-                
-            if x1 <= 22 and x1 >= 2:
-                x = x1
+            if map[x1][y1] != SOLID:
+                x,y = x1,y1
+                libtcod.map_compute_fov(tcodmap,y,x,5,True,\
+                                        libtcod.FOV_SHADOW)                
             else:
-                x1 = x
-            if y1 <= 60 and y1 >= 2:
-                y = y1
-            else:
-                y1 = y
-            self.printex(10,10,"Hello, World!",refresh=False)      
+                x1,y1 = x,y
+            self.drawmap()
             self.printex(x,y ,"@",refresh=False)
             self.printex(0,0," " * 50,refresh=False)
             self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG  
@@ -126,5 +149,22 @@ class Game:                # Main game class
             stdscr.attroff(screen.color_pair(pair))
 
     def readkey(self):
+        """Readkey function.
+            reads one key from stdin.
+        """
         key = sys.stdin.read(1)
         return key
+    
+    def drawmap(self):
+        global map 
+        mapx,mapy=0,0 
+        for mapx in xrange(MAP_W - 1):
+            for mapy in xrange(MAP_H):
+                if map[mapx][mapy] == SOLID:
+                    mchar = "#"
+                if map[mapx][mapy] == TRANSPARENT + WALKABLE:
+                    mchar = "."
+                if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
+                    if not(libtcod.map_is_in_fov(tcodmap, mapy, mapx)):
+                        mchar = " "
+                    self.printex(mapx,mapy,mchar,refresh=False)
