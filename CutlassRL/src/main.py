@@ -17,7 +17,7 @@
 
 # CutlassRL - roguelike game.
 
-VERSION = 0.01;
+VERSION = 0.02;
 
 import Game  # importing main game library
 
