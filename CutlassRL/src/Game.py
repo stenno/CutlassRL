@@ -93,7 +93,52 @@ class Game:                # Main game class
             elif key == "q":
                 self.end()
             elif key == ";":
-                pass
+                self.printex(23, 0, "You")
+                screen.curs_set(1)
+                self.printex(x, y, "")
+                cx1,cy1,cx,cy = x,y,x,y
+                while key != "q":
+                    key = self.readkey()
+                    if key == "8":
+                        cx1-=1
+                    elif key == "2":
+                        cx1+=1
+                    elif key == "4":
+                        cy1-=1
+                    elif key == "6":
+                        cy1+=1
+                    elif key == "7":
+                        cx1-=1
+                        cy1-=1
+                    elif key == "9":
+                        cx1-=1
+                        cy1+=1
+                    elif key == "1":
+                        cx1+=1
+                        cy1-=1
+                    elif key == "3":
+                        cx1+=1
+                        cy1+=1
+                    if cx1 <= 22 and cx1 >= 1 and cy1 <= 61 and cy1 >= 1:
+                        cx,cy = cx1,cy1
+                    else:
+                        cx1,cy1 = cx,cy
+                    type = ""
+                    if not map[cx][cy].explored:
+                        type = "Unexplored"
+                    elif map[cx][cy].type[0] and not map[cx][cy].type[2]:
+                        type = "Ground"
+                    elif  not map[cx][cy].type[0] and not map[cx][cy].type[2]:
+                        type = "Wall"
+                    elif map[cx][cy].type[2]:
+                        if map[cx][cy].door:
+                            type = "Open door"
+                        else:
+                            type = "Closed door"
+                    self.printex(23, 0, type)
+                    self.printex(cx, cy, "")
+                    self.printex(23, 0, " " * 20, refresh = False)                                        
+                screen.curs_set(0)
             elif key == "o":
                 d = self.askDirection()
                 if map[d[0]][d[1]].type[2]:
@@ -196,6 +241,7 @@ class Game:                # Main game class
                                 mchar = " " 
                         self.printex(mapx,mapy,mchar,refresh=False)
                         stdscr.attroff(screen.A_BOLD)
+        stdscr.refresh()
 
     def isBlocking(self,x,y):
         global map
