@@ -105,7 +105,7 @@ class Game:                # Main game class
                 screen.curs_set(1)
                 self.printex(x, y, "")
                 cx1,cy1,cx,cy = x,y,x,y
-                while key != "q" or key != ";":
+                while key != "q":
                     key = self.readkey()
                     if key == "8" or key == "k":
                         cx1-=1
@@ -183,6 +183,8 @@ class Game:                # Main game class
                 if map[x1][y1].type[2]:
                     map[x1][y1].open()
                 x1,y1 = x,y
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
+                                 self.isBlocking)                        
             self.drawmap()
             self.printex(x,y ,"@",refresh=False)
             self.printex(0,0," " * 50,refresh=False)
@@ -254,8 +256,24 @@ class Game:                # Main game class
                             map[mapx][mapy].explored = True
                         else:
                             if not map[mapx][mapy].explored:
-                                attr = 1
-                                mchar = " " 
+                                    mchar = " "
+                            if map[mapx][mapy].lit:
+                                line = self.get_line(y, x, mapy, mapx)  
+                                for j in line:
+                                    vis = True
+                                    if not map[j[1]][j[0]].type[1]:
+                                        attr = 5
+                                        vis = False                                        
+                                        break
+                                else:
+                                    if vis:
+                                        stdscr.attron(screen.A_BOLD)
+                                        map[j[1]][j[0]].visible = True
+                                        map[j[1]][j[0]].explored = True
+                                               
+                                    
+                            else:
+                                attr = 5
                         stdscr.attron(screen.color_pair(attr))
                         self.printex(mapx,mapy,mchar,refresh=False)
                         stdscr.attroff(screen.A_BOLD)
@@ -321,14 +339,54 @@ class Game:                # Main game class
             for mapy in xrange(62):
                 if mmap[mapx][mapy] == "2":
                     map[mapx][mapy] = cell.Door(False)
+                    map[mapx][mapy].close()
                 elif mmap[mapx][mapy] == "3":
                     map[mapx][mapy] = cell.Door(True)
+                    map[mapx][mapy].open()
                 elif mmap[mapx][mapy] == "0":
                     map[mapx][mapy] = cell.Cell(False,False)
                 elif mmap[mapx][mapy] == "1":
                     map[mapx][mapy] = cell.Cell(True,True)
                 elif mmap[mapx][mapy] == "4":
                     x,y = mapx,mapy
+                elif mmap[mapx][mapy] == "5":
+                    map[mapx][mapy] = cell.Cell(True,True)
+                    map[mapx][mapy].lit = True
+                    
         save.close()
     def save(self):
         pass
+    
+    def get_line(self,x1, y1, x2, y2):
+        points = []
+        issteep = abs(y2-y1) > abs(x2-x1)
+        if issteep:
+            x1, y1 = y1, x1
+            x2, y2 = y2, x2
+        rev = False
+        if x1 > x2:
+            x1, x2 = x2, x1
+            y1, y2 = y2, y1
+            rev = True
+        deltax = x2 - x1
+        deltay = abs(y2-y1)
+        error = int(deltax / 2)
+        y = y1
+        ystep = None
+        if y1 < y2:
+            ystep = 1
+        else:
+            ystep = -1
+        for x in range(x1, x2 + 1):
+            if issteep:
+                points.append((y, x))
+            else:
+                points.append((x, y))
+            error -= deltay
+            if error < 0:
+                y += ystep
+                error += deltax
+        # Reverse the list if the coordinates were reversed
+        if rev:
+            points.reverse()
+        return points
