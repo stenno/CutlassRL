@@ -22,6 +22,8 @@ MAP_W=24
 SAVE = "game.sav"
 
 import sys
+import pickle
+import os.path
 
 from Modules import *
 
@@ -64,8 +66,10 @@ class Game:                # Main game class
         """Main loop of game.
             Drawing things, generating map, playing
         """
-        global map
+        global map,fovblock
         global x,y
+        
+        fovblock = False
         
         x,y = 5,5
 
@@ -80,8 +84,8 @@ class Game:                # Main game class
                     map[mapx].append(cell.Cell(True,True))
                 else:
                     map[mapx].append(cell.Cell(False,False))
-                    
-        self.load()
+        if os.path.isfile(SAVE):           
+            self.load()
         x1,y1 = x,y
         fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible, self.isBlocking)                        
         self.drawmap()
@@ -100,6 +104,26 @@ class Game:                # Main game class
                 y1+=1
             elif key == "q":
                 self.end()
+            elif key == "s":
+                x,y = x1,y1
+                self.save()
+            elif key == "r":
+                self.load()
+                x1,y1 = x,y
+                self.resetFov()
+                self.drawmap()
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
+                                 self.isBlocking)                        
+                self.printex(0,0,"")
+            elif key == "x":
+                map[x][y].type = (False,False,False)
+            elif key == "d":
+                map[x][y] = cell.Door(True)
+                map[x][y].close()
+            elif key == "v":
+                map[x][y].lit = not map[x][y].lit
+            elif key == "z":
+                fovblock = not fovblock
             elif key == ";":
                 self.printex(23, 0, "You")
                 screen.curs_set(1)
@@ -157,6 +181,10 @@ class Game:                # Main game class
                 d = self.askDirection()
                 if map[d[0]][d[1]].type[2]:
                     map[d[0]][d[1]].close()
+            elif key == "b":
+                d = self.askDirection()
+                if d[0] <= 21 and d[0] >= 2 and d[1] <= 60 and d[1] >= 2:
+                    map[d[0]][d[1]].type = (True, True, False)
             else:
                 if not map[x][y].type[2]:
                     if key == "7" or key == "y":
@@ -285,8 +313,8 @@ class Game:                # Main game class
         return not map[x][y].type[0]
     
     def setVisible(self,x,y):
-        global map
-        map[x][y].visible = True
+        global map,fovblock
+        map[x][y].visible = not fovblock
 
     def resetFov(self):
         global map
@@ -327,36 +355,16 @@ class Game:                # Main game class
     def load(self):
         global map,x,y
         save = open(SAVE,'r')
-        mapx,mapy=0,0 
-        mmap = []
-        for mapx in xrange(22):
-            mmap.append([])
-            for mapy in xrange(62):
-                mmap[mapx].append(save.read(1))
-        mapx,mapy=0,0
-         
-        for mapx in xrange(22):
-            for mapy in xrange(62):
-                if mmap[mapx][mapy] == "2":
-                    map[mapx][mapy] = cell.Door(False)
-                    map[mapx][mapy].close()
-                elif mmap[mapx][mapy] == "3":
-                    map[mapx][mapy] = cell.Door(True)
-                    map[mapx][mapy].open()
-                elif mmap[mapx][mapy] == "0":
-                    map[mapx][mapy] = cell.Cell(False,False)
-                elif mmap[mapx][mapy] == "1":
-                    map[mapx][mapy] = cell.Cell(True,True)
-                elif mmap[mapx][mapy] == "4":
-                    x,y = mapx,mapy
-                elif mmap[mapx][mapy] == "5":
-                    map[mapx][mapy] = cell.Cell(True,True)
-                    map[mapx][mapy].lit = True
-                    
-        save.close()
+        map = pickle.load(save)
+        x = map[0][0].pc[0]
+        y = map[0][0].pc[1]
+        
     def save(self):
-        pass
-    
+        global map,x,y
+        save = open(SAVE,'w')
+        map[0][0].pc = [x,y]
+        pickle.dump(map, save)
+
     def get_line(self,x1, y1, x2, y2):
         points = []
         issteep = abs(y2-y1) > abs(x2-x1)
