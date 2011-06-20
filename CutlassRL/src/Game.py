@@ -87,12 +87,13 @@ class Game:                # Main game class
         if os.path.isfile(SAVE):           
             self.load()
         x1,y1 = x,y
+        map[x][y-1] = cell.Mob("Mob","M",map[x][y-1])
         fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible, self.isBlocking)                        
         self.drawmap()
         self.printex(x,y ,"@", refresh=False)
-        self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG        
+        self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG 
         while 1:
-            self.printex(23, 0, " " * 20, refresh = False)
+            self.printex(23, 0, " " * 80, refresh = False)
             key = self.readkey()
             if key == "8" or key == "k":
                 x1-=1
@@ -160,6 +161,8 @@ class Game:                # Main game class
                         type = "Unexplored"
                     elif map[cx][cy].type[0] and not map[cx][cy].type[2]:
                         type = "Ground"
+                    elif map[cx][cy].mob:
+                        type = map[cx][cy].name
                     elif  not map[cx][cy].type[0] and not map[cx][cy].type[2]:
                         type = "Wall"
                     elif map[cx][cy].type[2]:
@@ -175,16 +178,28 @@ class Game:                # Main game class
                 screen.curs_set(0)
             elif key == "o":
                 d = self.askDirection()
-                if map[d[0]][d[1]].type[2]:
-                    map[d[0]][d[1]].open()
+                if d:
+                    if map[d[0]][d[1]].type[2]:
+                        map[d[0]][d[1]].open()
             elif key == "c":
                 d = self.askDirection()
-                if map[d[0]][d[1]].type[2]:
-                    map[d[0]][d[1]].close()
+                if d:
+                    if map[d[0]][d[1]].type[2]:
+                        map[d[0]][d[1]].close()
+            elif key == "f":
+                d = self.askDirection()
+                if d:
+                    if map[d[0]][d[1]].mob:
+                        map[d[0]][d[1]] = map[d[0]][d[1]].undercell 
+            elif key == "a":
+                self.amnesia()
+                self.printex(23, 0, \
+                             "Thinking of Maud you forget everything else.")
             elif key == "b":
                 d = self.askDirection()
-                if d[0] <= 21 and d[0] >= 2 and d[1] <= 60 and d[1] >= 2:
-                    map[d[0]][d[1]].type = (True, True, False)
+                if d:
+                    if d[0] <= 21 and d[0] >= 2 and d[1] <= 60 and d[1] >= 2:
+                        map[d[0]][d[1]].type = (True, True, False)
             else:
                 if not map[x][y].type[2]:
                     if key == "7" or key == "y":
@@ -271,12 +286,15 @@ class Game:                # Main game class
                 if map[mapx][mapy].type[1]:
                     attr = 1;
                     mchar = "."
+                if map[mapx][mapy].mob:
+                    attr = map[mapx][mapy].color
+                    mchar = map[mapx][mapy].char
                 if map[mapx][mapy].type[2]:
                     if not map[mapx][mapy].door:
-                        attr = 4;                        
+                        attr = 4                        
                         mchar = "+"
                     if map[mapx][mapy].door:
-                        attr = 4;
+                        attr = 4
                         mchar = "-"
                 if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
                         if map[mapx][mapy].visible:
@@ -310,7 +328,7 @@ class Game:                # Main game class
 
     def isBlocking(self,x,y):
         global map
-        return not map[x][y].type[0]
+        return not map[x][y].type[1]
     
     def setVisible(self,x,y):
         global map,fovblock
@@ -321,6 +339,13 @@ class Game:                # Main game class
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):        
                 map[mapx][mapy].visible = False
+
+    def amnesia(self):
+        global map
+        for mapx in xrange(MAP_W - 1):
+            for mapy in xrange(MAP_H):        
+                map[mapx][mapy].explored = False
+ 
     def askDirection(self):
         global x,y
         global map
@@ -358,12 +383,14 @@ class Game:                # Main game class
         map = pickle.load(save)
         x = map[0][0].pc[0]
         y = map[0][0].pc[1]
+        self.printex(23,0,"Loaded...")
         
     def save(self):
         global map,x,y
         save = open(SAVE,'w')
         map[0][0].pc = [x,y]
         pickle.dump(map, save)
+        self.printex(23,0,"Saved...")
 
     def get_line(self,x1, y1, x2, y2):
         points = []

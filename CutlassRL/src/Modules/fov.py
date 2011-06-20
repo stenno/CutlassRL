@@ -225,7 +225,7 @@ def __visitCoord(visited, startX, startY, x, y, dx, dy, viewIndex, \
     # It is now known that the current coordinate is between the steep
     # and shallow lines of the current view.
 
-    isBlocked = False
+#    isBlocked = False
 
     # The real quadrant coordinates
     realX = x * dx
