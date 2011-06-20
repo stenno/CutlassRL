@@ -88,13 +88,13 @@ class Game:                # Main game class
         while 1:
             self.printex(23, 0, " " * 20, refresh = False)
             key = self.readkey()
-            if key == "8":
+            if key == "8" or key == "k":
                 x1-=1
-            elif key == "2":
+            elif key == "2" or key == "j":
                 x1+=1
-            elif key == "4":
+            elif key == "4" or key == "h":
                 y1-=1
-            elif key == "6":
+            elif key == "6" or key == "l":
                 y1+=1
             elif key == "q":
                 self.end()
@@ -103,26 +103,26 @@ class Game:                # Main game class
                 screen.curs_set(1)
                 self.printex(x, y, "")
                 cx1,cy1,cx,cy = x,y,x,y
-                while key != "q":
+                while key != "q" or key != ";":
                     key = self.readkey()
-                    if key == "8":
+                    if key == "8" or key == "k":
                         cx1-=1
-                    elif key == "2":
+                    elif key == "2" or key == "j":
                         cx1+=1
-                    elif key == "4":
+                    elif key == "4" or key == "h":
                         cy1-=1
-                    elif key == "6":
+                    elif key == "6" or key == "l":
                         cy1+=1
-                    elif key == "7":
+                    elif key == "7" or key == "y":
                         cx1-=1
                         cy1-=1
-                    elif key == "9":
+                    elif key == "9" or key == "u":
                         cx1-=1
                         cy1+=1
-                    elif key == "1":
+                    elif key == "1" or key == "b":
                         cx1+=1
                         cy1-=1
-                    elif key == "3":
+                    elif key == "3" or key == "n":
                         cx1+=1
                         cy1+=1
                     if cx1 <= 22 and cx1 >= 1 and cy1 <= 61 and cy1 >= 1:
@@ -157,16 +157,16 @@ class Game:                # Main game class
                     map[d[0]][d[1]].close()
             else:
                 if not map[x][y].type[2]:
-                    if key == "7":
+                    if key == "7" or key == "y":
                         x1-=1
                         y1-=1
-                    elif key == "9":
+                    elif key == "9" or key == "u":
                         x1-=1
                         y1+=1
-                    elif key == "1":
+                    elif key == "1" or key == "b":
                         x1+=1
                         y1-=1
-                    elif key == "3":
+                    elif key == "3" or key == "n":
                         x1+=1
                         y1+=1
                     if map[x1][y1].type[2]:
@@ -245,13 +245,14 @@ class Game:                # Main game class
                         mchar = "+"
                     if map[mapx][mapy].door:
                         attr = 4;
-                        mchar = "/"
+                        mchar = "-"
                 if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
                         if map[mapx][mapy].visible:
                             stdscr.attron(screen.A_BOLD)
                             map[mapx][mapy].explored = True
                         else:
                             if not map[mapx][mapy].explored:
+                                attr = 1
                                 mchar = " " 
                         stdscr.attron(screen.color_pair(attr))
                         self.printex(mapx,mapy,mchar,refresh=False)
@@ -278,24 +279,24 @@ class Game:                # Main game class
         x1,y1 = x,y
         self.printex(23, 0, "What direction:")
         key = self.readkey()
-        if key == "8":
+        if key == "8" or key == "k":
             x1-=1
-        elif key == "2":
+        elif key == "2" or key == "j":
             x1+=1
-        elif key == "4":
+        elif key == "4" or key == "h":
             y1-=1
-        elif key == "6":
+        elif key == "6" or key == "l":
             y1+=1
-        elif key == "7":
+        elif key == "7" or key == "y":
             x1-=1
             y1-=1
-        elif key == "9":
+        elif key == "9" or key == "u":
             x1-=1
             y1+=1
-        elif key == "1":
+        elif key == "1" or key == "b":
             x1+=1
             y1-=1
-        elif key == "3":
+        elif key == "3" or key == "n":
             x1+=1
             y1+=1
         else:
