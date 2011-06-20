@@ -19,6 +19,8 @@ VERSION = 0.02;
 MAP_H=80
 MAP_W=24
 
+SAVE = "game.sav"
+
 import sys
 
 from Modules import *
@@ -66,7 +68,6 @@ class Game:                # Main game class
         global x,y
         
         x,y = 5,5
-        x1,y1 = x,y
 
         key = ""
         
@@ -80,8 +81,9 @@ class Game:                # Main game class
                 else:
                     map[mapx].append(cell.Cell(False,False))
                     
+        self.load()
+        x1,y1 = x,y
         fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible, self.isBlocking)                        
-        map[10][10] = cell.Door(False)
         self.drawmap()
         self.printex(x,y ,"@", refresh=False)
         self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG        
@@ -303,3 +305,30 @@ class Game:                # Main game class
             self.printex(23, 0, "Wrong direction!")
             return False
         return x1,y1
+    
+    def load(self):
+        global map,x,y
+        save = open(SAVE,'r')
+        mapx,mapy=0,0 
+        mmap = []
+        for mapx in xrange(22):
+            mmap.append([])
+            for mapy in xrange(62):
+                mmap[mapx].append(save.read(1))
+        mapx,mapy=0,0
+         
+        for mapx in xrange(22):
+            for mapy in xrange(62):
+                if mmap[mapx][mapy] == "2":
+                    map[mapx][mapy] = cell.Door(False)
+                elif mmap[mapx][mapy] == "3":
+                    map[mapx][mapy] = cell.Door(True)
+                elif mmap[mapx][mapy] == "0":
+                    map[mapx][mapy] = cell.Cell(False,False)
+                elif mmap[mapx][mapy] == "1":
+                    map[mapx][mapy] = cell.Cell(True,True)
+                elif mmap[mapx][mapy] == "4":
+                    x,y = mapx,mapy
+        save.close()
+    def save(self):
+        pass
