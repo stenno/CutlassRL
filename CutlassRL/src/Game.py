@@ -80,7 +80,7 @@ class Game:                # Main game class
         self.printex(x,y ,"@", refresh=False)
         self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG        
         while 1:
-            self.printex(x,y ," ",refresh=False)
+            self.printex(23, 0, " " * 20, refresh = False)
             key = self.readkey()
             if key == "8":
                 x1-=1
@@ -90,28 +90,35 @@ class Game:                # Main game class
                 y1-=1
             elif key == "6":
                 y1+=1
-            elif key == "7":
-                x1-=1
-                y1-=1
-            elif key == "9":
-                x1-=1
-                y1+=1
-            elif key == "1":
-                x1+=1
-                y1-=1
-            elif key == "3":
-                x1+=1
-                y1+=1
             elif key == "q":
                 self.end()
             elif key == ";":
                 pass
             elif key == "o":
                 d = self.askDirection()
-                if not map[d[0]][d[1]].type[2]:
-                    self.printex(0, 23, "There is no door!")
+                if map[d[0]][d[1]].type[2]:
+                    map[d[0]][d[1]].open()
             elif key == "c":
                 d = self.askDirection()
+                if map[d[0]][d[1]].type[2]:
+                    map[d[0]][d[1]].close()
+            else:
+                if not map[x][y].type[2]:
+                    if key == "7":
+                        x1-=1
+                        y1-=1
+                    elif key == "9":
+                        x1-=1
+                        y1+=1
+                    elif key == "1":
+                        x1+=1
+                        y1-=1
+                    elif key == "3":
+                        x1+=1
+                        y1+=1
+                    if map[x1][y1].type[2]:
+                        x1,y1 = x,y
+
             if map[x1][y1].type[0]:
                 x,y = x1,y1
                 self.resetFov()
@@ -207,7 +214,7 @@ class Game:                # Main game class
         global x,y
         global map
         x1,y1 = x,y
-        self.printex(23, 0, "What direction:",refresh = True)
+        self.printex(23, 0, "What direction:")
         key = self.readkey()
         if key == "8":
             x1-=1
@@ -230,6 +237,6 @@ class Game:                # Main game class
             x1+=1
             y1+=1
         else:
-            self.printex(23, 0, "Wrong direction!",refresh = True)
-            return -1
+            self.printex(23, 0, "Wrong direction!")
+            return False
         return x1,y1
