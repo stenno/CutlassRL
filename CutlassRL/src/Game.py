@@ -48,7 +48,13 @@ class Game:                # Main game class
         
         #Color pairs
         screen.init_pair(1,-1,-1) #Default
-        screen.init_pair(2,1,-1) #Red on default
+        screen.init_pair(2,screen.COLOR_RED,-1) 
+        screen.init_pair(3,screen.COLOR_GREEN,-1) 
+        screen.init_pair(4,screen.COLOR_YELLOW,-1)
+        screen.init_pair(5,screen.COLOR_BLUE,-1) 
+        screen.init_pair(6,screen.COLOR_MAGENTA,-1)
+        screen.init_pair(7,screen.COLOR_CYAN,-1) 
+        screen.init_pair(8,screen.COLOR_WHITE,-1)
 
         stdscr.attron(screen.color_pair(1))
         
@@ -135,6 +141,8 @@ class Game:                # Main game class
                             type = "Open door"
                         else:
                             type = "Closed door"
+                    if [cx,cy] == [x,y]:
+                        type = "You"
                     self.printex(23, 0, type)
                     self.printex(cx, cy, "")
                     self.printex(23, 0, " " * 20, refresh = False)                                        
@@ -170,6 +178,8 @@ class Game:                # Main game class
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
                                  self.isBlocking)                        
             else:
+                if map[x1][y1].type[2]:
+                    map[x1][y1].open()
                 x1,y1 = x,y
             self.drawmap()
             self.printex(x,y ,"@",refresh=False)
@@ -224,13 +234,17 @@ class Game:                # Main game class
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):
                 if not map[mapx][mapy].type[1]:
+                    attr = 4;
                     mchar = "#"
                 if map[mapx][mapy].type[1]:
+                    attr = 1;
                     mchar = "."
                 if map[mapx][mapy].type[2]:
                     if not map[mapx][mapy].door:
+                        attr = 4;                        
                         mchar = "+"
                     if map[mapx][mapy].door:
+                        attr = 4;
                         mchar = "/"
                 if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
                         if map[mapx][mapy].visible:
@@ -239,8 +253,10 @@ class Game:                # Main game class
                         else:
                             if not map[mapx][mapy].explored:
                                 mchar = " " 
+                        stdscr.attron(screen.color_pair(attr))
                         self.printex(mapx,mapy,mchar,refresh=False)
                         stdscr.attroff(screen.A_BOLD)
+                        stdscr.attroff(screen.color_pair(attr))
         stdscr.refresh()
 
     def isBlocking(self,x,y):
