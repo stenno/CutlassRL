@@ -16,13 +16,14 @@ class Mob(Cell):
     id = 0
     lit = True
     color = 4
-    type = (False,True,False)
+    type = (False,True)
     def __init__(self,name,char,undercell):
         self.name = name
         self.char = char
         self.undercell = undercell        
 class Door(Cell):
     opened = True
+    door = True
     def __init__(self,isOpen):
         self.opened = isOpen 
         self.type = (False,False)
