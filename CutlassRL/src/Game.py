@@ -96,7 +96,6 @@ class Game:                # Main game class
         self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
                      +str(turns)) #DEBUG 
         turn = False
-        self.aStarLoadMap()
         while 1:
             self.printex(23, 0, " " * 60, refresh = False)
             key = self.readkey()
@@ -286,6 +285,7 @@ class Game:                # Main game class
                 for mapx in xrange(MAP_W - 1):
                     for mapy in xrange(MAP_H):
                         if gamemap[mapx][mapy].mob:
+                            self.aStarLoadMap()
                             self.aStarPathfind(mapx, mapy,x,y)
             ####
             self.drawmap()
@@ -528,24 +528,24 @@ class Game:                # Main game class
     def aStarLoadMap(self):
         global gamemap
         global mapdata
+        mapx,mapy = 0, 0
         mapdata = []
-        mapx,mapy = 0,0
         for line in xrange(len(gamemap)):
             mapdata.append([])
             for cell in xrange(len(gamemap[line])):
                 if gamemap[line][cell].type[0]:
                     try:
-                        mapdata[mapy].append(0)
+                        mapdata[line].append(0)
                     except IndexError:
                         self.debug_message("Err, %d : %d" % (mapx,mapy))
                         self.readkey()
                 else:
                     try:
-                        mapdata[mapy].append(1)
+                        mapdata[line].append(1)
                     except IndexError:
                         self.debug_message("Err, %d : %d" % (mapx,mapy))
                         self.readkey()
-            
+            mapy += 1
 
     def aStarPathfind(self,mx,my,yx,yy):
         global mapdata
