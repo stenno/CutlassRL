@@ -39,7 +39,7 @@ except ImportError:
 
 class Game:                # Main game class
     def __init__(self):
-        global screen,stdscr,map
+        global screen,stdscr
         """Initializer of Game class.
             Will start curses.
         """
@@ -64,15 +64,12 @@ class Game:                # Main game class
 
         stdscr.attron(screen.color_pair(1))
         
-        map = []
-        
     def main_loop(self):
         """Main loop of game.
             Drawing things, generating map, playing
         """
         global gamemap,fovblock
         global x,y
-        
         fovblock = False
         
         x,y = 5,5
