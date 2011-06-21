@@ -239,7 +239,7 @@ class Game:                # Main game class
                     dx = d[0]
                     dy = d[1]
                     if dx <= 21 and dx >= 2 and dy <= 60 and dy >= 2:
-                        gamemap[dx][dy].type = (True, True)
+                        gamemap[dx][dy] = cell.Cell(True, True)
             elif key == "t":
                 ucell = gamemap[x][y]
                 gamemap[x][y] = cell.Mob("Mob","M",ucell)
