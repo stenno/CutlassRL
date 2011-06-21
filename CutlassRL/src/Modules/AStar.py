@@ -1,190 +1,137 @@
-# -*- coding: utf-8 -*-
-#     This file is part of CutlassRL.
-#
-#    CutlassRL is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    CutlassRL is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
+# A* Shortest Path Algorithm
+# http://en.wikipedia.org/wiki/A*
+# FB - 201012256
+from heapq import heappush, heappop # for priority queue
+import math
+import time
+import random
 
-# Version 1.1
-#
-# Changes in 1.1: 
-# In order to optimize the list handling I implemented the location id (lid) attribute.
-# This will make the all list serahces to become extremely more optimized.
-
-class Path:
-    def __init__(self,nodes, totalCost):
-        self.nodes = nodes;
-        self.totalCost = totalCost;
-
-    def getNodes(self): 
-        return self.nodes    
-
-    def getTotalMoveCost(self):
-        return self.totalCost
-
-class Node:
-    def __init__(self,location,mCost,lid,parent=None):
-        self.location = location # where is this node located
-        self.mCost = mCost # total move cost to reach this node
-        self.parent = parent # parent node
-        self.score = 0 # calculated score for this node
-        self.lid = lid # set the location id - unique for each location in the map
-
-    def __eq__(self, n):
-        if n.lid == self.lid:
-            return 1
+class node:
+    xPos = 0 # x position
+    yPos = 0 # y position
+    distance = 0 # total distance already travelled to reach the node
+    priority = 0 # priority = distance + remaining distance estimate
+    def __init__(self, xPos, yPos, distance, priority):
+        self.xPos = xPos
+        self.yPos = yPos
+        self.distance = distance
+        self.priority = priority
+    def __lt__(self, other): # comparison method for priority queue
+        return self.priority < other.priority
+    def updatePriority(self, xDest, yDest):
+        self.priority = self.distance + self.estimate(xDest, yDest) * 10 # A*
+    # give higher priority to going straight instead of diagonally
+    def nextMove(self, dirs, d): # d: direction to move
+        if dirs == 8 and d % 2 != 0:
+            self.distance += 14
         else:
-            return 0
+            self.distance += 10
+    # Estimation function for the remaining distance to the goal.
+    def estimate(self, xDest, yDest):
+        xd = xDest - self.xPos
+        yd = yDest - self.yPos
+        # Euclidian Distance
+        d = math.sqrt(xd * xd + yd * yd)
+        # Manhattan distance
+        # d = abs(xd) + abs(yd)
+        # Chebyshev distance
+        # d = max(abs(xd), abs(yd))
+        return(d)
 
-class AStar:
+# A-star algorithm.
+# The path returned will be a string of digits of directions.
+def pathFind(the_map, n, m, dirs, dx, dy, xA, yA, xB, yB):
+    closed_nodes_map = [] # map of closed (tried-out) nodes
+    open_nodes_map = [] # map of open (not-yet-tried) nodes
+    dir_map = [] # map of dirs
+    row = [0] * n
+    for i in range(m): # create 2d arrays
+        closed_nodes_map.append(list(row))
+        open_nodes_map.append(list(row))
+        dir_map.append(list(row))
 
-    def __init__(self,maphandler):
-        self.mh = maphandler
-                
-    def _getBestOpenNode(self):
-        bestNode = None        
-        for n in self.on:
-            if not bestNode:
-                bestNode = n
-            else:
-                if n.score<=bestNode.score:
-                    bestNode = n
-        return bestNode
+    pq = [[], []] # priority queues of open (not-yet-tried) nodes
+    pqi = 0 # priority queue index
+    # create the start node and push into list of open nodes
+    n0 = node(xA, yA, 0, 0)
+    n0.updatePriority(xB, yB)
+    heappush(pq[pqi], n0)
+    open_nodes_map[yA][xA] = n0.priority # mark it on the open nodes map
 
-    def _tracePath(self,n):
-        nodes = [];
-        totalCost = n.mCost;
-        p = n.parent;
-        nodes.insert(0,n);       
-        
-        while 1:
-            if p.parent is None: 
-                break
+    # A* search
+    while len(pq[pqi]) > 0:
+        # get the current node w/ the highest priority
+        # from the list of open nodes
+        n1 = pq[pqi][0] # top node
+        n0 = node(n1.xPos, n1.yPos, n1.distance, n1.priority)
+        x = n0.xPos
+        y = n0.yPos
+        heappop(pq[pqi]) # remove the node from the open list
+        open_nodes_map[y][x] = 0
+        closed_nodes_map[y][x] = 1 # mark it on the closed nodes map
 
-            nodes.insert(0,p)
-            p=p.parent
-        
-        return Path(nodes,totalCost)
+        # quit searching when the goal is reached
+        # if n0.estimate(xB, yB) == 0:
+        if x == xB and y == yB:
+            # generate the path from finish to start
+            # by following the dirs
+            path = ''
+            while not (x == xA and y == yA):
+                j = dir_map[y][x]
+                c = str((j + dirs / 2) % dirs)
+                path = c + path
+                x += dx[j]
+                y += dy[j]
+            return path
 
-    def _handleNode(self,node,end):        
-        i = self.o.index(node.lid)
-        self.on.pop(i)
-        self.o.pop(i)
-        self.c.append(node.lid)
+        # generate moves (child nodes) in all possible dirs
+        for i in range(dirs):
+            xdx = x + dx[i]
+            ydy = y + dy[i]
+            if not (xdx < 0 or xdx > n-1 or ydy < 0 or ydy > m - 1
+                    or the_map[ydy][xdx] == 1 or closed_nodes_map[ydy][xdx] == 1):
+                # generate a child node
+                m0 = node(xdx, ydy, n0.distance, n0.priority)
+                m0.nextMove(dirs, i)
+                m0.updatePriority(xB, yB)
+                # if it is not in the open list then add into that
+                if open_nodes_map[ydy][xdx] == 0:
+                    open_nodes_map[ydy][xdx] = m0.priority
+                    heappush(pq[pqi], m0)
+                    # mark its parent node direction
+                    dir_map[ydy][xdx] = (i + dirs / 2) % dirs
+                elif open_nodes_map[ydy][xdx] > m0.priority:
+                    # update the priority
+                    open_nodes_map[ydy][xdx] = m0.priority
+                    # update the parent direction
+                    dir_map[ydy][xdx] = (i + dirs / 2) % dirs
+                    # replace the node
+                    # by emptying one pq to the other one
+                    # except the node to be replaced will be ignored
+                    # and the new node will be pushed in instead
+                    while not (pq[pqi][0].xPos == xdx and pq[pqi][0].yPos == ydy):
+                        heappush(pq[1 - pqi], pq[pqi][0])
+                        heappop(pq[pqi])
+                    heappop(pq[pqi]) # remove the target node
+                    # empty the larger size priority queue to the smaller one
+                    if len(pq[pqi]) > len(pq[1 - pqi]):
+                        pqi = 1 - pqi
+                    while len(pq[pqi]) > 0:
+                        heappush(pq[1-pqi], pq[pqi][0])
+                        heappop(pq[pqi])       
+                    pqi = 1 - pqi
+                    heappush(pq[pqi], m0) # add the better node instead
+    return '' # if no route found
 
-        nodes = self.mh.getAdjacentNodes(node,end)
-                   
-        for n in nodes:
-            if n.location == end:
-                # reached the destination
-                return n
-            elif n.lid in self.c:
-                # already in close, skip this
-                continue
-            elif n.lid in self.o:
-                # already in open, check if better score
-                i = self.o.index(n.lid)
-                on = self.on[i];
-                if n.mCost<on.mCost:
-                    self.on.pop(i);
-                    self.o.pop(i);
-                    self.on.append(n);
-                    self.o.append(n.lid);
-            else:
-                # new node, append to open list
-                self.on.append(n);                
-                self.o.append(n.lid);
-
-        return None
-
-    def findPath(self,fromlocation, tolocation):
-        self.o = []
-        self.on = []
-        self.c = []
-
-        end = tolocation
-        fnode = self.mh.getNode(fromlocation)
-        self.on.append(fnode)
-        self.o.append(fnode.lid)
-        nextNode = fnode 
-               
-        while nextNode is not None: 
-            finish = self._handleNode(nextNode,end)
-            if finish:                
-                return self._tracePath(finish)
-            nextNode=self._getBestOpenNode()
-                
-        return None
-      
-class SQ_Location:
-    """A simple Square Map Location implementation"""
-    def __init__(self,x,y):
-        self.x = x
-        self.y = y
-
-    def __eq__(self, l):
-        """MUST BE IMPLEMENTED"""
-        if l.x == self.x and l.y == self.y:
-            return 1
-        else:
-            return 0
-
-class SQ_MapHandler:
-    """A simple Square Map implementation"""
-
-    def __init__(self,mapdata,width,height):
-        self.m = mapdata
-        self.w = width
-        self.h = height
-
-    def getNode(self, location):
-        """MUST BE IMPLEMENTED"""
-        x = location.x
-        y = location.y
-        if x<0 or x>=self.w or y<0 or y>=self.h:
-            return None
-        d = self.m[(y*self.w)+x]
-        if d == -1:
-            return None
-
-        return Node(location,d,((y*self.w)+x));                
-
-    def getAdjacentNodes(self, curnode, dest):
-        """MUST BE IMPLEMENTED"""        
-        result = []
-       
-        cl = curnode.location
-        dl = dest
-        
-        n = self._handleNode(cl.x+1,cl.y,curnode,dl.x,dl.y)
-        if n: result.append(n)
-        n = self._handleNode(cl.x-1,cl.y,curnode,dl.x,dl.y)
-        if n: result.append(n)
-        n = self._handleNode(cl.x,cl.y+1,curnode,dl.x,dl.y)
-        if n: result.append(n)
-        n = self._handleNode(cl.x,cl.y-1,curnode,dl.x,dl.y)
-        if n: result.append(n)
-                
-        return result
-
-    def _handleNode(self,x,y,fromnode,destx,desty):
-        n = self.getNode(SQ_Location(x,y))
-        if n is not None:
-            dx = max(x,destx) - min(x,destx)
-            dy = max(y,desty) - min(y,desty)
-            emCost = dx+dy
-            n.mCost += fromnode.mCost                                   
-            n.score = n.mCost+emCost
-            n.parent=fromnode
-            return n
-
-        return None    
+# MAIN
+def getPath(xA,yA,xB,yB,bmap,n,m):
+    dirs = 8
+    x,y=0,0
+    dx = [1, 1, 0, -1, -1, -1, 0, 1]
+    dy = [0, 1, 1, 1, 0, -1, -1, -1]
+    route = pathFind(bmap, n, m, dirs, dx, dy, xA, yA, xB, yB)
+    if len(route):
+        j = int(route[1])
+        x += dx[j]
+        y += dy[j]
+    return (x,y)

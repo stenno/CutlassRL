@@ -96,6 +96,7 @@ class Game:                # Main game class
         self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
                      +str(turns)) #DEBUG 
         turn = False
+        self.aStarLoadMap()
         while 1:
             self.printex(23, 0, " " * 60, refresh = False)
             key = self.readkey()
@@ -281,6 +282,11 @@ class Game:                # Main game class
             # Mob's turn
             if turn:
                 turns += 1
+                mapx,mapy = 0,0
+                for mapx in xrange(MAP_W - 1):
+                    for mapy in xrange(MAP_H):
+                        if gamemap[mapx][mapy].mob:
+                            self.aStarPathfind(mapx, mapy,x,y)
             ####
             self.drawmap()
             self.printex(x,y ,"@",refresh=False)
@@ -517,8 +523,34 @@ class Game:                # Main game class
         else:
             return ret
         
-    def distance_to(self, x1,y1,x2,y2):
-        """return the distance to another object"""
-        dx = x1 - x2
-        dy = y1 - y2
-        return math.sqrt(dx ** 2 + dy ** 2)
+    def aStarLoadMap(self):
+        global gamemap
+        global mapdata
+        mapdata = []
+        mapx,mapy = 0,0
+        for line in gamemap:
+            mapdata.append([])
+            mapy = 0
+            for cell in line:
+                if cell.type[0]:
+                    try:
+                        mapdata[mapx].append(0)
+                    except IndexError:
+                        self.debug_message("Err, %d : %d" % (mapx,mapy))
+                        self.readkey()
+                else:
+                    try:
+                        mapdata[mapx].append(1)
+                    except IndexError:
+                        self.debug_message("Err, %d : %d" % (mapx,mapy))
+                        self.readkey()
+                mapy += 1
+            mapx += 1
+            
+
+    def aStarPathfind(self,mx,my,yx,yy):
+        global mapdata
+        (mx1,my1) = AStar.getPath(mx, my, yx, yy, mapdata, MAP_W - 1, MAP_H - 1)
+        self.moveMob(mx, my, mx + mx1, my + my1)
+        self.debug_message("Moved mob to %d : %d" %(mx + mx1, my + my1))
+        self.readkey()
