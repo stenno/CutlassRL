@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
 
-VERSION = 0.02;
+VERSION = 0.03;
 
 MAP_H=80
 MAP_W=24
@@ -39,7 +39,7 @@ except ImportError:
 
 class Game:                # Main game class
     def __init__(self):
-        global screen,stdscr
+        global screen,stdscr,map
         """Initializer of Game class.
             Will start curses.
         """
@@ -64,11 +64,13 @@ class Game:                # Main game class
 
         stdscr.attron(screen.color_pair(1))
         
+        map = []
+        
     def main_loop(self):
         """Main loop of game.
             Drawing things, generating map, playing
         """
-        global map,fovblock
+        global gamemap,fovblock
         global x,y
         
         fovblock = False
@@ -77,53 +79,73 @@ class Game:                # Main game class
 
         key = ""
         
-        map = []  
+        turns = 0
+        
+        gamemap = []  
 
         for mapx in xrange(MAP_W+1):
-            map.append([])
+            gamemap.append([])
             for mapy in xrange(MAP_H+1):
                 if mapx <= 21 and mapx >= 2 and mapy <= 60 and mapy >= 2:
-                    map[mapx].append(cell.Cell(True,True))
+                    gamemap[mapx].append(cell.Cell(True,True))
                 else:
-                    map[mapx].append(cell.Cell(False,False))
+                    gamemap[mapx].append(cell.Cell(False,False))
         if os.path.isfile(SAVE):           
             self.load()
         x1,y1 = x,y
-        fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible, self.isBlocking)                        
+        fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible, self.isBlocking)                        
         self.drawmap()
         self.printex(x,y ,"@", refresh=False)
-        self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG 
+        self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
+                     +str(turns)) #DEBUG 
+        turn = False
         while 1:
             self.printex(23, 0, " " * 60, refresh = False)
             key = self.readkey()
             if key == "8" or key == "k":
                 x1-=1
+                turn = True
             elif key == "2" or key == "j":
                 x1+=1
+                turn = True
             elif key == "4" or key == "h":
                 y1-=1
+                turn = True
             elif key == "6" or key == "l":
                 y1+=1
+                turn = True
             elif key == "q":
                 self.end()
             elif key == "s":
                 x,y = x1,y1
                 self.save()
+            elif key == "m":
+                self.printex(23,0,"")
+                stdscr.getstr()
             elif key == "r":
                 self.load()
                 x1,y1 = x,y
                 self.resetFov()
                 self.drawmap()
-                fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                  self.isBlocking)                        
                 self.printex(0,0,"")
             elif key == "x":
-                map[x][y].type = (False,False,False)
+                gamemap[x][y].type = (False,False,False)
             elif key == "d":
-                map[x][y] = cell.Door(True)
-                map[x][y].close()
+                gamemap[x][y] = cell.Door(True)
+                gamemap[x][y].close()
             elif key == "v":
-                map[x][y].lit = not map[x][y].lit
+                gamemap[x][y].lit = not gamemap[x][y].lit
+            elif key == "p":
+                d = self.askDirection()
+                rx = d[0]
+                ry = d[1]
+            elif key == "g":
+#                self.moveMob(rx, ry, rx, ry + 1)
+                if self.inLos(x,y,rx,ry):
+                    self.debug_message("%d : %d is in los" % (rx,ry))
+                    self.readkey()
             elif key == "z":
                 fovblock = not fovblock
             elif key == "e":
@@ -162,16 +184,23 @@ class Game:                # Main game class
                     else:
                         cx1,cy1 = cx,cy
                     type = ""
-                    if not map[cx][cy].explored:
+                    if not gamemap[cx][cy].explored:
                         type = "Unexplored"
-                    elif map[cx][cy].type[0] and not map[cx][cy].type[2]:
+                    elif gamemap[cx][cy].type[0] and not gamemap[cx][cy].door:
                         type = "Ground"
-                    elif map[cx][cy].mob:
-                        type = map[cx][cy].name
-                    elif  not map[cx][cy].type[0] and not map[cx][cy].type[2]:
+                    elif gamemap[cx][cy].mob:
+                        if gamemap[cx][cy].visible:
+                            type = gamemap[cx][cy].name
+                        else:
+                            if gamemap[cx][cy].undercell.type[2]:
+                                type = "Open door"
+                            else:
+                                type = "Ground"
+                    elif  not gamemap[cx][cy].type[0] and not\
+                     gamemap[cx][cy].door:
                         type = "Wall"
-                    elif map[cx][cy].type[2]:
-                        if map[cx][cy].door:
+                    elif gamemap[cx][cy].door:
+                        if gamemap[cx][cy].opened:
                             type = "Open door"
                         else:
                             type = "Closed door"
@@ -184,18 +213,24 @@ class Game:                # Main game class
             elif key == "o":
                 d = self.askDirection()
                 if d:
-                    if map[d[0]][d[1]].type[2]:
-                        map[d[0]][d[1]].open()
+                    dx = d[0]
+                    dy = d[1]
+                    if gamemap[dx][dy].door:
+                        gamemap[dx][dy].open()
             elif key == "c":
                 d = self.askDirection()
                 if d:
-                    if map[d[0]][d[1]].type[2]:
-                        map[d[0]][d[1]].close()
+                    dx = d[0]
+                    dy = d[1]
+                    if gamemap[dx][dy].door:
+                        gamemap[dx][dy].close()
             elif key == "f":
                 d = self.askDirection()
                 if d:
-                    if map[d[0]][d[1]].mob:
-                        map[d[0]][d[1]] = map[d[0]][d[1]].undercell 
+                    dx = d[0]
+                    dy = d[1]
+                    if gamemap[dx][dy].mob:
+                        gamemap[dx][dy] = gamemap[dx][dy].undercell 
             elif key == "a":
                 self.amnesia()
                 self.printex(23, 0, \
@@ -203,46 +238,58 @@ class Game:                # Main game class
             elif key == "b":
                 d = self.askDirection()
                 if d:
-                    if d[0] <= 21 and d[0] >= 2 and d[1] <= 60 and d[1] >= 2:
-                        map[d[0]][d[1]].type = (True, True, False)
+                    dx = d[0]
+                    dy = d[1]
+                    if dx <= 21 and dx >= 2 and dy <= 60 and dy >= 2:
+                        gamemap[dx][dy].type = (True, True)
             elif key == "t":
-                ucell = map[x][y]
-                map[x][y] = cell.Mob("Mob","M",ucell)
+                ucell = gamemap[x][y]
+                gamemap[x][y] = cell.Mob("Mob","M",ucell)
+            elif key == "w":
+                turn = True
             else:
-                if not map[x][y].type[2]:
+                if not gamemap[x][y].door:
                     if key == "7" or key == "y":
                         x1-=1
                         y1-=1
+                        turn = True
                     elif key == "9" or key == "u":
                         x1-=1
                         y1+=1
+                        turn = True
                     elif key == "1" or key == "b":
                         x1+=1
                         y1-=1
+                        turn = True
                     elif key == "3" or key == "n":
                         x1+=1
                         y1+=1
-                    if map[x1][y1].type[2]:
+                        turn = True
+                    else:
+                        turn = False
+                    if gamemap[x1][y1].door:
                         x1,y1 = x,y
-            if map[x1][y1].type[0]:
+            if gamemap[x1][y1].type[0]:
                 x,y = x1,y1
                 self.resetFov()
-                fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                  self.isBlocking)                        
             else:
-                if map[x1][y1].type[2]:
-                    map[x1][y1].open()
+                if gamemap[x1][y1].door:
+                    gamemap[x1][y1].open()
                 x1,y1 = x,y
-                fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
-                                 self.isBlocking)                        
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                                 self.isBlocking)
+                turn = False                        
             # Mob's turn
-#            while map[x][y].type[0]:
- #               pass
+            if turn:
+                turns += 1
             ####
             self.drawmap()
             self.printex(x,y ,"@",refresh=False)
             self.printex(0,0," " * 50,refresh=False)
-            self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG  
+            self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
+                         +str(turns)) #DEBUG 
 
     def end(self):
         """End of game.
@@ -280,41 +327,52 @@ class Game:                # Main game class
         """Readkey function.
             reads one key from stdin.
         """
-        key = sys.stdin.read(1)
+        try:
+            key = sys.stdin.read(1)
+        except IOError:
+            key = ""
         return key
     
     def drawmap(self):
         """Drawmap function.
             Will draw map. Working with fov.
         """
-        global map,expmap,screen,stdscr
+        global gamemap,screen,stdscr
         mapx,mapy=0,0 
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):
-                if not map[mapx][mapy].type[1]:
+                if not gamemap[mapx][mapy].type[1]:
                     attr = 4;
                     mchar = "#"
-                if map[mapx][mapy].type[1]:
+                else:
                     attr = 1;
                     mchar = "."
-                if map[mapx][mapy].mob:
-                    attr = map[mapx][mapy].color
-                    mchar = map[mapx][mapy].char
-                if map[mapx][mapy].type[2]:
-                    if not map[mapx][mapy].door:
+                if gamemap[mapx][mapy].mob:
+                    if not self.inLos(x, y, mapx, mapy):
+                        if gamemap[mapx][mapy].undercell.door:
+                            attr = 4
+                            mchar = "-"
+                        else:
+                            attr = 1
+                            mchar = "."
+                    else:
+                        attr = gamemap[mapx][mapy].color
+                        mchar = gamemap[mapx][mapy].char                        
+                if gamemap[mapx][mapy].door:
+                    if not gamemap[mapx][mapy].opened:
                         attr = 4                        
                         mchar = "+"
-                    if map[mapx][mapy].door:
+                    else:
                         attr = 4
                         mchar = "-"
                 if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
-                        if map[mapx][mapy].visible:
+                        if gamemap[mapx][mapy].visible:
                             stdscr.attron(screen.A_BOLD)
-                            map[mapx][mapy].explored = True
+                            gamemap[mapx][mapy].explored = True
                         else:
-                            if not map[mapx][mapy].explored:
+                            if not gamemap[mapx][mapy].explored:
                                     mchar = " "
-                            if map[mapx][mapy].lit:
+                            if gamemap[mapx][mapy].lit:
                                 line = self.get_line(y, x, mapy, mapx) 
                                 b = 0 
                                 for j in line:
@@ -323,16 +381,16 @@ class Game:                # Main game class
                                         attr = 5
                                         vis = False                                        
                                         break
-
-                                    if not map[j[1]][j[0]].type[1]:
+                                    jy = j[0]
+                                    jx = j[1]
+                                    if not gamemap[jx][jy].type[1]:
                                         b = 1
                                 else:
                                     if vis:
                                         stdscr.attron(screen.A_BOLD)
-                                        map[j[1]][j[0]].visible = True
-                                        map[j[1]][j[0]].explored = True
+                                        gamemap[jx][jy].visible = True
+                                        gamemap[jx][jy].explored = True
                                                
-                                    
                             else:
                                 attr = 5
                         stdscr.attron(screen.color_pair(attr))
@@ -342,28 +400,28 @@ class Game:                # Main game class
         stdscr.refresh()
 
     def isBlocking(self,x,y):
-        global map
-        return not map[x][y].type[1]
-    
+        global gamemap
+        return not gamemap[x][y].type[1]
+
     def setVisible(self,x,y):
-        global map,fovblock
-        map[x][y].visible = not fovblock
+    
+        global gamemap,fovblock
+        gamemap[x][y].visible = not fovblock
 
     def resetFov(self):
-        global map
+        global gamemap
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):        
-                map[mapx][mapy].visible = False
+                gamemap[mapx][mapy].visible = False
 
     def amnesia(self):
-        global map
+        global gamemap
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):        
-                map[mapx][mapy].explored = False
+                gamemap[mapx][mapy].explored = False
  
     def askDirection(self):
         global x,y
-        global map
         x1,y1 = x,y
         self.printex(23, 0, "What direction:")
         key = self.readkey()
@@ -393,18 +451,18 @@ class Game:                # Main game class
         return x1,y1
     
     def load(self):
-        global map,x,y
+        global gamemap,x,y
         save = open(SAVE,'r')
-        map = pickle.load(save)
-        x = map[0][0].pc[0]
-        y = map[0][0].pc[1]
+        gamemap = pickle.load(save)
+        x = gamemap[0][0].pc[0]
+        y = gamemap[0][0].pc[1]
         self.printex(23,0,"Loaded...")
         
     def save(self):
-        global map,x,y
+        global gamemap,x,y
         save = open(SAVE,'w')
-        map[0][0].pc = [x,y]
-        pickle.dump(map, save)
+        gamemap[0][0].pc = [x,y]
+        pickle.dump(gamemap, save)
         self.printex(23,0,"Saved...")
 
     def get_line(self,x1, y1, x2, y2):
@@ -441,8 +499,29 @@ class Game:                # Main game class
             points.reverse()
         return points
     def moveMob(self,x,y,mx,my):
-        global map
-        ucell = map[mx][my]
-        map[mx][my] = map[x][y]
-        map[x][y] = map[x][y].undercell
-        map[mx][my].undercell = ucell
+        global gamemap
+        ucell = gamemap[mx][my]
+        gamemap[mx][my] = gamemap[x][y]
+        gamemap[x][y] = gamemap[x][y].undercell
+        gamemap[mx][my].undercell = ucell
+        
+    def inLos(self,x1,y1,x,y):
+        global gamemap
+        b = False
+        ret = True
+        line = self.get_line(y, x, y1, x1) 
+        for j in line:
+            if b:
+                ret = False
+            jx = j[1]
+            jy = j[0]
+            if not gamemap[jx][jy].type[1]:
+                b = True
+        else:
+            return ret
+        
+    def distance_to(self, x1,y1,x2,y2):
+        """return the distance to another object"""
+        dx = x1 - x2
+        dy = y1 - y2
+        return math.sqrt(dx ** 2 + dy ** 2)
