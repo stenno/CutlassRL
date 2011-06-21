@@ -24,6 +24,7 @@ SAVE = "game.sav"
 import sys
 import pickle
 import os.path
+import math
 
 from Modules import *
 
@@ -34,8 +35,6 @@ except ImportError:
     exit()
 
 
-screen = curses;
-stdscr = screen.initscr()
 
 
 class Game:                # Main game class
@@ -44,12 +43,15 @@ class Game:                # Main game class
         """Initializer of Game class.
             Will start curses.
         """
+        screen = curses;
+        stdscr = screen.initscr()
+        
         screen.curs_set(0)
         screen.cbreak()
         screen.start_color()
         screen.use_default_colors()
         stdscr.keypad(1)
-        
+
         #Color pairs
         screen.init_pair(1,-1,-1) #Default
         screen.init_pair(2,screen.COLOR_RED,-1) 
@@ -87,7 +89,6 @@ class Game:                # Main game class
         if os.path.isfile(SAVE):           
             self.load()
         x1,y1 = x,y
-        map[x][y-1] = cell.Mob("Mob","M",map[x][y-1])
         fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible, self.isBlocking)                        
         self.drawmap()
         self.printex(x,y ,"@", refresh=False)
@@ -125,6 +126,10 @@ class Game:                # Main game class
                 map[x][y].lit = not map[x][y].lit
             elif key == "z":
                 fovblock = not fovblock
+            elif key == "e":
+                d = self.askDirection()
+                if d:
+                    self.moveMob(d[0],d[1], x, y)
             elif key == ";":
                 self.printex(23, 0, "You")
                 screen.curs_set(1)
@@ -200,6 +205,9 @@ class Game:                # Main game class
                 if d:
                     if d[0] <= 21 and d[0] >= 2 and d[1] <= 60 and d[1] >= 2:
                         map[d[0]][d[1]].type = (True, True, False)
+            elif key == "t":
+                ucell = map[x][y]
+                map[x][y] = cell.Mob("Mob","M",ucell)
             else:
                 if not map[x][y].type[2]:
                     if key == "7" or key == "y":
@@ -228,6 +236,9 @@ class Game:                # Main game class
                 x1,y1 = x,y
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
                                  self.isBlocking)                        
+            # Mob's turn
+            #TODO: AI
+            ####
             self.drawmap()
             self.printex(x,y ,"@",refresh=False)
             self.printex(0,0," " * 50,refresh=False)
@@ -304,13 +315,17 @@ class Game:                # Main game class
                             if not map[mapx][mapy].explored:
                                     mchar = " "
                             if map[mapx][mapy].lit:
-                                line = self.get_line(y, x, mapy, mapx)  
+                                line = self.get_line(y, x, mapy, mapx) 
+                                b = 0 
                                 for j in line:
                                     vis = True
-                                    if not map[j[1]][j[0]].type[1]:
+                                    if b:
                                         attr = 5
                                         vis = False                                        
                                         break
+
+                                    if not map[j[1]][j[0]].type[1]:
+                                        b = 1
                                 else:
                                     if vis:
                                         stdscr.attron(screen.A_BOLD)
@@ -425,3 +440,9 @@ class Game:                # Main game class
         if rev:
             points.reverse()
         return points
+    def moveMob(self,x,y,mx,my):
+        global map
+        ucell = map[mx][my]
+        map[mx][my] = map[x][y]
+        map[x][y] = map[x][y].undercell
+        map[mx][my].undercell = ucell
