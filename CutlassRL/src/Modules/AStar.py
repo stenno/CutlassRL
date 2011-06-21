@@ -130,7 +130,7 @@ def getPath(xA,yA,xB,yB,bmap,n,m):
     dx = [1, 1, 0, -1, -1, -1, 0, 1]
     dy = [0, 1, 1, 1, 0, -1, -1, -1]
     route = pathFind(bmap, n, m, dirs, dx, dy, xA, yA, xB, yB)
-    if len(route):
+    if len(route) > 1:
         j = int(route[1])
         x += dx[j]
         y += dy[j]

@@ -459,12 +459,14 @@ class Game:                # Main game class
         gamemap = pickle.load(save)
         x = gamemap[0][0].pc[0]
         y = gamemap[0][0].pc[1]
+        fovblock = gamemap[0][0].fov
         self.printex(23,0,"Loaded...")
         
     def save(self):
         global gamemap,x,y
         save = open(SAVE,'w')
         gamemap[0][0].pc = [x,y]
+        gamemap[0][0].fov = fovblock
         pickle.dump(gamemap, save)
         self.printex(23,0,"Saved...")
 
@@ -528,29 +530,25 @@ class Game:                # Main game class
         global mapdata
         mapdata = []
         mapx,mapy = 0,0
-        for line in gamemap:
+        for line in xrange(len(gamemap)):
             mapdata.append([])
-            mapy = 0
-            for cell in line:
-                if cell.type[0]:
+            for cell in xrange(len(gamemap[line])):
+                if gamemap[line][cell].type[0]:
                     try:
-                        mapdata[mapx].append(0)
+                        mapdata[mapy].append(0)
                     except IndexError:
                         self.debug_message("Err, %d : %d" % (mapx,mapy))
                         self.readkey()
                 else:
                     try:
-                        mapdata[mapx].append(1)
+                        mapdata[mapy].append(1)
                     except IndexError:
                         self.debug_message("Err, %d : %d" % (mapx,mapy))
                         self.readkey()
-                mapy += 1
-            mapx += 1
             
 
     def aStarPathfind(self,mx,my,yx,yy):
         global mapdata
-        (mx1,my1) = AStar.getPath(mx, my, yx, yy, mapdata, MAP_W - 1, MAP_H - 1)
-        self.moveMob(mx, my, mx + mx1, my + my1)
-        self.debug_message("Moved mob to %d : %d" %(mx + mx1, my + my1))
-        self.readkey()
+        (mx1,my1) = AStar.getPath(mx, my, yx, yy, mapdata, MAP_H - 1, MAP_W - 1)
+        if (mx1,my1) != (0,0):
+            self.moveMob(mx, my, mx + mx1, my + my1)

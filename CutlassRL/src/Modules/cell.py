@@ -5,6 +5,7 @@ class Cell:
     door= False
     lit = False      #All cells are unlit by default
     pc = [5,5]       #Player's x and y
+    fov = False
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent)
         
