@@ -233,7 +233,7 @@ class Game:                # Main game class
                 self.amnesia()
                 self.printex(23, 0, \
                              "Thinking of Maud you forget everything else.")
-            elif key == "b":
+            elif key == "d":
                 d = self.askDirection()
                 if d:
                     dx = d[0]
