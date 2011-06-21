@@ -4,7 +4,6 @@ class Cell:
     mob = False
     lit = False      #All cells are unlit by default
     pc = [5,5]       #Player's x and y
-    
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent,False,)
         

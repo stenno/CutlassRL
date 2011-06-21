@@ -94,7 +94,7 @@ class Game:                # Main game class
         self.printex(x,y ,"@", refresh=False)
         self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)) #DEBUG 
         while 1:
-            self.printex(23, 0, " " * 80, refresh = False)
+            self.printex(23, 0, " " * 60, refresh = False)
             key = self.readkey()
             if key == "8" or key == "k":
                 x1-=1
@@ -224,7 +224,6 @@ class Game:                # Main game class
                         y1+=1
                     if map[x1][y1].type[2]:
                         x1,y1 = x,y
-
             if map[x1][y1].type[0]:
                 x,y = x1,y1
                 self.resetFov()
@@ -237,7 +236,8 @@ class Game:                # Main game class
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
                                  self.isBlocking)                        
             # Mob's turn
-            #TODO: AI
+#            while map[x][y].type[0]:
+ #               pass
             ####
             self.drawmap()
             self.printex(x,y ,"@",refresh=False)
