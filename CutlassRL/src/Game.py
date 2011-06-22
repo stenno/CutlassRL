@@ -537,6 +537,10 @@ class Game:                # Main game class
         (mx1,my1) = AStar.getPath(mx, my, yx, yy, gamemap, MAP_W, MAP_H)
         if (mx1,my1) != (0,0):
             self.moveMob(mx, my, mx + mx1, my + my1)
+            
     def near(self,x1,y1,x2,y2):
-        if y1 >= x - 1 and x1 >= y - 1 and y1 - 1 <= x1 and x - 1 <= y:
+        if x1 - x2 >= -1 and x1 - x2 <= 1 and\
+                 y1 - y2 >= -1 and y1 - y2 <= 1:
             return True
+        else:
+            return False
