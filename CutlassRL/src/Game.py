@@ -287,8 +287,8 @@ class Game:                # Main game class
                 else:
                     if a == 8:
                         nospace = True
-                        self.debug_message("No space left")
-                        self.readkey()
+#                        self.debug_message("No space left")
+#                        self.readkey()
                     else:
                         nospace = False
                 mapx,mapy = 0,0
@@ -300,14 +300,18 @@ class Game:                # Main game class
                                     self.printex(23, 0, "%s hits!" %\
                                               gamemap[mapx][mapy].name)
                                     
-                            if self.inLos(x, y, mapx, mapy) and not nospace\
-                            and self.near(x, y, mapx, mapy) :
+                            if self.inLos(x, y, mapx, mapy) and not nospace:
+                            #                            and self.near(x, y, mapx, mapy) :
                                 self.aStarPathfind(mapx, mapy,x,y)
                             else:
-                                mx = random.randint(-1,1)
-                                my = random.randint(-1,1)
-                                if gamemap[mapx + mx][mapy + my].type[0]:
-                                    self.moveMob(mapx, mapy,mapx + mx,mapy + my)
+                                if random.randint(0,1):
+                                    mx = random.randint(-1,1)
+                                    my = random.randint(-1,1)
+                                    if gamemap[mapx + mx][mapy + my].type[0]:
+                                        self.moveMob(mapx, mapy,mapx + mx,mapy + my)
+                                else:
+                                    self.aStarPathfind(mapx, mapy,x,y)
+                                    
             ####
             self.drawmap()
             self.printex(x,y ,"@",refresh=False)
@@ -561,6 +565,7 @@ class Game:                # Main game class
         
 #TODO:
 # More smart mobs
+# UniCurses
 # Items
 # Random map generation
 # Give debug commands to special user (wizard)
@@ -573,4 +578,10 @@ class Game:                # Main game class
 # Mob can move for too long distances in one turn
 # Save won't save rx and ry
 # Lit walls are seen from outside of room
-# Saves should work similar to nethack
+# Saves should save more info 
+
+#
+#  __           _       _  _    ___    
+# /        _/_  /  _   /  /    /   /  /
+#/   /   / /   /  / // |  \   /___/  /
+#\__ \__/ /_  /_ /_// _/  _/ /  \   /____
