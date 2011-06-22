@@ -77,6 +77,7 @@ class Game:                # Main game class
         key = ""
         
         turns = 0
+        nospace = False
         
         gamemap = []  
 
@@ -278,21 +279,34 @@ class Game:                # Main game class
             # Mob's turn
             if turn:
                 turns += 1
+                a = 0
+                for sx in xrange(-2,2):
+                    for sy in xrange(-2,2):
+                        if gamemap[sx + x][sy + y].type[0] == False:
+                            a += 1
+                else:
+                    if a == 8:
+                        nospace = True
+                        self.debug_message("No space left")
+                        self.readkey()
+                    else:
+                        nospace = False
                 mapx,mapy = 0,0
                 for mapx in xrange(MAP_W - 1):
                     for mapy in xrange(MAP_H):
                         if gamemap[mapx][mapy].mob and not\
-                        gamemap[mapx][mapy].frozen:
+                        gamemap[mapx][mapy].frozen :
                             if self.near(x,y,mapx,mapy):
                                     self.printex(23, 0, "%s hits!" %\
                                               gamemap[mapx][mapy].name)
-                            if self.inLos(x, y, mapx, mapy):
+                                    
+                            if self.inLos(x, y, mapx, mapy) and not nospace\
+                            and self.near(x, y, mapx, mapy) :
                                 self.aStarPathfind(mapx, mapy,x,y)
                             else:
                                 mx = random.randint(-1,1)
                                 my = random.randint(-1,1)
-                                if (mx,my) != (0,0) and\
-                                gamemap[mapx + mx][mapy + my].type[0]:
+                                if gamemap[mapx + mx][mapy + my].type[0]:
                                     self.moveMob(mapx, mapy,mapx + mx,mapy + my)
             ####
             self.drawmap()
@@ -544,3 +558,19 @@ class Game:                # Main game class
             return True
         else:
             return False
+        
+#TODO:
+# More smart mobs
+# Items
+# Random map generation
+# Give debug commands to special user (wizard)
+# xlogfile
+#BUGS:
+# "No space left" when you have free space around you
+# Mobs are moving randomly
+# You can see mob as blank square even if it is unseen
+# 'g' and 'e' crashes game
+# Mob can move for too long distances in one turn
+# Save won't save rx and ry
+# Lit walls are seen from outside of room
+# Saves should work similar to nethack
