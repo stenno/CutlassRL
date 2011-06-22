@@ -6,6 +6,7 @@ class Cell:
     lit = False      #All cells are unlit by default
     pc = [5,5]       #Player's x and y
     fov = False
+    frozen = False
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent)
         

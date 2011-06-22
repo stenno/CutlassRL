@@ -139,10 +139,7 @@ class Game:                # Main game class
                 rx = d[0]
                 ry = d[1]
             elif key == "g":
-#                self.moveMob(rx, ry, rx, ry + 1)
-                if self.inLos(x,y,rx,ry):
-                    self.debug_message("%d : %d is in los" % (rx,ry))
-                    self.readkey()
+                gamemap[rx][ry] = cell.Mob("Dragon","D",gamemap[rx][ry])
             elif key == "z":
                 fovblock = not fovblock
             elif key == "e":
@@ -284,8 +281,12 @@ class Game:                # Main game class
                 mapx,mapy = 0,0
                 for mapx in xrange(MAP_W - 1):
                     for mapy in xrange(MAP_H):
-                        if gamemap[mapx][mapy].mob:
+                        if gamemap[mapx][mapy].mob and not\
+                        gamemap[mapx][mapy].frozen:
                             self.aStarLoadMap()
+                            if self.near(x,y,mapx,mapy):
+                                    self.printex(23, 0, "%s hits!" %\
+                                              gamemap[mapx][mapy].name)
                             self.aStarPathfind(mapx, mapy,x,y)
             ####
             self.drawmap()
@@ -549,6 +550,9 @@ class Game:                # Main game class
 
     def aStarPathfind(self,mx,my,yx,yy):
         global mapdata
-        (mx1,my1) = AStar.getPath(mx, my, yx, yy, mapdata, MAP_H - 1, MAP_W - 1)
+        (mx1,my1) = AStar.getPath(mx, my, yx, yy, mapdata, MAP_W, MAP_H)
         if (mx1,my1) != (0,0):
             self.moveMob(mx, my, mx + mx1, my + my1)
+    def near(self,x1,y1,x2,y2):
+        if y1 >= x - 1 and x1 >= y - 1 and y1 - 1 <= x1 and x - 1 <= y:
+            return True

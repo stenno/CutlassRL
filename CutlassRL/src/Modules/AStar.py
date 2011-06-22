@@ -3,8 +3,6 @@
 # FB - 201012256
 from heapq import heappush, heappop # for priority queue
 import math
-import time
-import random
 
 class node:
     xPos = 0 # x position
@@ -89,7 +87,7 @@ def pathFind(the_map, n, m, dirs, dx, dy, xA, yA, xB, yB):
             xdx = x + dx[i]
             ydy = y + dy[i]
             if not (xdx < 0 or xdx > n-1 or ydy < 0 or ydy > m - 1
-                    or the_map[ydy][xdx] == 1 or closed_nodes_map[ydy][xdx] == 1):
+                    or the_map[xdx][ydy] == 1 or closed_nodes_map[ydy][xdx] == 1):
                 # generate a child node
                 m0 = node(xdx, ydy, n0.distance, n0.priority)
                 m0.nextMove(dirs, i)
@@ -129,9 +127,9 @@ def getPath(xA,yA,xB,yB,bmap,n,m):
     x,y=0,0
     dx = [1, 1, 0, -1, -1, -1, 0, 1]
     dy = [0, 1, 1, 1, 0, -1, -1, -1]
-    route = pathFind(bmap, m, n, dirs, dx, dy, xA, yA, xB, yB)
+    route = pathFind(bmap, n, m, dirs, dx, dy, xA, yA, xB, yB)
     if len(route) > 1:
-        j = int(route[1])
+        j = int(route[0])
         x += dx[j]
         y += dy[j]
     return (x,y)
