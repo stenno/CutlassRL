@@ -283,7 +283,6 @@ class Game:                # Main game class
                     for mapy in xrange(MAP_H):
                         if gamemap[mapx][mapy].mob and not\
                         gamemap[mapx][mapy].frozen:
-                            self.aStarLoadMap()
                             if self.near(x,y,mapx,mapy):
                                     self.printex(23, 0, "%s hits!" %\
                                               gamemap[mapx][mapy].name)
@@ -532,32 +531,10 @@ class Game:                # Main game class
                 b = True
         else:
             return ret
-        
-    def aStarLoadMap(self):
-        global gamemap
-        global mapdata
-        mapx,mapy = 0, 0
-        mapdata = []
-        for line in xrange(len(gamemap)):
-            mapdata.append([])
-            for cell in xrange(len(gamemap[line])):
-                if gamemap[line][cell].type[0]:
-                    try:
-                        mapdata[line].append(0)
-                    except IndexError:
-                        self.debug_message("Err, %d : %d" % (mapx,mapy))
-                        self.readkey()
-                else:
-                    try:
-                        mapdata[line].append(1)
-                    except IndexError:
-                        self.debug_message("Err, %d : %d" % (mapx,mapy))
-                        self.readkey()
-            mapy += 1
 
     def aStarPathfind(self,mx,my,yx,yy):
-        global mapdata
-        (mx1,my1) = AStar.getPath(mx, my, yx, yy, mapdata, MAP_W, MAP_H)
+        global gamemap
+        (mx1,my1) = AStar.getPath(mx, my, yx, yy, gamemap, MAP_W, MAP_H)
         if (mx1,my1) != (0,0):
             self.moveMob(mx, my, mx + mx1, my + my1)
     def near(self,x1,y1,x2,y2):

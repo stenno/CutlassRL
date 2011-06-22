@@ -87,7 +87,7 @@ def pathFind(the_map, n, m, dirs, dx, dy, xA, yA, xB, yB):
             xdx = x + dx[i]
             ydy = y + dy[i]
             if not (xdx < 0 or xdx > n-1 or ydy < 0 or ydy > m - 1
-                    or the_map[xdx][ydy] == 1 or closed_nodes_map[ydy][xdx] == 1):
+                    or the_map[xdx][ydy].type[0] == False or closed_nodes_map[ydy][xdx] == 1):
                 # generate a child node
                 m0 = node(xdx, ydy, n0.distance, n0.priority)
                 m0.nextMove(dirs, i)
