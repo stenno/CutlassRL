@@ -4,8 +4,6 @@ class Cell:
     mob = False
     door= False
     lit = False      #All cells are unlit by default
-    pc = [5,5]       #Player's x and y
-    fov = False
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent)
         
@@ -30,6 +28,15 @@ class Dragon(Mob):
     lit = True
     color = 2
     damage = 3
+
+class Newt(Mob):
+    hp = 10
+    name = "Newt"
+    char = ":"
+    lit = True
+    color = 4
+    damage = 3
+
 class Door(Cell):
     opened = True
     door = True

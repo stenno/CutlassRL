@@ -29,7 +29,7 @@ import random
 from Modules import *
 
 try:
-    import curses               # Game will use curses to draw things
+    from Modules import unicurses as curses               # Game will use curses to draw things
 except ImportError:
     print "Curses library is missing."
     exit()
@@ -143,7 +143,7 @@ class Game:                # Main game class
                 rx = d[0]
                 ry = d[1]
             elif key == "g":
-                gamemap[rx][ry] = cell.Dragon("Dragon","D",gamemap[rx][ry])
+                gamemap[rx][ry] = cell.Newt("Newt",":",gamemap[rx][ry])
             elif key == "z":
                 fovblock = not fovblock
             elif key == "e":
@@ -242,7 +242,7 @@ class Game:                # Main game class
                         gamemap[dx][dy] = cell.Cell(True, True)
             elif key == "t":
                 ucell = gamemap[x][y]
-                gamemap[x][y] = cell.Dragon("Dragon","D",ucell)
+                gamemap[x][y] = cell.Newt("Newt",":",ucell)
             elif key == "w":
                 turn = True
             else:
@@ -496,19 +496,21 @@ class Game:                # Main game class
         return x1,y1
     
     def load(self):
-        global gamemap,x,y
+        global gamemap,x,y,hp
         save = open(SAVE,'r')
         gamemap = pickle.load(save)
         x = gamemap[0][0].pc[0]
         y = gamemap[0][0].pc[1]
         fovblock = gamemap[0][0].fov
+        hp = gamemap[0][0].hp
         self.printex(23,0,"Loaded...")
         
     def save(self):
-        global gamemap,x,y
+        global gamemap,x,y,hp
         save = open(SAVE,'w')
         gamemap[0][0].pc = [x,y]
         gamemap[0][0].fov = fovblock
+        gamemap[0][0].hp = hp
         pickle.dump(gamemap, save)
         self.printex(23,0,"Saved...")
 

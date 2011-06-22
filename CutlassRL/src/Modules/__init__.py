@@ -1,1 +1,1 @@
-__all__ = ["fov", "cell","AStar"]
+__all__ = ["fov", "cell","AStar","unicurses"]
