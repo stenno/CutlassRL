@@ -24,7 +24,7 @@ SAVE = "game.sav"
 import sys
 import pickle
 import os.path
-import math
+import random
 
 from Modules import *
 
@@ -287,7 +287,14 @@ class Game:                # Main game class
                             if self.near(x,y,mapx,mapy):
                                     self.printex(23, 0, "%s hits!" %\
                                               gamemap[mapx][mapy].name)
-                            self.aStarPathfind(mapx, mapy,x,y)
+                            if self.inLos(x, y, mapx, mapy):
+                                self.aStarPathfind(mapx, mapy,x,y)
+                            else:
+                                mx = random.randint(-1,1)
+                                my = random.randint(-1,1)
+                                if (mx,my) != (0,0) and\
+                                gamemap[mapx + mx][mapy + my].type[0]:
+                                    self.moveMob(mapx, mapy,mapx + mx,mapy + my)
             ####
             self.drawmap()
             self.printex(x,y ,"@",refresh=False)
