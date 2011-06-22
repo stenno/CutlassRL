@@ -100,7 +100,7 @@ class Game:                # Main game class
         self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
                      +str(turns)+"; HP:"+str(hp)) #DEBUG 
         turn = False
-        while hp:
+        while hp > 1:
             self.printex(23, 0, " " * 60, refresh = False)
             key = self.readkey()
             if key == "8" or key == "k":
