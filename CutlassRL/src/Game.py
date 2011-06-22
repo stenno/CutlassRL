@@ -70,6 +70,9 @@ class Game:                # Main game class
         """
         global gamemap,fovblock
         global x,y
+        global hp
+        
+        hp = 30
         fovblock = False
         
         x,y = 5,5
@@ -95,9 +98,9 @@ class Game:                # Main game class
         self.drawmap()
         self.printex(x,y ,"@", refresh=False)
         self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
-                     +str(turns)) #DEBUG 
+                     +str(turns)+"; HP:"+str(hp)) #DEBUG 
         turn = False
-        while 1:
+        while hp:
             self.printex(23, 0, " " * 60, refresh = False)
             key = self.readkey()
             if key == "8" or key == "k":
@@ -140,7 +143,7 @@ class Game:                # Main game class
                 rx = d[0]
                 ry = d[1]
             elif key == "g":
-                gamemap[rx][ry] = cell.Mob("Dragon","D",gamemap[rx][ry])
+                gamemap[rx][ry] = cell.Dragon("Dragon","D",gamemap[rx][ry])
             elif key == "z":
                 fovblock = not fovblock
             elif key == "e":
@@ -239,7 +242,7 @@ class Game:                # Main game class
                         gamemap[dx][dy] = cell.Cell(True, True)
             elif key == "t":
                 ucell = gamemap[x][y]
-                gamemap[x][y] = cell.Mob("Mob","M",ucell)
+                gamemap[x][y] = cell.Dragon("Dragon","D",ucell)
             elif key == "w":
                 turn = True
             else:
@@ -270,12 +273,17 @@ class Game:                # Main game class
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                  self.isBlocking)                        
             else:
+                turn = False                        
                 if gamemap[x1][y1].door:
                     gamemap[x1][y1].open()
+                    turn = True
+                elif gamemap[x1][y1].mob:
+                    self.printex(23, 0, "You hit %s" % gamemap[x1][y1].name)
+                    gamemap[x1][y1].hp -= 5
+                    turn = True
                 x1,y1 = x,y
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                  self.isBlocking)
-                turn = False                        
             # Mob's turn
             if turn:
                 turns += 1
@@ -294,11 +302,18 @@ class Game:                # Main game class
                 mapx,mapy = 0,0
                 for mapx in xrange(MAP_W - 1):
                     for mapy in xrange(MAP_H):
-                        if gamemap[mapx][mapy].mob and not\
-                        gamemap[mapx][mapy].frozen :
+                        if gamemap[mapx][mapy].mob:
+                            if gamemap[mapx][mapy].hp < 1:
+                                self.printex(23, 0, "You kill the %s" %
+                                              gamemap[mapx][mapy].name ,3)
+                                gamemap[mapx][mapy] = gamemap[mapx][mapy]\
+                                .undercell
+                                break
                             if self.near(x,y,mapx,mapy):
                                     self.printex(23, 0, "%s hits!" %\
                                               gamemap[mapx][mapy].name)
+                                    hp -= gamemap[mapx][mapy].damage
+
                                     
                             if self.inLos(x, y, mapx, mapy) and not nospace:
                             #                            and self.near(x, y, mapx, mapy) :
@@ -317,8 +332,10 @@ class Game:                # Main game class
             self.printex(x,y ,"@",refresh=False)
             self.printex(0,0," " * 50,refresh=False)
             self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
-                         +str(turns)) #DEBUG 
-
+                         +str(turns)+"; HP:"+str(hp)) #DEBUG 
+        else:
+            self.printex(23, 0, "You died! --press any key--",2)
+            self.readkey()
     def end(self):
         """End of game.
             Will reset console and stop curses.
@@ -341,7 +358,7 @@ class Game:                # Main game class
             <color pair>,<refresh?>)
         """
         if pair:
-            stdscr.attron(screen.color_pair(1))            
+            stdscr.attron(screen.color_pair(pair))            
             
         stdscr.addstr(x,y,text)
         
@@ -579,6 +596,7 @@ class Game:                # Main game class
 # Save won't save rx and ry
 # Lit walls are seen from outside of room
 # Saves should save more info 
+# Player and mob can be on same square
 
 #
 #  __           _       _  _    ___    

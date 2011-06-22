@@ -6,7 +6,6 @@ class Cell:
     lit = False      #All cells are unlit by default
     pc = [5,5]       #Player's x and y
     fov = False
-    frozen = False
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent)
         
@@ -15,14 +14,22 @@ class Mob(Cell):
     hp = 10
     name = "Mob"
     char = "M"
-    id = 0
     lit = True
     color = 4
     type = (False,True)
+    damage = 2
     def __init__(self,name,char,undercell):
         self.name = name
         self.char = char
         self.undercell = undercell        
+
+class Dragon(Mob):
+    hp = 30
+    name = "Dragon"
+    char = "D"
+    lit = True
+    color = 2
+    damage = 3
 class Door(Cell):
     opened = True
     door = True
