@@ -24,7 +24,7 @@ SAVE = "game.sav"
 import sys
 import pickle
 import os.path
-import sys
+import platform
 import random
 
 from Modules import AStar
@@ -380,6 +380,7 @@ class Game:                # Main game class
             key = sys.stdin.read(1)
         except IOError:
             key = ""
+            
         return key
     
     def drawmap(self):
