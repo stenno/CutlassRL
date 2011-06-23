@@ -72,7 +72,7 @@ class Game:                # Main game class
             Drawing things, generating map, playing
         """
         global gamemap,fovblock,turns
-        global x,y
+        global x,y,rx,ry
         global hp,regen,maxhp
         
         hp = 30
@@ -82,11 +82,10 @@ class Game:                # Main game class
         fovblock = False
         
         x,y = 5,5
-
+        rx,ry = 0,0 
         key = ""
         
         turns = 0
-        nospace = False
         
         gamemap = []  
 
@@ -314,20 +313,19 @@ class Game:                # Main game class
                                               gamemap[mapx][mapy].name)
                                     hp -= random.randint(1,gamemap[mapx][mapy]\
                                                          .damage)
-                            if self.inLos(x, y, mapx, mapy):
-                               if not self.aStarPathfind(mapx, mapy,x,y):
-                                    mx = random.randint(-1,1)
-                                    my = random.randint(-1,1)
-                                    if gamemap[mapx + mx][mapy + my].type[0]:
-                                        self.moveMob(mapx, mapy,mapx + mx,mapy + my)
-                            else:
-                                if random.randint(0,25):
-                                    mx = random.randint(-1,1)
-                                    my = random.randint(-1,1)
-                                    if gamemap[mapx + mx][mapy + my].type[0]:
-                                        self.moveMob(mapx, mapy,mapx + mx,mapy + my)
+                            if self.hasSpaceAround(mapx, mapy):
+                                if self.inLos(x, y, mapx, mapy):
+                                    if not self.aStarPathfind(mapx, mapy,x,y):
+                                        break
                                 else:
-                                    self.aStarPathfind(mapx, mapy,x,y)
+                                    if random.randint(0,25):
+                                        mx = random.randint(-1,1)
+                                        my = random.randint(-1,1)
+                                        if gamemap[mapx + mx][mapy + my].type[0]:
+                                            self.moveMob(mapx, mapy,mapx + mx,mapy\
+                                                          + my)
+                                    else:
+                                        self.aStarPathfind(mapx, mapy,x,y)
                                     
             ####
             self.drawmap()
@@ -520,20 +518,23 @@ class Game:                # Main game class
         return x1,y1
     
     def load(self):
-        global gamemap,x,y,hp,turns,fovblock
+        global gamemap,x,y,hp,turns,fovblock,rx,ry
         save = open(SAVE,'r')
         gamemap = pickle.load(save)
         x = gamemap[0][0].pc[0]
         y = gamemap[0][0].pc[1]
+        rx = gamemap[0][0].sc[0]
+        ry = gamemap[0][0].sc[1]
         fovblock = gamemap[0][0].fov
         turns = gamemap[0][0].turns
         hp = gamemap[0][0].hp
         self.printex(23,0,"Loaded...")
         
     def save(self):
-        global gamemap,x,y,hp,turns,fovblock
+        global gamemap,x,y,hp,turns,fovblock,rx,ry
         save = open(SAVE,'w')
         gamemap[0][0].pc = [x,y]
+        gamemap[0][0].sc = [rx,ry]
         gamemap[0][0].fov = fovblock
         gamemap[0][0].hp = hp
         gamemap[0][0].turns = turns
@@ -609,21 +610,27 @@ class Game:                # Main game class
             return True
         else:
             return False
-        
+    def hasSpaceAround(self,x,y):
+        global gamemap
+        c = 0
+        for x2 in range(-1,1):
+            for y2 in range(-1,1):
+                if gamemap[x + x2][y + y2].type[0] == False:
+                    c += 1
+        if c == 9:
+            return False
+        else:
+            return True
 #TODO:
-# More smart mobs
-# UniCurses
 # Items
 # Random map generation
 # Give debug commands to special user (wizard)
 # xlogfile
 #BUGS:
-#1 Moving mob with player completely surrounded by mobs/walls will make game lag
+#1 Sometimes mob attacks player when it shouldn't
 #2 You can see mob as blank square even if it is unseen
-#3 'g' and 'e' sometimes crashes game 
-#4 Save won't save rx and ry
-#5 Non ascii chars will make game crash on windows
-#6 Lit walls are seen from outside of room
+#3 Non ascii chars will make game crash on windows
+#4 Lit walls are seen from outside of room
 
 #
 #  __           _       _  _    ___    
