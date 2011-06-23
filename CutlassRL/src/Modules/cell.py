@@ -4,6 +4,7 @@ class Cell:
     mob = False
     door= False
     lit = False      #All cells are unlit by default
+    lit_by = [False, False]
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent)
         

@@ -24,7 +24,6 @@ SAVE = "game.sav"
 import sys
 import pickle
 import os.path
-import platform
 import random
 
 from Modules import AStar
@@ -72,11 +71,14 @@ class Game:                # Main game class
         """Main loop of game.
             Drawing things, generating map, playing
         """
-        global gamemap,fovblock
+        global gamemap,fovblock,turns
         global x,y
-        global hp
+        global hp,regen,maxhp
         
         hp = 30
+        maxhp = 30
+        regen = 0
+        
         fovblock = False
         
         x,y = 5,5
@@ -102,9 +104,10 @@ class Game:                # Main game class
         self.drawmap()
         self.printex(x,y ,"@", refresh=False)
         self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
-                     +str(turns)+"; HP:"+str(hp)) #DEBUG 
+                     +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #DEBUG 
         turn = False
         while hp >= 1:
+            turn = False
             self.printex(23, 0, " " * 60, refresh = False)
             key = self.readkey()
             if key == "8" or key == "k":
@@ -291,6 +294,11 @@ class Game:                # Main game class
             # Mob's turn
             if turn:
                 turns += 1
+                regen += 1
+                if regen == 5:
+                        regen = 0
+                        if hp < maxhp:
+                            hp += 1
                 a = 0
                 for sx in xrange(-2,2):
                     for sy in xrange(-2,2):
@@ -299,8 +307,6 @@ class Game:                # Main game class
                 else:
                     if a == 8:
                         nospace = True
-#                        self.debug_message("No space left")
-#                        self.readkey()
                     else:
                         nospace = False
                 mapx,mapy = 0,0
@@ -320,7 +326,6 @@ class Game:                # Main game class
 
                                     
                             if self.inLos(x, y, mapx, mapy) and not nospace:
-                            #                            and self.near(x, y, mapx, mapy) :
                                 self.aStarPathfind(mapx, mapy,x,y)
                             else:
                                 if random.randint(0,1):
@@ -336,7 +341,7 @@ class Game:                # Main game class
             self.printex(x,y ,"@",refresh=False)
             self.printex(0,0," " * 50,refresh=False)
             self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
-                         +str(turns)+"; HP:"+str(hp)) #DEBUG 
+                         +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #DEBUG 
         else:
             self.printex(23, 0, "You died! --press any key--",2)
             self.readkey()
@@ -423,6 +428,27 @@ class Game:                # Main game class
                             if not gamemap[mapx][mapy].explored:
                                     mchar = " "
                             if gamemap[mapx][mapy].lit:
+                                if not gamemap[mapx][mapy].lit_by[0]:
+                                    for mapx2 in xrange(MAP_W - 1):
+                                        for mapy2 in xrange(MAP_H):
+                                            if self.near(mapx, mapy,\
+                                                          mapx2,mapy2):
+                                                if not gamemap[mapx2][mapy2]\
+                                                .lit and gamemap[mapx2][mapy2]\
+                                                .type[0] == False:
+                                                    gamemap[mapx2][mapy2].\
+                                                    lit_by = [mapx2,mapy2]
+                                                    lx = gamemap[mapx2][mapy2].\
+                                                    lit_by[0]
+                                                    ly = gamemap[mapx2][mapy2].\
+                                                    lit_by[1]
+                                                    if self.inLos(x, y,lx,ly):
+                                                        gamemap[lx][ly].lit =\
+                                                         True
+                                                    else:
+                                                        gamemap[mapx2][mapy2]\
+                                                        .lit = False
+                                                        
                                 line = self.get_line(y, x, mapy, mapx) 
                                 b = 0 
                                 for j in line:
@@ -501,21 +527,23 @@ class Game:                # Main game class
         return x1,y1
     
     def load(self):
-        global gamemap,x,y,hp
+        global gamemap,x,y,hp,turns,fovblock
         save = open(SAVE,'r')
         gamemap = pickle.load(save)
         x = gamemap[0][0].pc[0]
         y = gamemap[0][0].pc[1]
         fovblock = gamemap[0][0].fov
+        turns = gamemap[0][0].turns
         hp = gamemap[0][0].hp
         self.printex(23,0,"Loaded...")
         
     def save(self):
-        global gamemap,x,y,hp
+        global gamemap,x,y,hp,turns,fovblock
         save = open(SAVE,'w')
         gamemap[0][0].pc = [x,y]
         gamemap[0][0].fov = fovblock
         gamemap[0][0].hp = hp
+        gamemap[0][0].turns = turns
         pickle.dump(gamemap, save)
         self.printex(23,0,"Saved...")
 
@@ -595,18 +623,15 @@ class Game:                # Main game class
 # Give debug commands to special user (wizard)
 # xlogfile
 #BUGS:
-# "No space left" when you have free space around you
-# Mobs are moving randomly
-# You can see mob as blank square even if it is unseen
-# 'g' and 'e' crashes game
-# Mob can move for too long distances in one turn
-# Save won't save rx and ry
-# Lit walls are seen from outside of room
-# Saves should save more info 
-# Player and mob can be on same square
+#1 Moving mob with player completely surrounded by mobs/walls will make game lag
+#2 You can see mob as blank square even if it is unseen
+#3 'g' and 'e' sometimes crashes game 
+#4 Save won't save rx and ry
+#5 Non ascii chars will make game crash on windows
+#6 Lit walls are seen from outside of room
 
 #
 #  __           _       _  _    ___    
-# /        _/_  /  _   /  /    /   /  /
-#/   /   / /   /  / // |  \   /___/  /
-#\__ \__/ /_  /_ /_// _/  _/ /  \   /____
+# /        _/_  /  _   /  /   /   /  /
+#/   /   / /   /  / // |  \  /___/  /
+#\__ \__/ /_  /_ /_// _/ _/ /  \   /____
