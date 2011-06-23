@@ -299,16 +299,6 @@ class Game:                # Main game class
                         regen = 0
                         if hp < maxhp:
                             hp += 1
-                a = 0
-                for sx in xrange(-2,2):
-                    for sy in xrange(-2,2):
-                        if gamemap[sx + x][sy + y].type[0] == False:
-                            a += 1
-                else:
-                    if a == 8:
-                        nospace = True
-                    else:
-                        nospace = False
                 mapx,mapy = 0,0
                 for mapx in xrange(MAP_W - 1):
                     for mapy in xrange(MAP_H):
@@ -322,13 +312,16 @@ class Game:                # Main game class
                             if self.near(x,y,mapx,mapy):
                                     self.printex(23, 0, "%s hits!" %\
                                               gamemap[mapx][mapy].name)
-                                    hp -= gamemap[mapx][mapy].damage
-
-                                    
-                            if self.inLos(x, y, mapx, mapy) and not nospace:
-                                self.aStarPathfind(mapx, mapy,x,y)
+                                    hp -= random.randint(1,gamemap[mapx][mapy]\
+                                                         .damage)
+                            if self.inLos(x, y, mapx, mapy):
+                               if not self.aStarPathfind(mapx, mapy,x,y):
+                                    mx = random.randint(-1,1)
+                                    my = random.randint(-1,1)
+                                    if gamemap[mapx + mx][mapy + my].type[0]:
+                                        self.moveMob(mapx, mapy,mapx + mx,mapy + my)
                             else:
-                                if random.randint(0,1):
+                                if random.randint(0,25):
                                     mx = random.randint(-1,1)
                                     my = random.randint(-1,1)
                                     if gamemap[mapx + mx][mapy + my].type[0]:
@@ -388,7 +381,7 @@ class Game:                # Main game class
             
         return key
     
-    def drawmap(self):
+    def drawmap(self):  # TODO:Move draw functions into cell class
         """Drawmap function.
             Will draw map. Working with fov.
         """
@@ -607,6 +600,8 @@ class Game:                # Main game class
         (mx1,my1) = AStar.getPath(mx, my, yx, yy, gamemap, MAP_W, MAP_H)
         if (mx1,my1) != (0,0):
             self.moveMob(mx, my, mx + mx1, my + my1)
+        else:
+            return False
             
     def near(self,x1,y1,x2,y2):
         if x1 - x2 >= -1 and x1 - x2 <= 1 and\

@@ -57,7 +57,11 @@ def pathFind(the_map, n, m, dirs, dx, dy, xA, yA, xB, yB):
     open_nodes_map[yA][xA] = n0.priority # mark it on the open nodes map
 
     # A* search
+    steps = 0
     while len(pq[pqi]) > 0:
+        steps += 1
+        if steps >= 100:
+            return ''
         # get the current node w/ the highest priority
         # from the list of open nodes
         n1 = pq[pqi][0] # top node
