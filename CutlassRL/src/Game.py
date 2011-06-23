@@ -24,33 +24,37 @@ SAVE = "game.sav"
 import sys
 import pickle
 import os.path
+import sys
 import random
 
-from Modules import *
+from Modules import AStar
+from Modules import cell
+from Modules import fov
+
 
 try:
     from Modules import unicurses as curses               # Game will use curses to draw things
 except ImportError:
     print "Curses library is missing."
-    exit()
+    sys.exit()
 
 
 
 
 class Game:                # Main game class
     def __init__(self):
-        global screen,stdscr
+        global screen
         """Initializer of Game class.
             Will start curses.
         """
         screen = curses;
-        stdscr = screen.initscr()
+
+        screen.initscr()
         
         screen.curs_set(0)
         screen.cbreak()
         screen.start_color()
         screen.use_default_colors()
-        stdscr.keypad(1)
 
         #Color pairs
         screen.init_pair(1,-1,-1) #Default
@@ -62,7 +66,7 @@ class Game:                # Main game class
         screen.init_pair(7,screen.COLOR_CYAN,-1) 
         screen.init_pair(8,screen.COLOR_WHITE,-1)
 
-        stdscr.attron(screen.color_pair(1))
+        screen.attron(screen.color_pair(1))
         
     def main_loop(self):
         """Main loop of game.
@@ -122,7 +126,7 @@ class Game:                # Main game class
                 self.save()
             elif key == "m":
                 self.printex(23,0,"")
-                stdscr.getstr()
+                screen.getstr()
             elif key == "r":
                 self.load()
                 x1,y1 = x,y
@@ -341,15 +345,15 @@ class Game:                # Main game class
             Will reset console and stop curses.
         """
         screen.endwin()
-        exit()
+        sys.exit()
         
     def debug_message(self,msg):
         """Debug message subroutine,
             Will say something like debugmsg: XXX
         """
-        stdscr.attron(screen.A_BOLD)
+        screen.attron(screen.A_BOLD)
         self.printex(10,10,"debugmsg: %s" % msg,1)
-        stdscr.attroff(screen.A_BOLD)
+        screen.attroff(screen.A_BOLD)
         
     def printex(self,x,y,text = "Someone had no words to say..." ,pair = None\
                 ,refresh = True):
@@ -358,15 +362,15 @@ class Game:                # Main game class
             <color pair>,<refresh?>)
         """
         if pair:
-            stdscr.attron(screen.color_pair(pair))            
+            screen.attron(screen.color_pair(pair))            
             
-        stdscr.addstr(x,y,text)
+        screen.mvaddstr(x,y,text)
         
         if refresh:
-            stdscr.refresh()
+            screen.refresh()
             
         if pair != None:
-            stdscr.attroff(screen.color_pair(pair))
+            screen.attroff(screen.color_pair(pair))
 
     def readkey(self):
         """Readkey function.
@@ -382,7 +386,7 @@ class Game:                # Main game class
         """Drawmap function.
             Will draw map. Working with fov.
         """
-        global gamemap,screen,stdscr
+        global gamemap,screen
         mapx,mapy=0,0 
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):
@@ -412,7 +416,7 @@ class Game:                # Main game class
                         mchar = "-"
                 if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
                         if gamemap[mapx][mapy].visible:
-                            stdscr.attron(screen.A_BOLD)
+                            screen.attron(screen.A_BOLD)
                             gamemap[mapx][mapy].explored = True
                         else:
                             if not gamemap[mapx][mapy].explored:
@@ -432,17 +436,17 @@ class Game:                # Main game class
                                         b = 1
                                 else:
                                     if vis:
-                                        stdscr.attron(screen.A_BOLD)
+                                        screen.attron(screen.A_BOLD)
                                         gamemap[jx][jy].visible = True
                                         gamemap[jx][jy].explored = True
                                                
                             else:
                                 attr = 5
-                        stdscr.attron(screen.color_pair(attr))
+                        screen.attron(screen.color_pair(attr))
                         self.printex(mapx,mapy,mchar,refresh=False)
-                        stdscr.attroff(screen.A_BOLD)
-                        stdscr.attroff(screen.color_pair(attr))
-        stdscr.refresh()
+                        screen.attroff(screen.A_BOLD)
+                        screen.attroff(screen.color_pair(attr))
+        screen.refresh()
 
     def isBlocking(self,x,y):
         global gamemap
