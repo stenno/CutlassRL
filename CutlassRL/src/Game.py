@@ -25,6 +25,7 @@ import sys
 import pickle
 import os.path
 import random
+import math
 
 from Modules import AStar
 from Modules import cell
@@ -83,6 +84,7 @@ class Game:                # Main game class
         
         x,y = 5,5
         rx,ry = 0,0 
+        xl, yl = 21,60
         key = ""
         
         turns = 0
@@ -134,7 +136,7 @@ class Game:                # Main game class
                 self.load()
                 x1,y1 = x,y
                 self.resetFlood()
-                self.floodFill(21, 60)
+                self.floodFill(xl, yl)
                 self.resetFov()
                 self.drawmap()
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
@@ -159,7 +161,7 @@ class Game:                # Main game class
             elif key == "z":
                 fovblock = not fovblock
             elif key == "!":
-                self.floodFill(21, 60)
+                self.floodFill(xl, yl)
             elif key == "e":
                 d = self.askDirection()
                 if d:
@@ -334,9 +336,10 @@ class Game:                # Main game class
                                 if self.inLos(x, y, mapx, mapy):
                                     if mapchanged:
                                         self.resetFlood()
-                                        self.floodFill(21, 60)
+                                        self.floodFill(xl, yl)
                                         mapchanged = False
-                                    if gamemap[x][y].fval == 1:
+                                    if gamemap[x][y].fval ==\
+                                     gamemap[mapx][mapy].fval:
                                         self.aStarPathfind(mapx, mapy,x,y)
                                 else:
                                     if random.randint(0,25):
@@ -348,9 +351,10 @@ class Game:                # Main game class
                                     else:                        
                                         if mapchanged:
                                             self.resetFlood()
-                                            self.floodFill(21, 60)
+                                            self.floodFill(xl, yl)
                                             mapchanged = False
-                                        if gamemap[x][y].fval == 1:
+                                        if gamemap[x][y].fval ==\
+                                         gamemap[mapx][mapy].fval:
                                             self.aStarPathfind(mapx, mapy,x,y)
                                     
             ####
@@ -680,6 +684,7 @@ class Game:                # Main game class
 #2 You can see mob as blank square even if it is unseen
 #3 Non ascii chars will make game crash on windows
 #4 Lit walls are seen from outside of room
+#5 Sometimes mob can move too fast
 
 #
 #  __           _       _  _    ___    

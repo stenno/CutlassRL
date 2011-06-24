@@ -8,7 +8,7 @@ class Cell:
     fval = 0
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent)
-        
+
 class Mob(Cell):
     mob = True
     hp = 10
