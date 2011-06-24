@@ -464,7 +464,7 @@ class Game:                # Main game class
             
         return key
     
-    def drawmap(self):  # TODO:Move draw functions into cell class
+    def drawmap(self):  
         """Drawmap function.
             Will draw map. Working with fov.
         """
@@ -476,6 +476,22 @@ class Game:                # Main game class
                     if gamemap[mapx][mapy].lit and not gamemap[mapx][mapy].mob:
                         if self.inLos(mapx, mapy, x, y):
                             gamemap[mapx][mapy].visible = True
+                        if gamemap[mapx][mapy].type[0]:
+                            for x2 in xrange(-2,2):
+                                for y2 in xrange(-2,2):
+                                    if self.near(mapx,mapy,mapx + x2,mapy + y2):
+                                        if gamemap[mapx][mapy].type[0]:
+                                            if not gamemap[mapx+x2]\
+                                            [mapy+y2].type[0]:
+                                                if self.inLos(x, y, mapx, mapy)\
+                                                 and (x2,y2) != (0,0) and not\
+                                                  gamemap[mapx + x2]\
+                                                  [mapy + y2].type[0]:
+                                                    gamemap[mapx+x2][mapy+y2]\
+                                                    .lit = True
+                                                else:
+                                                    gamemap[mapx+x2][mapy+y2]\
+                                                    .lit = False
                     if gamemap[mapx][mapy].visible:
                         gamemap[mapx][mapy].explored = True
                         if gamemap[mapx][mapy].mob:
@@ -703,9 +719,7 @@ class Game:                # Main game class
 # xlogfile
 #BUGS:
 #1 Sometimes mob attacks player when it shouldn't
-#2 Non ascii chars will make game crash on windows
-#3 Lit walls are seen from outside of room
-#4 Sometimes mob can move too fast
+#2 Sometimes mob can move too fast
 
 #
 #  __           _       _  _    ___    
