@@ -99,6 +99,7 @@ class Game:                # Main game class
         if os.path.isfile(SAVE):           
             self.load()
         x1,y1 = x,y
+        mapchanged = True
         fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible, self.isBlocking)                        
         self.drawmap()
         self.printex(x,y ,"@", refresh=False)
@@ -132,6 +133,8 @@ class Game:                # Main game class
             elif key == "r":
                 self.load()
                 x1,y1 = x,y
+                self.resetFlood()
+                self.floodFill(21, 60)
                 self.resetFov()
                 self.drawmap()
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
@@ -139,9 +142,11 @@ class Game:                # Main game class
                 self.printex(0,0,"")
             elif key == "x":
                 gamemap[x][y].type = (False,False,False)
+                mapchanged = True
             elif key == "d":
                 gamemap[x][y] = cell.Door(True)
                 gamemap[x][y].close()
+                mapchanged = True
             elif key == "v":
                 gamemap[x][y].lit = not gamemap[x][y].lit
             elif key == "p":
@@ -150,12 +155,16 @@ class Game:                # Main game class
                 ry = d[1]
             elif key == "g":
                 gamemap[rx][ry] = cell.Newt("Newt",":",gamemap[rx][ry])
+                mapchanged = True
             elif key == "z":
                 fovblock = not fovblock
+            elif key == "!":
+                self.floodFill(21, 60)
             elif key == "e":
                 d = self.askDirection()
                 if d:
                     self.moveMob(d[0],d[1], x, y)
+                mapchanged = True
             elif key == ";":
                 self.printex(23, 0, "You")
                 screen.curs_set(1)
@@ -221,6 +230,9 @@ class Game:                # Main game class
                     dy = d[1]
                     if gamemap[dx][dy].door:
                         gamemap[dx][dy].open()
+                mapchanged = True
+            elif key == "@":
+                self.debug_message(gamemap[x][y].fval)
             elif key == "c":
                 d = self.askDirection()
                 if d:
@@ -228,6 +240,7 @@ class Game:                # Main game class
                     dy = d[1]
                     if gamemap[dx][dy].door:
                         gamemap[dx][dy].close()
+                mapchanged = True
             elif key == "f":
                 d = self.askDirection()
                 if d:
@@ -246,9 +259,11 @@ class Game:                # Main game class
                     dy = d[1]
                     if dx <= 21 and dx >= 2 and dy <= 60 and dy >= 2:
                         gamemap[dx][dy] = cell.Cell(True, True)
+                mapchanged = True
             elif key == "t":
                 ucell = gamemap[x][y]
                 gamemap[x][y] = cell.Newt("Newt",":",ucell)
+                mapchanged = True
             elif key == "w":
                 turn = True
             else:
@@ -283,6 +298,7 @@ class Game:                # Main game class
                 if gamemap[x1][y1].door:
                     gamemap[x1][y1].open()
                     turn = True
+                    mapchanged = True
                 elif gamemap[x1][y1].mob:
                     self.printex(23, 0, "You hit %s" % gamemap[x1][y1].name)
                     gamemap[x1][y1].hp -= 5
@@ -299,12 +315,13 @@ class Game:                # Main game class
                         if hp < maxhp:
                             hp += 1
                 mapx,mapy = 0,0
-                for mapx in xrange(MAP_W - 1):
+                for mapx in xrange(MAP_W - 1): #TODO: Fix it!
                     for mapy in xrange(MAP_H):
                         if gamemap[mapx][mapy].mob:
                             if gamemap[mapx][mapy].hp < 1:
                                 self.printex(23, 0, "You kill the %s" %
                                               gamemap[mapx][mapy].name ,3)
+                                mapchanged = True
                                 gamemap[mapx][mapy] = gamemap[mapx][mapy]\
                                 .undercell
                                 continue
@@ -312,10 +329,15 @@ class Game:                # Main game class
                                     self.printex(23, 0, "%s hits!" %\
                                               gamemap[mapx][mapy].name)
                                     hp -= random.randint(1,gamemap[mapx][mapy]\
-                                                         .damage)
+                                                        .damage)
                             if self.hasSpaceAround(mapx, mapy):
                                 if self.inLos(x, y, mapx, mapy):
-                                    self.aStarPathfind(mapx, mapy,x,y)
+                                    if mapchanged:
+                                        self.resetFlood()
+                                        self.floodFill(21, 60)
+                                        mapchanged = False
+                                    if gamemap[x][y].fval == 1:
+                                        self.aStarPathfind(mapx, mapy,x,y)
                                 else:
                                     if random.randint(0,25):
                                         mx = random.randint(-1,1)
@@ -323,8 +345,13 @@ class Game:                # Main game class
                                         if gamemap[mapx + mx][mapy + my].type[0]:
                                             self.moveMob(mapx, mapy,mapx + mx,mapy\
                                                           + my)
-                                    else:
-                                        self.aStarPathfind(mapx, mapy,x,y)
+                                    else:                        
+                                        if mapchanged:
+                                            self.resetFlood()
+                                            self.floodFill(21, 60)
+                                            mapchanged = False
+                                        if gamemap[x][y].fval == 1:
+                                            self.aStarPathfind(mapx, mapy,x,y)
                                     
             ####
             self.drawmap()
@@ -481,6 +508,12 @@ class Game:                # Main game class
             for mapy in xrange(MAP_H):        
                 gamemap[mapx][mapy].visible = False
 
+    def resetFlood(self):
+        global gamemap
+        for mapx in xrange(MAP_W - 1):
+            for mapy in xrange(MAP_H):        
+                gamemap[mapx][mapy].fval = 0
+
     def amnesia(self):
         global gamemap
         for mapx in xrange(MAP_W - 1):
@@ -622,6 +655,21 @@ class Game:                # Main game class
             return False
         else:
             return True
+    def floodFill(self,x,y):
+        global gamemap
+        sys.setrecursionlimit(2000)
+        if gamemap[x][y].type[0] == False or gamemap[x][y].fval  == 1:
+            return  0
+        gamemap[x][y].fval = 1
+        self.floodFill(x + 1,y)
+        self.floodFill(x + 1,y + 1)
+        self.floodFill(x - 1,y)
+        self.floodFill(x - 1,y - 1)
+        self.floodFill(x,y + 1)
+        self.floodFill(x,y - 1)
+        self.floodFill(x + 1,y - 1)
+        self.floodFill(x - 1,y + 1)
+        return
 #TODO:
 # Items
 # Random map generation
