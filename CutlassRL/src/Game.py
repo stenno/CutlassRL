@@ -14,10 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
 
-VERSION = 0.03;
-
-MAP_H=80
-MAP_W=24
+from Modules.constants import *
 
 import sys
 import pickle
@@ -27,6 +24,7 @@ import random
 from Modules import AStar
 from Modules import cell
 from Modules import fov
+from Modules import Level
 
 
 try:
@@ -113,6 +111,10 @@ class Game:                # Main game class
                     gamemap[mapx].append(cell.Cell(False,False))
         if os.path.isfile(save):           
             self.load()
+        else:  #level generator
+            pass
+#            gen = Level.levGen()
+#            (gamemap,x,y) = gen.generateLevel()
         x1,y1 = x,y
         mapchanged = True
         fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible, self.isBlocking)                        
@@ -257,7 +259,8 @@ class Game:                # Main game class
             elif key == "w":
                 turn = True
             else:
-                if wizmode:
+                if wizmode and key == "#":
+                    key = self.readkey()
                     if key == "x":
                         gamemap[x][y].type = (False,False,False)
                         mapchanged = True

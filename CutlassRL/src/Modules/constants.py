@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #     This file is part of CutlassRL.
 #
@@ -15,18 +14,14 @@
 #    You should have received a copy of the GNU General Public License
 #    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
 
-# CutlassRL - a roguelike game.
+VERSION = 0.03;
 
-from Modules.constants import *
+MAX_ROOM_SIZE = 8
+MIN_ROOM_SIZE = 5
+MAX_ROOMS     = 15
 
-import Game  # importing main game library
+MAP_H=80
+MAP_W=24
 
-play = Game.Game()
-
-try:
-    play.main_loop()
-except KeyboardInterrupt:
-    play.end()
-
-play.end()
-del play
+MAX_H = 61
+MAX_W = 22
