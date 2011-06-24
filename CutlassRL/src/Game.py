@@ -214,11 +214,6 @@ class Game:                # Main game class
                     self.printex(cx, cy, "")
                     self.printex(23, 0, " " * 20, refresh = False)                                        
                 screen.curs_set(0)
-            elif key == "y":
-                if self.hasSpaceAround(x, y):
-                    self.debug_message("You have space around you!")
-                else:
-                    self.debug_message("You have no space around you!")
             elif key == "o":
                 d = self.askDirection()
                 if d:
@@ -320,13 +315,7 @@ class Game:                # Main game class
                                                          .damage)
                             if self.hasSpaceAround(mapx, mapy):
                                 if self.inLos(x, y, mapx, mapy):
-                                    if not self.aStarPathfind(mapx, mapy,x,y):
-                                            mx = random.randint(-1,1)
-                                            my = random.randint(-1,1)
- #                                           if gamemap[mapx + mx][mapy + my].type[0]:
- #                                               self.moveMob(mapx, mapy,mapx + mx,mapy\
-#                                                              + my)
-                                            self.debug_message("%d : %d" % (mapx, mapy))
+                                    self.aStarPathfind(mapx, mapy,x,y)
                                 else:
                                     if random.randint(0,25):
                                         mx = random.randint(-1,1)
@@ -624,11 +613,12 @@ class Game:                # Main game class
     def hasSpaceAround(self,x,y):
         global gamemap
         c = 0
-        for x2 in range(-1,1):
-            for y2 in range(-1,1):
-                if gamemap[x + x2][y + y2].type[0]:
-                    c += 1
-        if c == 8:
+        for x2 in xrange(-2,2):
+            for y2 in xrange(-2,2):
+                if self.near(x, y,x + x2,y + y2):
+                    if not gamemap[x + x2][y + y2].type[0]:
+                        c += 1
+        if c >= 8:
             return False
         else:
             return True
