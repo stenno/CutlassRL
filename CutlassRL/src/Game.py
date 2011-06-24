@@ -354,7 +354,7 @@ class Game:                # Main game class
                         if hp < maxhp:
                             hp += 1
                 mapx,mapy = 0,0
-                for mapx in xrange(MAP_W - 1): #TODO: Fix it!
+                for mapx in xrange(MAP_W - 1): 
                     for mapy in xrange(MAP_H):
                         if gamemap[mapx][mapy].mob:
                             if gamemap[mapx][mapy].hp < 1:
@@ -380,8 +380,11 @@ class Game:                # Main game class
                                         self.aStarPathfind(mapx, mapy,x,y)
                                 else:
                                     if random.randint(0,25):
-                                        mx = random.randint(-1,1)
-                                        my = random.randint(-1,1)
+                                        mx, my = 0, 0
+                                        while not gamemap[mapx + mx]\
+                                        [mapy + my].type[0]: 
+                                            mx = random.randint(-1,1)
+                                            my = random.randint(-1,1)
                                         if gamemap[mapx + mx]\
                                         [mapy + my].type[0]:
                                             self.moveMob(mapx, mapy,\
@@ -469,83 +472,45 @@ class Game:                # Main game class
         mapx,mapy=0,0 
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):
-                if not gamemap[mapx][mapy].type[1]:
-                    attr = 4;
-                    mchar = "#"
-                else:
-                    attr = 1;
-                    mchar = "."
-                if gamemap[mapx][mapy].mob:
-                    if not self.inLos(x, y, mapx, mapy):
-                        if gamemap[mapx][mapy].undercell.door:
-                            attr = 4
-                            mchar = "-"
-                        else:
-                            attr = 1
-                            mchar = "."
-                    else:
-                        attr = gamemap[mapx][mapy].color
-                        mchar = gamemap[mapx][mapy].char                        
-                if gamemap[mapx][mapy].door:
-                    if not gamemap[mapx][mapy].opened:
-                        attr = 4                        
-                        mchar = "+"
-                    else:
-                        attr = 4
-                        mchar = "-"
                 if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
-                        if gamemap[mapx][mapy].visible:
-                            screen.attron(screen.A_BOLD)
-                            gamemap[mapx][mapy].explored = True
-                        else:
-                            if not gamemap[mapx][mapy].explored:
-                                    mchar = " "
-                            if gamemap[mapx][mapy].lit:
-                                if not gamemap[mapx][mapy].lit_by[0]:
-                                    for mapx2 in xrange(MAP_W - 1):
-                                        for mapy2 in xrange(MAP_H):
-                                            if self.near(mapx, mapy,\
-                                                          mapx2,mapy2):
-                                                if not gamemap[mapx2][mapy2]\
-                                                .lit and gamemap[mapx2][mapy2]\
-                                                .type[0] == False:
-                                                    gamemap[mapx2][mapy2].\
-                                                    lit_by = [mapx2,mapy2]
-                                                    lx = gamemap[mapx2][mapy2].\
-                                                    lit_by[0]
-                                                    ly = gamemap[mapx2][mapy2].\
-                                                    lit_by[1]
-                                                    if self.inLos(x, y,lx,ly):
-                                                        gamemap[lx][ly].lit =\
-                                                         True
-                                                    else:
-                                                        gamemap[mapx2][mapy2]\
-                                                        .lit = False
-                                                        
-                                line = self.get_line(y, x, mapy, mapx) 
-                                b = 0 
-                                for j in line:
-                                    vis = True
-                                    if b:
-                                        attr = 5
-                                        vis = False                                        
-                                        break
-                                    jy = j[0]
-                                    jx = j[1]
-                                    if not gamemap[jx][jy].type[1]:
-                                        b = 1
-                                else:
-                                    if vis:
-                                        screen.attron(screen.A_BOLD)
-                                        gamemap[jx][jy].visible = True
-                                        gamemap[jx][jy].explored = True
-                                               
-                            else:
-                                attr = 5
-                        screen.attron(screen.color_pair(attr))
-                        self.printex(mapx,mapy,mchar,refresh=False)
+                    if gamemap[mapx][mapy].lit and not gamemap[mapx][mapy].mob:
+                        if self.inLos(mapx, mapy, x, y):
+                            gamemap[mapx][mapy].visible = True
+                    if gamemap[mapx][mapy].visible:
+                        gamemap[mapx][mapy].explored = True
+                        if gamemap[mapx][mapy].mob:
+                            gamemap[mapx][mapy].undercell.explored = True
+                            gamemap[mapx][mapy].explored = False
+                        screen.attron(screen.A_BOLD)
+                        self.printex(mapx, mapy, gamemap[mapx][mapy].char(),\
+                           gamemap[mapx][mapy].color,False)
                         screen.attroff(screen.A_BOLD)
-                        screen.attroff(screen.color_pair(attr))
+                    elif gamemap[mapx][mapy].explored:
+                        screen.attron(screen.A_DIM)
+                        if gamemap[mapx][mapy].mob and not\
+                         gamemap[mapx][mapy].visible:
+                            if gamemap[mapx][mapy].undercell.door:
+                                self.printex(mapx, mapy,"-",5,False)
+                            else:
+                                self.printex(mapx, mapy,".",5,False)                               
+                        else: 
+                            self.printex(mapx, mapy, gamemap[mapx][mapy].\
+                                         char(),5,False)
+                    elif gamemap[mapx][mapy].mob:
+                        if gamemap[mapx][mapy].undercell.explored == True:
+                            self.printex(mapx, mapy, gamemap[mapx][mapy].\
+                                         undercell.char(),5,False)
+                        if gamemap[mapx][mapy].lit:
+                            if self.inLos(mapx, mapy, x, y):
+                                screen.attron(screen.A_BOLD)
+                                self.printex(mapx, mapy, gamemap[mapx][mapy]\
+                                    .char(),gamemap[mapx][mapy].color,False)
+                                screen.attroff(screen.A_BOLD)
+                                
+                    else:
+                        self.printex(mapx, mapy, " ",5,False)
+                        screen.attroff(screen.A_DIM)
+                        
         screen.refresh()
 
     def isBlocking(self,x,y):
@@ -738,10 +703,9 @@ class Game:                # Main game class
 # xlogfile
 #BUGS:
 #1 Sometimes mob attacks player when it shouldn't
-#2 You can see mob as blank square even if it is unseen
-#3 Non ascii chars will make game crash on windows
-#4 Lit walls are seen from outside of room
-#5 Sometimes mob can move too fast
+#2 Non ascii chars will make game crash on windows
+#3 Lit walls are seen from outside of room
+#4 Sometimes mob can move too fast
 
 #
 #  __           _       _  _    ___    

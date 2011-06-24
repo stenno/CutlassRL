@@ -6,27 +6,36 @@ class Cell:
     lit = False      #All cells are unlit by default
     lit_by = [False, False]
     fval = 0
+    color = 4
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent)
-
+    def char(self):
+        if self.type[0]:
+            return '.'
+        else:
+            return '#'
+        
 class Mob(Cell):
     mob = True
     hp = 10
     name = "Mob"
-    char = "M"
+    chr = "M"
     lit = True
     color = 4
     type = (False,True)
     damage = 2
     def __init__(self,name,char,undercell):
         self.name = name
-        self.char = char
+        self.chr = char
         self.undercell = undercell        
+
+    def char(self):
+        return self.chr
 
 class Dragon(Mob):
     hp = 30
     name = "Dragon"
-    char = "D"
+    chr = "D"
     lit = True
     color = 2
     damage = 3
@@ -34,7 +43,7 @@ class Dragon(Mob):
 class Newt(Mob):
     hp = 10
     name = "Newt"
-    char = ":"
+    chr = ":"
     lit = True
     color = 4
     damage = 3
@@ -51,3 +60,8 @@ class Door(Cell):
     def close(self):
         self.opened = False
         self.type = (False,False)        
+    def char(self):
+        if self.opened:
+            return '-'
+        else:
+            return '+'
