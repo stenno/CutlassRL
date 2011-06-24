@@ -19,13 +19,10 @@ VERSION = 0.03;
 MAP_H=80
 MAP_W=24
 
-SAVE = "game.sav"
-
 import sys
 import pickle
 import os.path
 import random
-import math
 
 from Modules import AStar
 from Modules import cell
@@ -43,7 +40,7 @@ except ImportError:
 
 class Game:                # Main game class
     def __init__(self):
-        global screen
+        global screen,name,wizmode
         """Initializer of Game class.
             Will start curses.
         """
@@ -68,13 +65,27 @@ class Game:                # Main game class
 
         screen.attron(screen.color_pair(1))
         
+        self.printex(0, 0, "What is your name? ", 3)
+        screen.curs_set(1)
+        
+        wizmode = False
+
+        try:
+            name = screen.getstr()
+        except KeyboardInterrupt:
+            self.end()
+        screen.curs_set(0)
+        if name == "Wizard":
+            wizmode = True
+
     def main_loop(self):
         """Main loop of game.
             Drawing things, generating map, playing
         """
-        global gamemap,fovblock,turns
+        global gamemap,fovblock,turns,wizmode
         global x,y,rx,ry
         global hp,regen,maxhp
+        global name,save
         
         hp = 30
         maxhp = 30
@@ -87,6 +98,8 @@ class Game:                # Main game class
         xl, yl = 21,60
         key = ""
         
+        save = name + ".sav"
+        
         turns = 0
         
         gamemap = []  
@@ -98,17 +111,37 @@ class Game:                # Main game class
                     gamemap[mapx].append(cell.Cell(True,True))
                 else:
                     gamemap[mapx].append(cell.Cell(False,False))
-        if os.path.isfile(SAVE):           
+        if os.path.isfile(save):           
             self.load()
         x1,y1 = x,y
         mapchanged = True
-        fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible, self.isBlocking)                        
+        fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible, self.isBlocking)                        
         self.drawmap()
         self.printex(x,y ,"@", refresh=False)
-        self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
-                     +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #DEBUG 
+        self.printex(2, 63, name, 3)
+        if wizmode:
+            state = "Wizard"
+        else:
+            state = "Player"
+        self.printex(4, 63, state, 2)
+        self.printex(6, 63, " " * 10)            
+        hpattr = 3
+        if hp == maxhp:
+            hpattr = 3
+        if hp <= maxhp / 2:
+            hpattr = 4
+        if hp <= 5:
+            hpattr = 2
+        self.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr)
+        self.printex(8, 63, "T:%d" % (turns))
+        
+        if wizmode:
+            self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
+                         +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #DEBUG 
+        else:
+            self.printex(0, 0,"")
         turn = False
-        while hp >= 1:
+        while hp >= 1 or wizmode:
             turn = False
             self.printex(23, 0, " " * 60, refresh = False)
             key = self.readkey()
@@ -126,12 +159,14 @@ class Game:                # Main game class
                 turn = True
             elif key == "q":
                 self.end()
+            elif key == "m":
+                self.printex(23,0,"")
+                screen.curs_set(1)
+                screen.getstr()
+                screen.curs_set(0)
             elif key == "s":
                 x,y = x1,y1
                 self.save()
-            elif key == "m":
-                self.printex(23,0,"")
-                screen.getstr()
             elif key == "r":
                 self.load()
                 x1,y1 = x,y
@@ -139,40 +174,18 @@ class Game:                # Main game class
                 self.floodFill(xl, yl)
                 self.resetFov()
                 self.drawmap()
-                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
                                  self.isBlocking)                        
                 self.printex(0,0,"")
-            elif key == "x":
-                gamemap[x][y].type = (False,False,False)
-                mapchanged = True
-            elif key == "d":
-                gamemap[x][y] = cell.Door(True)
-                gamemap[x][y].close()
-                mapchanged = True
-            elif key == "v":
-                gamemap[x][y].lit = not gamemap[x][y].lit
-            elif key == "p":
-                d = self.askDirection()
-                rx = d[0]
-                ry = d[1]
-            elif key == "g":
-                gamemap[rx][ry] = cell.Newt("Newt",":",gamemap[rx][ry])
-                mapchanged = True
             elif key == "z":
                 fovblock = not fovblock
-            elif key == "!":
-                self.floodFill(xl, yl)
-            elif key == "e":
-                d = self.askDirection()
-                if d:
-                    self.moveMob(d[0],d[1], x, y)
-                mapchanged = True
             elif key == ";":
                 self.printex(23, 0, "You")
                 screen.curs_set(1)
                 self.printex(x, y, "")
                 cx1,cy1,cx,cy = x,y,x,y
-                while key != "q":
+                key = ""
+                while key != ";":
                     key = self.readkey()
                     if key == "8" or key == "k":
                         cx1-=1
@@ -233,8 +246,6 @@ class Game:                # Main game class
                     if gamemap[dx][dy].door:
                         gamemap[dx][dy].open()
                 mapchanged = True
-            elif key == "@":
-                self.debug_message(gamemap[x][y].fval)
             elif key == "c":
                 d = self.askDirection()
                 if d:
@@ -243,32 +254,58 @@ class Game:                # Main game class
                     if gamemap[dx][dy].door:
                         gamemap[dx][dy].close()
                 mapchanged = True
-            elif key == "f":
-                d = self.askDirection()
-                if d:
-                    dx = d[0]
-                    dy = d[1]
-                    if gamemap[dx][dy].mob:
-                        gamemap[dx][dy] = gamemap[dx][dy].undercell 
-            elif key == "a":
-                self.amnesia()
-                self.printex(23, 0, \
-                             "Thinking of Maud you forget everything else.")
-            elif key == "i":
-                d = self.askDirection()
-                if d:
-                    dx = d[0]
-                    dy = d[1]
-                    if dx <= 21 and dx >= 2 and dy <= 60 and dy >= 2:
-                        gamemap[dx][dy] = cell.Cell(True, True)
-                mapchanged = True
-            elif key == "t":
-                ucell = gamemap[x][y]
-                gamemap[x][y] = cell.Newt("Newt",":",ucell)
-                mapchanged = True
             elif key == "w":
                 turn = True
             else:
+                if wizmode:
+                    if key == "x":
+                        gamemap[x][y].type = (False,False,False)
+                        mapchanged = True
+                    elif key == "d":
+                        gamemap[x][y] = cell.Door(True)
+                        gamemap[x][y].close()
+                        mapchanged = True
+                    elif key == "v":
+                        gamemap[x][y].lit = not gamemap[x][y].lit
+                    elif key == "p":
+                        d = self.askDirection()
+                        rx = d[0]
+                        ry = d[1]
+                    elif key == "g":
+                        gamemap[rx][ry] = cell.Newt("Newt",":",gamemap[rx][ry])
+                        mapchanged = True
+                    elif key == "!":
+                        self.floodFill(xl, yl)
+                    elif key == "e":
+                        d = self.askDirection()
+                        if d:
+                            self.moveMob(d[0],d[1], x, y)
+                        mapchanged = True
+                    elif key == "@":
+                        self.debug_message(gamemap[x][y].fval)
+                    elif key == "f":
+                        d = self.askDirection()
+                        if d:
+                            dx = d[0]
+                            dy = d[1]
+                            if gamemap[dx][dy].mob:
+                                gamemap[dx][dy] = gamemap[dx][dy].undercell 
+                    elif key == "a":
+                        self.amnesia()
+                        self.printex(23, 0, \
+                                     "Thinking of Maud you forget everything else.")
+                    elif key == "i":
+                        d = self.askDirection()
+                        if d:
+                            dx = d[0]
+                            dy = d[1]
+                            if dx <= 21 and dx >= 2 and dy <= 60 and dy >= 2:
+                                gamemap[dx][dy] = cell.Cell(True, True)
+                        mapchanged = True
+                    elif key == "t":
+                        ucell = gamemap[x][y]
+                        gamemap[x][y] = cell.Newt("Newt",":",ucell)
+                        mapchanged = True
                 if not gamemap[x][y].door:
                     if key == "7" or key == "y":
                         x1-=1
@@ -293,7 +330,7 @@ class Game:                # Main game class
             if gamemap[x1][y1].type[0]:
                 x,y = x1,y1
                 self.resetFov()
-                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
                                  self.isBlocking)                        
             else:
                 turn = False                        
@@ -306,7 +343,7 @@ class Game:                # Main game class
                     gamemap[x1][y1].hp -= 5
                     turn = True
                 x1,y1 = x,y
-                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
                                  self.isBlocking)
             # Mob's turn
             if turn:
@@ -339,30 +376,44 @@ class Game:                # Main game class
                                         self.floodFill(xl, yl)
                                         mapchanged = False
                                     if gamemap[x][y].fval ==\
-                                     gamemap[mapx][mapy].fval:
+                                     gamemap[mapx][mapy].undercell.fval:
                                         self.aStarPathfind(mapx, mapy,x,y)
                                 else:
                                     if random.randint(0,25):
                                         mx = random.randint(-1,1)
                                         my = random.randint(-1,1)
-                                        if gamemap[mapx + mx][mapy + my].type[0]:
-                                            self.moveMob(mapx, mapy,mapx + mx,mapy\
-                                                          + my)
+                                        if gamemap[mapx + mx]\
+                                        [mapy + my].type[0]:
+                                            self.moveMob(mapx, mapy,\
+                                                         mapx + mx,mapy + my)
                                     else:                        
                                         if mapchanged:
                                             self.resetFlood()
                                             self.floodFill(xl, yl)
                                             mapchanged = False
                                         if gamemap[x][y].fval ==\
-                                         gamemap[mapx][mapy].fval:
+                                         gamemap[mapx][mapy].undercell.fval:
                                             self.aStarPathfind(mapx, mapy,x,y)
                                     
             ####
             self.drawmap()
             self.printex(x,y ,"@",refresh=False)
             self.printex(0,0," " * 50,refresh=False)
-            self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
-                         +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #DEBUG 
+            if wizmode:
+                self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
+                             +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #DEBUG 
+
+            self.printex(4, 63, state, 2)
+            self.printex(6, 63, " " * 10)            
+            hpattr = 3
+            if hp == maxhp:
+                hpattr = 3
+            if hp <= maxhp / 2:
+                hpattr = 4
+            if hp <= 5:
+                hpattr = 2
+            self.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr)
+            self.printex(8, 63, "T:%d" % (turns))
         else:
             self.printex(23, 0, "You died! --press any key--",2)
             self.readkey()
@@ -555,9 +606,9 @@ class Game:                # Main game class
         return x1,y1
     
     def load(self):
-        global gamemap,x,y,hp,turns,fovblock,rx,ry
-        save = open(SAVE,'r')
-        gamemap = pickle.load(save)
+        global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
+        saved = open(save,'r')
+        gamemap = pickle.load(saved)
         x = gamemap[0][0].pc[0]
         y = gamemap[0][0].pc[1]
         rx = gamemap[0][0].sc[0]
@@ -566,17 +617,21 @@ class Game:                # Main game class
         turns = gamemap[0][0].turns
         hp = gamemap[0][0].hp
         self.printex(23,0,"Loaded...")
+        if not wizmode:
+            os.remove(save)
         
     def save(self):
-        global gamemap,x,y,hp,turns,fovblock,rx,ry
-        save = open(SAVE,'w')
+        global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
+        saved = open(save,'w')
         gamemap[0][0].pc = [x,y]
         gamemap[0][0].sc = [rx,ry]
         gamemap[0][0].fov = fovblock
         gamemap[0][0].hp = hp
         gamemap[0][0].turns = turns
-        pickle.dump(gamemap, save)
+        pickle.dump(gamemap, saved)
         self.printex(23,0,"Saved...")
+        if not wizmode:
+            self.end()
 
     def get_line(self,x1, y1, x2, y2):
         points = []
@@ -664,6 +719,8 @@ class Game:                # Main game class
         sys.setrecursionlimit(2000)
         if gamemap[x][y].type[0] == False or gamemap[x][y].fval  == 1:
             return  0
+        if gamemap[x][y].mob:
+            gamemap[x][y].undercell.vfal = 1
         gamemap[x][y].fval = 1
         self.floodFill(x + 1,y)
         self.floodFill(x + 1,y + 1)
