@@ -333,6 +333,7 @@ class Game:                # Main game class
                                  self.isBlocking)
             # Mob's turn
             if turn:
+                self.spawnMobs()
                 turns += 1
                 regen += 1
                 if regen == 5:
@@ -667,12 +668,27 @@ class Game:                # Main game class
         self.floodFill(x + 1,y - 1)
         self.floodFill(x - 1,y + 1)
         return
+    def spawnMobs(self):
+        global gamemap,x,y
+        for mapx in xrange(MAP_W - 1):
+            for mapy in xrange(MAP_H):        
+                if random.choice([True,False] + [False] * 1000):
+                    if gamemap[mapx][mapy].type[0] and not self.\
+                    inLos(x, y, mapx, mapy) and gamemap[mapx][mapy].fval==\
+                    gamemap[x][y].fval:
+                        gamemap[mapx][mapy] = cell.Newt("Newt",":",gamemap\
+                                                        [mapx][mapy])
+
 #TODO:
 # Items
 # xlogfile
+# Stairs
+# plot
+
 #BUGS:
+
 #1 Sometimes mob attacks player when it shouldn't
-#2 Sometimes mob can move too fast
+#2 Floodfilling filling only one fragment of map. it should fill more
 
 #
 #  __           _       _  _    ___    
