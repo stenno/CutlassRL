@@ -21,9 +21,12 @@ from Modules import cell as lcell
 
 class levGen:
     def createRoom(self,room):
+        lit = random.randint(0,1)
         for x in range(room.x1 + 1, room.x2):
             for y in range(room.y1 + 1, room.y2):
                 self.lmap[y][x].type =  True,True
+                if lit:
+                    self.lmap[y][x].lit = True
     def vCorridor(self,y1,y2,x):
         for y in range(min(y1, y2), max(y1, y2) + 1):
             self.lmap[y][x].type =  True,True
@@ -75,15 +78,32 @@ class levGen:
                     self.hCorridor(prev_x, new_x, new_y)
                 rooms.append(new_room)
                 num_rooms += 1
-#        for line in lmap:
-#            for cell in line:
-#                if cell.type[0]:
-#                    print 1,
-#                else:
-#                    print 0,
-#            print "\n",
-#        exit()
+        for room in rooms:
+            for x in xrange(room.x1,room.x2):
+                for y in xrange(room.y1 + 1,room.y2 - 1):
+                    if random.choice([True,False] + [False] * 100):
+                        if self.lmap[y][x].type[0]:
+                            self.lmap[y][x] = lcell.Newt("Newt",":",self.\
+                                                         lmap[y][x])
+                    if self.lmap[y][x].type[0] and x == room.x1 or x ==\
+                     room.x2 or y == room.y1 or y == room.y2:
+                        if not self.lmap[y + 1][x].type[0] and\
+                        not self.lmap[y - 1][x].type[0] or\
+                        not self.lmap[y][x - 1].type[0] and\
+                        not self.lmap[y][x + 1].type[0]:
+                            if random.choice([True,False] + [False] * 10):
+                                self.lmap[y][x] = lcell.Door(False)
+                            else:
+                                self.lmap[y][x] = lcell.Door(True)
         return lmap,playerx,playery
+    
+    def near(self,x1,y1,x2,y2):
+        if x1 - x2 >= -1 and x1 - x2 <= 1 and\
+                    y1 - y2 >= -1 and y1 - y2 <= 1:
+            return True
+        else:
+            return False
+
 class Rect:
     #a rectangle on the map. used to characterize a room.
     def __init__(self, x, y, w, h):

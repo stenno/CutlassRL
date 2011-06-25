@@ -448,8 +448,12 @@ class Game:                # Main game class
                             gamemap[mapx][mapy].undercell.explored = True
                             gamemap[mapx][mapy].explored = False
                         screen.attron(screen.A_BOLD)
+                        if gamemap[mapx][mapy].type[0]:
+                            color = 1
+                        else:
+                            color = gamemap[mapx][mapy].color
                         io.printex(mapx, mapy, gamemap[mapx][mapy].char(),\
-                           gamemap[mapx][mapy].color,False)
+                           color,False)
                         screen.attroff(screen.A_BOLD)
                     elif gamemap[mapx][mapy].explored:
                         screen.attron(screen.A_DIM)

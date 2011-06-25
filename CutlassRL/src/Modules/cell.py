@@ -52,7 +52,10 @@ class Door(Cell):
     door = True
     def __init__(self,isOpen):
         self.opened = isOpen 
-        self.type = (False,False)
+        if self.opened:
+            self.type = (True,True)
+        else:
+            self.type = (False,False)
     def open(self):
         self.opened = True
         self.type = (True,True)
@@ -60,7 +63,7 @@ class Door(Cell):
         self.opened = False
         self.type = (False,False)        
     def char(self):
-        if self.opened:
+        if self.type[0]:
             return '-'
         else:
             return '+'
