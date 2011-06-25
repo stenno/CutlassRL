@@ -25,45 +25,19 @@ from Modules import AStar
 from Modules import cell
 from Modules import fov
 from Modules import Level
-
-
-try:
-    from Modules import unicurses as curses               # Game will use curses to draw things
-except ImportError:
-    print "Curses library is missing."
-    sys.exit()
-
-
-
+from Modules import IO
 
 class Game:                # Main game class
     def __init__(self):
         global screen,name,wizmode
+        global io
         """Initializer of Game class.
             Will start curses.
         """
-        screen = curses;
-
-        screen.initscr()
+        io = IO.IO()
+        screen = io.retSceen()
         
-        screen.curs_set(0)
-        screen.cbreak()
-        screen.start_color()
-        screen.use_default_colors()
-
-        #Color pairs
-        screen.init_pair(1,-1,-1) #Default
-        screen.init_pair(2,screen.COLOR_RED,-1) 
-        screen.init_pair(3,screen.COLOR_GREEN,-1) 
-        screen.init_pair(4,screen.COLOR_YELLOW,-1)
-        screen.init_pair(5,screen.COLOR_BLUE,-1) 
-        screen.init_pair(6,screen.COLOR_MAGENTA,-1)
-        screen.init_pair(7,screen.COLOR_CYAN,-1) 
-        screen.init_pair(8,screen.COLOR_WHITE,-1)
-
-        screen.attron(screen.color_pair(1))
-        
-        self.printex(0, 0, "What is your name? ", 3)
+        io.printex(0, 0, "What is your name? ", 3)
         screen.curs_set(1)
         
         wizmode = False
@@ -84,6 +58,7 @@ class Game:                # Main game class
         global x,y,rx,ry
         global hp,regen,maxhp
         global name,save
+        global io
         
         hp = 30
         maxhp = 30
@@ -112,41 +87,49 @@ class Game:                # Main game class
         if os.path.isfile(save):           
             self.load()
         else:  #level generator
-            pass
-#            gen = Level.levGen()
-#            (gamemap,x,y) = gen.generateLevel()
+            gen = Level.levGen()
+            (gamemap,y,x) = gen.generateLevel(gamemap)
+#            screen.endwin()
+#            for line in gamemap:
+#                for tile in line:
+#                    if tile.type[0]:
+#                        print "0",
+#                    else:
+#                        print "1",
+#                print "\n",
+#            exit()
         x1,y1 = x,y
         mapchanged = True
         fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible, self.isBlocking)                        
         self.drawmap()
-        self.printex(x,y ,"@", refresh=False)
-        self.printex(2, 63, name, 3)
+        io.printex(x,y ,"@", refresh=False)
+        io.printex(2, 63, name, 3)
         if wizmode:
             state = "Wizard"
         else:
             state = "Player"
-        self.printex(4, 63, state, 2)
-        self.printex(6, 63, " " * 10)            
+        io.printex(4, 63, state, 2)
+        io.printex(6, 63, " " * 10)            
         hpattr = 3
         if hp == maxhp:
             hpattr = 3
         if hp <= maxhp / 2:
             hpattr = 4
-        if hp <= 5:
-            hpattr = 2
-        self.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr)
-        self.printex(8, 63, "T:%d" % (turns))
+            if hp <= 5:
+                hpattr = 2
+        io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr)
+        io.printex(8, 63, "T:%d" % (turns))
         
         if wizmode:
-            self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
+            io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
                          +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #DEBUG 
         else:
-            self.printex(0, 0,"")
+            io.printex(0, 0,"")
         turn = False
         while hp >= 1 or wizmode:
             turn = False
-            self.printex(23, 0, " " * 60, refresh = False)
-            key = self.readkey()
+            io.printex(23, 0, " " * 60, refresh = False)
+            key = io.readkey()
             if key == "8" or key == "k":
                 x1-=1
                 turn = True
@@ -162,7 +145,7 @@ class Game:                # Main game class
             elif key == "q":
                 self.end()
             elif key == "m":
-                self.printex(23,0,"")
+                io.printex(23,0,"")
                 screen.curs_set(1)
                 screen.getstr()
                 screen.curs_set(0)
@@ -178,17 +161,17 @@ class Game:                # Main game class
                 self.drawmap()
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
                                  self.isBlocking)                        
-                self.printex(0,0,"")
+                io.printex(0,0,"")
             elif key == "z":
                 fovblock = not fovblock
             elif key == ";":
-                self.printex(23, 0, "You")
+                io.printex(23, 0, "You")
                 screen.curs_set(1)
-                self.printex(x, y, "")
+                io.printex(x, y, "")
                 cx1,cy1,cx,cy = x,y,x,y
                 key = ""
                 while key != ";":
-                    key = self.readkey()
+                    key = io.readkey()
                     if key == "8" or key == "k":
                         cx1-=1
                     elif key == "2" or key == "j":
@@ -236,9 +219,9 @@ class Game:                # Main game class
                             type = "Closed door"
                     if [cx,cy] == [x,y]:
                         type = "You"
-                    self.printex(23, 0, type)
-                    self.printex(cx, cy, "")
-                    self.printex(23, 0, " " * 20, refresh = False)                                        
+                    io.printex(23, 0, type)
+                    io.printex(cx, cy, "")
+                    io.printex(23, 0, " " * 20, refresh = False)                                        
                 screen.curs_set(0)
             elif key == "o":
                 d = self.askDirection()
@@ -260,7 +243,7 @@ class Game:                # Main game class
                 turn = True
             else:
                 if wizmode and key == "#":
-                    key = self.readkey()
+                    key = io.readkey()
                     if key == "x":
                         gamemap[x][y].type = (False,False,False)
                         mapchanged = True
@@ -285,7 +268,7 @@ class Game:                # Main game class
                             self.moveMob(d[0],d[1], x, y)
                         mapchanged = True
                     elif key == "@":
-                        self.debug_message(gamemap[x][y].fval)
+                        io.debug_message(gamemap[x][y].fval)
                     elif key == "f":
                         d = self.askDirection()
                         if d:
@@ -295,7 +278,7 @@ class Game:                # Main game class
                                 gamemap[dx][dy] = gamemap[dx][dy].undercell 
                     elif key == "a":
                         self.amnesia()
-                        self.printex(23, 0, \
+                        io.printex(23, 0, \
                                      "Thinking of Maud you forget everything else.")
                     elif key == "i":
                         d = self.askDirection()
@@ -342,7 +325,7 @@ class Game:                # Main game class
                     turn = True
                     mapchanged = True
                 elif gamemap[x1][y1].mob:
-                    self.printex(23, 0, "You hit %s" % gamemap[x1][y1].name)
+                    io.printex(23, 0, "You hit %s" % gamemap[x1][y1].name)
                     gamemap[x1][y1].hp -= 5
                     turn = True
                 x1,y1 = x,y
@@ -361,14 +344,14 @@ class Game:                # Main game class
                     for mapy in xrange(MAP_H):
                         if gamemap[mapx][mapy].mob:
                             if gamemap[mapx][mapy].hp < 1:
-                                self.printex(23, 0, "You kill the %s" %
+                                io.printex(23, 0, "You kill the %s" %
                                               gamemap[mapx][mapy].name ,3)
                                 mapchanged = True
                                 gamemap[mapx][mapy] = gamemap[mapx][mapy]\
                                 .undercell
                                 continue
                             if self.near(x,y,mapx,mapy):
-                                    self.printex(23, 0, "%s hits!" %\
+                                    io.printex(23, 0, "%s hits!" %\
                                               gamemap[mapx][mapy].name)
                                     hp -= random.randint(1,gamemap[mapx][mapy]\
                                                         .damage)
@@ -403,14 +386,14 @@ class Game:                # Main game class
                                     
             ####
             self.drawmap()
-            self.printex(x,y ,"@",refresh=False)
-            self.printex(0,0," " * 50,refresh=False)
+            io.printex(x,y ,"@",refresh=False)
+            io.printex(0,0," " * 50,refresh=False)
             if wizmode:
-                self.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
+                io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
                              +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #DEBUG 
 
-            self.printex(4, 63, state, 2)
-            self.printex(6, 63, " " * 10)            
+            io.printex(4, 63, state, 2)
+            io.printex(6, 63, " " * 10)            
             hpattr = 3
             if hp == maxhp:
                 hpattr = 3
@@ -418,11 +401,11 @@ class Game:                # Main game class
                 hpattr = 4
             if hp <= 5:
                 hpattr = 2
-            self.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr)
-            self.printex(8, 63, "T:%d" % (turns))
+            io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr)
+            io.printex(8, 63, "T:%d" % (turns))
         else:
-            self.printex(23, 0, "You died! --press any key--",2)
-            self.readkey()
+            io.printex(23, 0, "You died! --press any key--",2)
+            io.readkey()
     def end(self):
         """End of game.
             Will reset console and stop curses.
@@ -430,51 +413,15 @@ class Game:                # Main game class
         screen.endwin()
         sys.exit()
         
-    def debug_message(self,msg):
-        """Debug message subroutine,
-            Will say something like debugmsg: XXX
-        """
-        screen.attron(screen.A_BOLD)
-        self.printex(10,10,"debugmsg: %s" % msg,2)
-        screen.attroff(screen.A_BOLD)
-        self.readkey()
-
-    def printex(self,x,y,text = "Someone had no words to say..." ,pair = None\
-                ,refresh = True):
-        """Print function.
-            usage game.printex(<x of your text>,<y>,<Your text>,
-            <color pair>,<refresh?>)
-        """
-        if pair:
-            screen.attron(screen.color_pair(pair))            
-            
-        screen.mvaddstr(x,y,text)
-        
-        if refresh:
-            screen.refresh()
-            
-        if pair != None:
-            screen.attroff(screen.color_pair(pair))
-
-    def readkey(self):
-        """Readkey function.
-            reads one key from stdin.
-        """
-        try:
-            key = sys.stdin.read(1)
-        except IOError:
-            key = ""
-            
-        return key
-    
     def drawmap(self):  
         """Drawmap function.
             Will draw map. Working with fov.
         """
         global gamemap,screen
+        global io
         mapx,mapy=0,0 
         for mapx in xrange(MAP_W - 1):
-            for mapy in xrange(MAP_H):
+            for mapy in xrange(MAP_H - 1):
                 if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
                     if gamemap[mapx][mapy].lit and not gamemap[mapx][mapy].mob:
                         if self.inLos(mapx, mapy, x, y):
@@ -501,7 +448,7 @@ class Game:                # Main game class
                             gamemap[mapx][mapy].undercell.explored = True
                             gamemap[mapx][mapy].explored = False
                         screen.attron(screen.A_BOLD)
-                        self.printex(mapx, mapy, gamemap[mapx][mapy].char(),\
+                        io.printex(mapx, mapy, gamemap[mapx][mapy].char(),\
                            gamemap[mapx][mapy].color,False)
                         screen.attroff(screen.A_BOLD)
                     elif gamemap[mapx][mapy].explored:
@@ -509,25 +456,25 @@ class Game:                # Main game class
                         if gamemap[mapx][mapy].mob and not\
                          gamemap[mapx][mapy].visible:
                             if gamemap[mapx][mapy].undercell.door:
-                                self.printex(mapx, mapy,"-",5,False)
+                                io.printex(mapx, mapy,"-",5,False)
                             else:
-                                self.printex(mapx, mapy,".",5,False)                               
+                                io.printex(mapx, mapy,".",5,False)                               
                         else: 
-                            self.printex(mapx, mapy, gamemap[mapx][mapy].\
+                            io.printex(mapx, mapy, gamemap[mapx][mapy].\
                                          char(),5,False)
                     elif gamemap[mapx][mapy].mob:
                         if gamemap[mapx][mapy].undercell.explored == True:
-                            self.printex(mapx, mapy, gamemap[mapx][mapy].\
+                            io.printex(mapx, mapy, gamemap[mapx][mapy].\
                                          undercell.char(),5,False)
                         if gamemap[mapx][mapy].lit:
                             if self.inLos(mapx, mapy, x, y):
                                 screen.attron(screen.A_BOLD)
-                                self.printex(mapx, mapy, gamemap[mapx][mapy]\
+                                io.printex(mapx, mapy, gamemap[mapx][mapy]\
                                     .char(),gamemap[mapx][mapy].color,False)
                                 screen.attroff(screen.A_BOLD)
                                 
                     else:
-                        self.printex(mapx, mapy, " ",5,False)
+                        io.printex(mapx, mapy, " ",5,False)
                         screen.attroff(screen.A_DIM)
                         
         screen.refresh()
@@ -561,9 +508,10 @@ class Game:                # Main game class
  
     def askDirection(self):
         global x,y
+        global io
         x1,y1 = x,y
-        self.printex(23, 0, "What direction:")
-        key = self.readkey()
+        io.printex(23, 0, "What direction:")
+        key = io.readkey()
         if key == "8" or key == "k":
             x1-=1
         elif key == "2" or key == "j":
@@ -585,7 +533,7 @@ class Game:                # Main game class
             x1+=1
             y1+=1
         else:
-            self.printex(23, 0, "Wrong direction!")
+            io.printex(23, 0, "Wrong direction!")
             return False
         return x1,y1
     
@@ -600,7 +548,7 @@ class Game:                # Main game class
         fovblock = gamemap[0][0].fov
         turns = gamemap[0][0].turns
         hp = gamemap[0][0].hp
-        self.printex(23,0,"Loaded...")
+        io.printex(23,0,"Loaded...")
         if not wizmode:
             os.remove(save)
         
@@ -613,7 +561,7 @@ class Game:                # Main game class
         gamemap[0][0].hp = hp
         gamemap[0][0].turns = turns
         pickle.dump(gamemap, saved)
-        self.printex(23,0,"Saved...")
+        io.printex(23,0,"Saved...")
         if not wizmode:
             self.end()
 
@@ -717,8 +665,6 @@ class Game:                # Main game class
         return
 #TODO:
 # Items
-# Random map generation
-# Give debug commands to special user (wizard)
 # xlogfile
 #BUGS:
 #1 Sometimes mob attacks player when it shouldn't

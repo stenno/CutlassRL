@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
 
-VERSION = 0.03;
+VERSION = 0.04;
 
 MAX_ROOM_SIZE = 8
 MIN_ROOM_SIZE = 5
@@ -23,5 +23,5 @@ MAX_ROOMS     = 15
 MAP_H=80
 MAP_W=24
 
-MAX_H = 61
-MAX_W = 22
+MAX_H = 59
+MAX_W = 20

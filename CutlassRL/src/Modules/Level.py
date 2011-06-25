@@ -17,35 +17,36 @@
 import random
 
 from Modules.constants import *
-from Modules import cell
-
-lmap = []
+from Modules import cell as lcell
 
 class levGen:
     def createRoom(self,room):
         for x in range(room.x1 + 1, room.x2):
             for y in range(room.y1 + 1, room.y2):
-                lmap[x][y].blocked = False
+                self.lmap[y][x].type =  True,True
     def vCorridor(self,y1,y2,x):
         for y in range(min(y1, y2), max(y1, y2) + 1):
-            lmap[x][y].type = [False, False]
+            self.lmap[y][x].type =  True,True
     def hCorridor(self,x1,x2,y):
         for x in range(min(x1, x2), max(x1, x2) + 1):
-            lmap[x][y].type = [False, False]
-    def generateLevel(self):
-        lmap = [[ cell.Cell(False,False)
-        for y in range(MAX_H) ]
-            for x in range(MAX_W)]
+            self.lmap[y][x].type = True,True
+    def generateLevel(self,lmap):
+        self.lmap = lmap
         rooms = []
         num_rooms = 0
+        playerx, playery = 0,0
         
+        for line in lmap:
+            for tile in line:
+                tile.type = [False,False]
+                
         for r in range(MAX_ROOMS):
             #random width and height
             w = random.randint(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
             h = random.randint(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
             #random position without going out of the boundaries of the map
-            x = random.randint(0, MAX_W - w - 1)
-            y = random.randint(0, MAX_H - h - 1)
+            x = random.randint(2, MAX_H + 1 - w - 1)
+            y = random.randint(2, MAX_W + 1 - h - 1)
      
             new_room = Rect(x, y, w, h)
      
@@ -61,17 +62,27 @@ class levGen:
                     #this is the first room, where the player starts at
                     playerx = new_x
                     playery = new_y
+                    prev_x, prev_y = new_x, new_y
+                else:
                     (prev_x, prev_y) = rooms[num_rooms-1].center()
-                    if random.randint(0, 1) == 1:
-                        #first move horizontally, then vertically
-                        self.hCorridor(prev_x, new_x, prev_y)
-                        self.vCorridor(prev_y, new_y, new_x)
-                    else:
-                        #first move vertically, then horizontally
-                        self.vCorridor(prev_y, new_y, prev_x)
-                        self.hCorridor(prev_x, new_x, new_y)
+                if random.randint(0, 1) == 1:
+                    #first move horizontally, then vertically
+                    self.hCorridor(prev_x, new_x, prev_y)
+                    self.vCorridor(prev_y, new_y, new_x)
+                else:
+                    #first move vertically, then horizontally
+                    self.vCorridor(prev_y, new_y, prev_x)
+                    self.hCorridor(prev_x, new_x, new_y)
                 rooms.append(new_room)
                 num_rooms += 1
+#        for line in lmap:
+#            for cell in line:
+#                if cell.type[0]:
+#                    print 1,
+#                else:
+#                    print 0,
+#            print "\n",
+#        exit()
         return lmap,playerx,playery
 class Rect:
     #a rectangle on the map. used to characterize a room.
