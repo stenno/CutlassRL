@@ -2,6 +2,7 @@ class Cell:
     visible = False  #All cells are invisible by default
     explored = False #All cells are unexplored by default
     mob = False
+    item = False
     door= False
     lit = False      #All cells are unlit by default
     fval = 0
@@ -31,6 +32,7 @@ class Mob(Cell):
     def char(self):
         return self.chr
 
+    
 class Dragon(Mob):
     hp = 30
     name = "Dragon"
@@ -67,3 +69,12 @@ class Door(Cell):
             return '-'
         else:
             return '+'
+        
+class item(Mob): #Yeah, it is funny :D
+    mob = False
+    item = True
+    chr = "$"
+    name = "Gold"
+    color = 4
+    type = (True,True)
+    
