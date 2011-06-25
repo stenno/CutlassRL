@@ -95,7 +95,7 @@ class Game:                # Main game class
             (gamemap,y,x) = gen.generateLevel(gamemap)
         x1,y1 = x,y
         mapchanged = True
-        fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible, self.isBlocking)                        
+        fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible, self.isBlocking)                        
         self.drawmap()
         io.printex(x,y ,"@", refresh=False)
         io.printex(2, 63, name, 3)
@@ -156,7 +156,7 @@ class Game:                # Main game class
                     self.floodFill()
                     self.resetFov()
                     self.drawmap()
-                    fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
+                    fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                     self.isBlocking)                        
                 io.printex(0,0,"")
             elif key == "z":
@@ -315,7 +315,7 @@ class Game:                # Main game class
             if gamemap[x1][y1].type[0]:
                 x,y = x1,y1
                 self.resetFov()
-                fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                  self.isBlocking)                        
             else:
                 turn = False                        
@@ -329,7 +329,7 @@ class Game:                # Main game class
                     gamemap[x1][y1].hp -= 5
                     turn = True
                 x1,y1 = x,y
-                fov.fieldOfView(x, y, MAP_W, MAP_H, 5, self.setVisible,\
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                  self.isBlocking)
             # Mob's turn
             if gamemap[x][y].item:
@@ -425,6 +425,7 @@ class Game:                # Main game class
             pstack = []
         else:
             io.printex(23, 0, "You died! --press any key--",2)
+            self.logWrite(name, score, hp, maxhp, VERSION)
             io.readkey()
     def end(self):
         """End of game.
@@ -673,11 +674,14 @@ class Game:                # Main game class
             return True
     def floodFill(self):
         global gamemap
+        x = 1
         for mapx in xrange(MAP_W - 1,0,-1): 
             for mapy in xrange(MAP_H,0,-1):
-                if gamemap[mapx][mapy].type[0]:
+                if gamemap[mapx][mapy].type[0] and gamemap[mapx][mapy].fval \
+                != x:
                     xl,yl = mapx,mapy
-                    self.flood(xl,yl,1)
+                    self.flood(xl,yl,x)
+                 
     def flood(self,x,y,v):
         global gamemap
         sys.setrecursionlimit(2000)
@@ -705,10 +709,12 @@ class Game:                # Main game class
                     gamemap[x][y].fval:
                         gamemap[mapx][mapy] = cell.Newt("Newt",":",gamemap\
                                                         [mapx][mapy])
-
+    def logWrite(self,name,score,hp,maxhp,version):
+        log = open("mainlog.log","a")
+        log.write("version=%f:name=%s:score=%d:hp=%d:maxhp=%d" %
+        (version,name,score,hp,maxhp)
+                  )
 #TODO:
-# Items
-# xlogfile
 # Stairs
 # plot
 
