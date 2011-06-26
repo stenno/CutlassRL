@@ -60,7 +60,7 @@ def pathFind(the_map, n, m, dirs, dx, dy, xA, yA, xB, yB):
     steps = 0
     while len(pq[pqi]) > 0:
         steps += 1
-        if steps >= 1000:
+        if steps >= 500:
             return ''
         # get the current node w/ the highest priority
         # from the list of open nodes

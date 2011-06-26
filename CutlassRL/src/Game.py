@@ -348,6 +348,7 @@ class Game:                # Main game class
                 mapx,mapy = 0,0
                 for mapx in xrange(MAP_W - 1): 
                     for mapy in xrange(MAP_H):
+                        mobturn = True
                         if gamemap[mapx][mapy].mob:
                             if gamemap[mapx][mapy].hp < 1:
                                 pstack.append((23, 0, "You kill the %s" %
@@ -360,11 +361,12 @@ class Game:                # Main game class
                                                         "$",gamemap[mapx][mapy])
                                 mapchanged = True
                                 continue
-                            if self.near(x,y,mapx,mapy):
+                            if self.near(x,y,mapx,mapy) and mobturn:
                                     pstack.append((23, 0, "%s hits!" %\
                                               gamemap[mapx][mapy].name,2)   )
                                     hp -= random.randint(1,gamemap[mapx][mapy]\
                                                         .damage)
+                                    mobturn = False
                                     if hp <= 0:
                                         killer = "Newt"
                             if self.hasSpaceAround(mapx, mapy):
@@ -374,8 +376,10 @@ class Game:                # Main game class
                                         self.floodFill()
                                         mapchanged = False
                                     if gamemap[x][y].fval ==\
-                                     gamemap[mapx][mapy].undercell.fval:
+                                     gamemap[mapx][mapy].undercell.fval and \
+                                     mobturn:
                                         self.aStarPathfind(mapx, mapy,x,y)
+                                        mobturn = False
                                 else:
                                     if random.randint(0,25):
                                         mx, my = 0, 0
@@ -385,8 +389,10 @@ class Game:                # Main game class
                                             my = random.randint(-1,1)
                                         if gamemap[mapx + mx]\
                                         [mapy + my].type[0]:
-                                            self.moveMob(mapx, mapy,\
-                                                         mapx + mx,mapy + my)
+                                            if mobturn:
+                                                self.moveMob(mapx, mapy,\
+                                                             mapx + mx,mapy + my)
+                                                mobturn = False
                                     else:                        
                                         if mapchanged:
                                             self.resetFlood()
@@ -394,8 +400,9 @@ class Game:                # Main game class
                                             mapchanged = False
                                         if gamemap[x][y].fval ==\
                                          gamemap[mapx][mapy].undercell.fval:
-                                            self.aStarPathfind(mapx, mapy,x,y)
-                                    
+                                            if mobturn:
+                                                self.aStarPathfind(mapx, mapy,x,y)
+                                                mobturn = False
             ####
             self.drawmap()
             io.printex(x,y ,"@",refresh=False)
@@ -646,7 +653,7 @@ class Game:                # Main game class
             jy = j[0]
             if not gamemap[jx][jy].type[1]:
                 b = True
-        else:
+        if len(line) <= 40:
             return ret
 
     def aStarPathfind(self,mx,my,yx,yy):
@@ -724,8 +731,6 @@ class Game:                # Main game class
 # plot
 
 #BUGS:
-
-#1 Sometimes mob attacks player when it shouldn't
 
 #
 #  __           _       _  _    ___    
