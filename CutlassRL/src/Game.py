@@ -92,6 +92,7 @@ class Game:                # Main game class
         else:  #level generator
             gen = Level.levGen()
             (gamemap,y,x) = gen.generateLevel(gamemap)
+            self.spawnMobs()
         x1,y1 = x,y
         mapchanged = True
         fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible, self.isBlocking)                        

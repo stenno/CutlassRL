@@ -81,10 +81,6 @@ class levGen:
         for room in rooms:
             for x in xrange(room.x1,room.x2):
                 for y in xrange(room.y1 + 1,room.y2 - 1):
-                    if random.choice([True,False] + [False] * 100):
-                        if self.lmap[y][x].type[0]:
-                            self.lmap[y][x] = lcell.Newt("Newt",":",self.\
-                                                         lmap[y][x])
                     if self.lmap[y][x].type[0] and x == room.x1 or x ==\
                      room.x2 or y == room.y1 or y == room.y2:
                         if not self.lmap[y + 1][x].type[0] and\
