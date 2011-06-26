@@ -320,8 +320,6 @@ class Game:                # Main game class
             if gamemap[x1][y1].type[0]:
                 x,y = x1,y1
                 self.resetFov()
-                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
-                                 self.isBlocking)                        
             else:
                 turn = False                        
                 if gamemap[x1][y1].door:
@@ -334,27 +332,36 @@ class Game:                # Main game class
                     gamemap[x1][y1].hp -= random.randint(3,10)
                     turn = True
                 x1,y1 = x,y
-                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
-                                 self.isBlocking)
-            # Mob's turn
             if gamemap[x][y].item:
-                gamemap[x][y] = gamemap[x][y].undercell
-                gold_ = random.randint(4,10)
-                score += gold_
-                gold += gold_
-                pstack.append((23, 0, "You found some gold!",4))
+                if gamemap[x][y].name == "Gold":
+                    gamemap[x][y] = gamemap[x][y].undercell
+                    gold_ = random.randint(4,10)
+                    score += gold_
+                    gold += gold_
+                    pstack.append((23, 0, "You found some gold!",4))
+            #mob's turn
             if turn:
-                self.spawnMobs()
                 turns += 1
                 regen += random.randint(1,5)
                 if regen >= 5:
                         regen = 0
                         if hp < maxhp:
                             hp += random.randint(1,3)
+                            if hp > maxhp:
+                                hp = maxhp
                 mapx,mapy = 0,0
                 for mapx in xrange(MAP_W - 1): 
                     for mapy in xrange(MAP_H):
-                        mobturn = True
+                        if not random.randint(0,1000):
+                            if gamemap[mapx][mapy].type[0] and not self.\
+                            inLos(x, y, mapx, mapy) and gamemap[mapx][mapy].fval==\
+                            gamemap[x][y].fval:
+                                gamemap[mapx][mapy] = cell.Newt("Newt",":",gamemap\
+                                                                [mapx][mapy])
+                        gamemap[mapx][mapy].has_turn = True
+                        if mapchanged:
+                            self.floodFill()
+                            mapchanged = False
                         if gamemap[mapx][mapy].mob:
                             if gamemap[mapx][mapy].hp < 1:
                                 pstack.append((23, 0, "You kill the %s" %
@@ -363,54 +370,60 @@ class Game:                # Main game class
                                 kills += 1
                                 gamemap[mapx][mapy] = gamemap[mapx][mapy]\
                                 .undercell
+                                gamemap[mapx][mapy].visible = True
                                 if random.choice([True,False] + [False] * 10):
                                     gamemap[mapx][mapy] = cell.item("Gold",\
                                                         "$",gamemap[mapx][mapy])
                                 mapchanged = True
                                 continue
-                            if self.near(x,y,mapx,mapy) and mobturn:
-                                    pstack.append((23, 0, "%s hits!" %\
-                                              gamemap[mapx][mapy].name,2)   )
-                                    hp -= random.randint(1,gamemap[mapx][mapy]\
-                                                        .damage)
-                                    mobturn = False
-                                    if hp <= 0:
-                                        killer = "Newt"
-                            if self.hasSpaceAround(mapx, mapy):
-                                if self.inLos(x, y, mapx, mapy):
-                                    if mapchanged:
-                                        self.resetFlood()
-                                        self.floodFill()
-                                        mapchanged = False
-                                    if gamemap[x][y].fval ==\
-                                     gamemap[mapx][mapy].undercell.fval and \
-                                     mobturn:
-                                        self.aStarPathfind(mapx, mapy,x,y)
-                                        mobturn = False
+                            if self.near(x,y,mapx,mapy) and gamemap[mapx]\
+                            [mapy].has_turn:
+                                gamemap[mapx][mapy].has_turn = False
+                                pstack.append((23, 0, "%s hits!" %\
+                                        gamemap[mapx][mapy].name,2)   )
+                                hp -= random.randint(1,gamemap[mapx][mapy]\
+                                                    .damage)
+                                if hp <= 0:
+                                    killer = gamemap[mapx][mapy].name
+
+                            else:
+                                if gamemap[x][y].fval ==\
+                                        gamemap[mapx][mapy].undercell.fval and\
+                                        self.inLos(x, y, mapx, mapy) and\
+                                        self.hasSpaceAround(mapx, mapy) and\
+                                        gamemap[mapx][mapy].has_turn:
+                                    mx,my = self.aStarPathfind(mapx, mapy, x, y)
+                                    if self.near(mapx, mapy,mapx + mx,\
+                                                 mapy + my):
+                                        self.moveMob(mapx, mapy,mapx + mx,\
+                                                     mapy + my)
+                                    gamemap[mapx][mapy].has_turn = False
+                                elif gamemap[x][y].fval ==\
+                                        gamemap[mapx][mapy].undercell.fval and\
+                                        self.hasSpaceAround(mapx, mapy):
+                                        mx,my = self.aStarPathfind(mapx, mapy, x, y)
+                                        if self.near(mapx, mapy,mapx + mx,\
+                                                     mapy + my):
+                                            self.moveMob(mapx, mapy,mapx + mx,\
+                                                         mapy + my)
+                                        gamemap[mapx][mapy].has_turn = False
                                 else:
-                                    if random.randint(0,25):
-                                        mx, my = 0, 0
-                                        while not gamemap[mapx + mx]\
-                                        [mapy + my].type[0]: 
-                                            mx = random.randint(-1,1)
-                                            my = random.randint(-1,1)
-                                        if gamemap[mapx + mx]\
-                                        [mapy + my].type[0]:
-                                            if mobturn:
-                                                self.moveMob(mapx, mapy,\
-                                                             mapx + mx,mapy + my)
-                                                mobturn = False
-                                    else:                        
-                                        if mapchanged:
-                                            self.resetFlood()
-                                            self.floodFill()
-                                            mapchanged = False
-                                        if gamemap[x][y].fval ==\
-                                         gamemap[mapx][mapy].undercell.fval:
-                                            if mobturn:
-                                                self.aStarPathfind(mapx, mapy,x,y)
-                                                mobturn = False
-            ####
+                                    mx,my = 0,0
+                                    s = 0
+                                    if self.hasSpaceAround(mapx, mapy):
+                                        while not gamemap[mapx + mx][mapy + my]\
+                                        .type[0]:
+                                            s += 1
+                                            if s >= 5:
+                                                mx,my = 0,0
+                                                break
+                                            mx = random.choice([-1,1])
+                                            my = random.choice([-1,1])
+                                        self.moveMob(mapx, mapy,mapx + mx,mapy\
+                                                    + my)
+                                        gamemap[mapx][mapy].has_turn = False
+            fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                        self.isBlocking)
             self.drawmap()
             io.printex(x,y ,"@",refresh=False)
             io.printex(0,0," " * 50,refresh=False)
@@ -675,9 +688,9 @@ class Game:                # Main game class
         global gamemap
         (mx1,my1) = AStar.getPath(mx, my, yx, yy, gamemap, MAP_W, MAP_H)
         if (mx1,my1) != (0,0):
-            self.moveMob(mx, my, mx + mx1, my + my1)
+            return mx1,my1
         else:
-            return False
+            return 0,0
             
     def near(self,x1,y1,x2,y2):
         if x1 - x2 >= -1 and x1 - x2 <= 1 and\
@@ -700,6 +713,7 @@ class Game:                # Main game class
     def floodFill(self):
         global gamemap
         x = 1
+        self.resetFlood()
         for mapx in xrange(MAP_W - 1,0,-1): 
             for mapy in xrange(MAP_H,0,-1):
                 if gamemap[mapx][mapy].type[0] and gamemap[mapx][mapy].fval\

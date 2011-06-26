@@ -23,6 +23,7 @@ class Mob(Cell):
     lit = True
     color = 4
     type = (False,True)
+    has_turn = False
     damage = 2
     def __init__(self,name,char,undercell):
         self.name = name
