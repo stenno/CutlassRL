@@ -2,6 +2,7 @@ class Cell:
     visible = False  #All cells are invisible by default
     explored = False #All cells are unexplored by default
     mob = False
+    stairs = False
     item = False
     door= False
     lit = False      #All cells are unlit by default
@@ -17,6 +18,7 @@ class Cell:
 class Stair(Cell):
     up = False
     color = 1
+    stairs = True
     type = [True,True]
     def __init__(self,isUp):
         self.up = isUp

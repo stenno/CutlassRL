@@ -201,6 +201,11 @@ class Game:                # Main game class
                     type = ""
                     if not gamemap[cx][cy].explored:
                         type = "Unexplored"
+                    elif gamemap[cx][cy].stairs:
+                        if gamemap[cx][cy].up:
+                            type = "Staircase up"
+                        else:
+                            type = "Staircase down"
                     elif gamemap[cx][cy].type[0] and not gamemap[cx][cy].door:
                         type = "Ground"
                     elif gamemap[cx][cy].mob:
