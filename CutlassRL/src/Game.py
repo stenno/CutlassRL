@@ -352,13 +352,15 @@ class Game:                # Main game class
                 mapx,mapy = 0,0
                 for mapx in xrange(MAP_W - 1): 
                     for mapy in xrange(MAP_H):
+                        gamemap[mapx][mapy].has_turn = True
+                for mapx in xrange(MAP_W - 1): 
+                    for mapy in xrange(MAP_H):
                         if not random.randint(0,1000):
                             if gamemap[mapx][mapy].type[0] and not self.\
                             inLos(x, y, mapx, mapy) and gamemap[mapx][mapy].fval==\
                             gamemap[x][y].fval:
                                 gamemap[mapx][mapy] = cell.Newt("Newt",":",gamemap\
                                                                 [mapx][mapy])
-                        gamemap[mapx][mapy].has_turn = True
                         if mapchanged:
                             self.floodFill()
                             mapchanged = False
@@ -397,20 +399,25 @@ class Game:                # Main game class
                                                  mapy + my):
                                         self.moveMob(mapx, mapy,mapx + mx,\
                                                      mapy + my)
-                                    gamemap[mapx][mapy].has_turn = False
+                                        gamemap[mapx + mx][mapy + my].has_turn\
+                                         = False
                                 elif gamemap[x][y].fval ==\
                                         gamemap[mapx][mapy].undercell.fval and\
-                                        self.hasSpaceAround(mapx, mapy):
-                                        mx,my = self.aStarPathfind(mapx, mapy, x, y)
+                                        self.hasSpaceAround(mapx, mapy) and\
+                                        gamemap[mapx][mapy].has_turn:
+                                        mx,my = self.aStarPathfind(mapx,\
+                                                                    mapy, x, y)
                                         if self.near(mapx, mapy,mapx + mx,\
                                                      mapy + my):
                                             self.moveMob(mapx, mapy,mapx + mx,\
                                                          mapy + my)
-                                        gamemap[mapx][mapy].has_turn = False
+                                            gamemap[mapx + mx][mapy + my].\
+                                            has_turn = False
                                 else:
                                     mx,my = 0,0
                                     s = 0
-                                    if self.hasSpaceAround(mapx, mapy):
+                                    if self.hasSpaceAround(mapx, mapy) and\
+                                    gamemap[mapx][mapy].has_turn:
                                         while not gamemap[mapx + mx][mapy + my]\
                                         .type[0]:
                                             s += 1
@@ -421,7 +428,8 @@ class Game:                # Main game class
                                             my = random.choice([-1,1])
                                         self.moveMob(mapx, mapy,mapx + mx,mapy\
                                                     + my)
-                                        gamemap[mapx][mapy].has_turn = False
+                                        gamemap[mapx + mx][mapy + my]\
+                                        .has_turn = False
             fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                         self.isBlocking)
             self.drawmap()
@@ -664,10 +672,11 @@ class Game:                # Main game class
         return points
     def moveMob(self,x,y,mx,my):
         global gamemap
-        ucell = gamemap[mx][my]
-        gamemap[mx][my] = gamemap[x][y]
-        gamemap[x][y] = gamemap[x][y].undercell
-        gamemap[mx][my].undercell = ucell
+        if self.near(x, y, mx, my):
+            ucell = gamemap[mx][my]
+            gamemap[mx][my] = gamemap[x][y]
+            gamemap[x][y] = gamemap[x][y].undercell
+            gamemap[mx][my].undercell = ucell
         
     def inLos(self,x1,y1,x,y):
         global gamemap
