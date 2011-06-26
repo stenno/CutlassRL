@@ -404,7 +404,8 @@ class Game:                # Main game class
                                 elif gamemap[x][y].fval ==\
                                         gamemap[mapx][mapy].undercell.fval and\
                                         self.hasSpaceAround(mapx, mapy) and\
-                                        gamemap[mapx][mapy].has_turn:
+                                        gamemap[mapx][mapy].has_turn and\
+                                        not random.randint(0,10):
                                         mx,my = self.aStarPathfind(mapx,\
                                                                     mapy, x, y)
                                         if self.near(mapx, mapy,mapx + mx,\

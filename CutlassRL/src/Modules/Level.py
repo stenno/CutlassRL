@@ -66,6 +66,7 @@ class levGen:
                     playerx = new_x
                     playery = new_y
                     prev_x, prev_y = new_x, new_y
+                    self.lmap[new_y][new_x] = lcell.Stair(True)
                 else:
                     (prev_x, prev_y) = rooms[num_rooms-1].center()
                 if random.randint(0, 1) == 1:
@@ -91,6 +92,9 @@ class levGen:
                                 self.lmap[y][x] = lcell.Door(False)
                             else:
                                 self.lmap[y][x] = lcell.Door(True)
+        rn = random.randint(1,len(rooms) - 1)
+        (x,y) = rooms[rn].center()
+        self.lmap[y][x] = lcell.Stair(False)
         return lmap,playerx,playery
     
     def near(self,x1,y1,x2,y2):

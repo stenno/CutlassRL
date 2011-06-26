@@ -14,7 +14,22 @@ class Cell:
             return '.'
         else:
             return '#'
-        
+class Stair(Cell):
+    up = False
+    color = 1
+    type = [True,True]
+    def __init__(self,isUp):
+        self.up = isUp
+    def char(self):
+        if self.up:
+            return "<"
+        else:
+            return ">"
+    def move(self):
+        if self.up:
+            return 1
+        else:
+            return -1
 class Mob(Cell):
     mob = True
     hp = 10
