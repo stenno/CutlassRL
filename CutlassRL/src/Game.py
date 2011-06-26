@@ -57,15 +57,19 @@ class Game:                # Main game class
         global gamemap,fovblock,turns,wizmode
         global x,y,rx,ry
         global hp,regen,maxhp
-        global score
+        global score,gold
+        global kills
         global name,save
         global io,pstack
         
-        hp = 30
-        maxhp = 30
+        maxhp = random.randint(20,40)
+        hp = maxhp
         regen = 0
-        score = 0
 
+        score = 0
+        gold  = 0
+        kills = 0
+        
         pstack = []
                 
         fovblock = False
@@ -139,7 +143,7 @@ class Game:                # Main game class
                 y1+=1
                 turn = True
             elif key == "q":
-                self.logWrite(name, score, hp, maxhp, VERSION,"quit")
+                self.logWrite(name, score, hp, maxhp, VERSION,"quit",gold,kills)
                 self.end()
             elif key == "m":
                 io.printex(23,0,"")
@@ -327,7 +331,7 @@ class Game:                # Main game class
                 elif gamemap[x1][y1].mob:
                     pstack.append((23, 0, "You hit %s" % gamemap[x1][y1].name\
                                    ,3))
-                    gamemap[x1][y1].hp -= 5
+                    gamemap[x1][y1].hp -= random.randint(3,10)
                     turn = True
                 x1,y1 = x,y
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
@@ -335,16 +339,18 @@ class Game:                # Main game class
             # Mob's turn
             if gamemap[x][y].item:
                 gamemap[x][y] = gamemap[x][y].undercell
-                score += random.randint(4,10)
+                gold_ = random.randint(4,10)
+                score += gold_
+                gold += gold_
                 pstack.append((23, 0, "You found some gold!",4))
             if turn:
                 self.spawnMobs()
                 turns += 1
-                regen += 1
-                if regen == 5:
+                regen += random.randint(1,5)
+                if regen >= 5:
                         regen = 0
                         if hp < maxhp:
-                            hp += 1
+                            hp += random.randint(1,3)
                 mapx,mapy = 0,0
                 for mapx in xrange(MAP_W - 1): 
                     for mapy in xrange(MAP_H):
@@ -354,6 +360,7 @@ class Game:                # Main game class
                                 pstack.append((23, 0, "You kill the %s" %
                                               gamemap[mapx][mapy].name ,3))
                                 score += 5
+                                kills += 1
                                 gamemap[mapx][mapy] = gamemap[mapx][mapy]\
                                 .undercell
                                 if random.choice([True,False] + [False] * 10):
@@ -435,7 +442,7 @@ class Game:                # Main game class
             pstack = []
         else:
             io.printex(23, 0, "You died! --press any key--",2)
-            self.logWrite(name, score, hp, maxhp, VERSION,killer)
+            self.logWrite(name, score, hp, maxhp, VERSION,killer,gold,kills)
             io.readkey()
     def end(self):
         """End of game.
@@ -575,12 +582,16 @@ class Game:                # Main game class
     
     def load(self):
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
+        global gold,kills,score
         saved = open(save,'r')
         gamemap = pickle.load(saved)
         x = gamemap[0][0].pc[0]
         y = gamemap[0][0].pc[1]
         rx = gamemap[0][0].sc[0]
         ry = gamemap[0][0].sc[1]
+        gold = gamemap[0][0].gold
+        kills = gamemap[0][0].kills
+        score = gamemap[0][0].score
         fovblock = gamemap[0][0].fov
         turns = gamemap[0][0].turns
         hp = gamemap[0][0].hp
@@ -590,7 +601,11 @@ class Game:                # Main game class
         
     def save(self):
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
+        global gold,kills,score
         saved = open(save,'w')
+        gamemap[0][0].gold = gold
+        gamemap[0][0].kills = kills
+        gamemap[0][0].score = score
         gamemap[0][0].pc = [x,y]
         gamemap[0][0].sc = [rx,ry]
         gamemap[0][0].fov = fovblock
@@ -720,12 +735,13 @@ class Game:                # Main game class
                     gamemap[x][y].fval:
                         gamemap[mapx][mapy] = cell.Newt("Newt",":",gamemap\
                                                         [mapx][mapy])
-    def logWrite(self,name,score,hp,maxhp,version,death):
+    def logWrite(self,name,score,hp,maxhp,version,death,gold,kills):
         global wizmode
         if not wizmode:
             log = open("mainlog.log","a")
-            log.write("version=%f:name=%s:score=%d:hp=%d:maxhp=%d:killer=%s\n" %
-                      (version,name,score,hp,maxhp,death))
+            log.write(("version=%f:name=%s:score=%d:hp=%d:maxhp=%d:killer=%s:"
+                    + "gold=%d:kills=%d\n") %
+                      (version,name,score,hp,maxhp,death,gold,kills))
 #TODO:
 # Stairs
 # plot
