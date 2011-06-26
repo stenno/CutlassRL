@@ -72,7 +72,6 @@ class Game:                # Main game class
         
         x,y = 5,5
         rx,ry = 0,0 
-        xl, yl = 21,60
         key = ""
         
         save = name + ".sav"
@@ -139,6 +138,7 @@ class Game:                # Main game class
                 y1+=1
                 turn = True
             elif key == "q":
+                self.logWrite(name, score, hp, maxhp, VERSION,"quit")
                 self.end()
             elif key == "m":
                 io.printex(23,0,"")
@@ -335,7 +335,7 @@ class Game:                # Main game class
             if gamemap[x][y].item:
                 gamemap[x][y] = gamemap[x][y].undercell
                 score += random.randint(4,10)
-                io.printex(23, 0, "You found some gold!",4)
+                pstack.append((23, 0, "You found some gold!",4))
             if turn:
                 self.spawnMobs()
                 turns += 1
@@ -364,6 +364,8 @@ class Game:                # Main game class
                                               gamemap[mapx][mapy].name,2)   )
                                     hp -= random.randint(1,gamemap[mapx][mapy]\
                                                         .damage)
+                                    if hp <= 0:
+                                        killer = "Newt"
                             if self.hasSpaceAround(mapx, mapy):
                                 if self.inLos(x, y, mapx, mapy):
                                     if mapchanged:
@@ -425,7 +427,7 @@ class Game:                # Main game class
             pstack = []
         else:
             io.printex(23, 0, "You died! --press any key--",2)
-            self.logWrite(name, score, hp, maxhp, VERSION)
+            self.logWrite(name, score, hp, maxhp, VERSION,killer)
             io.readkey()
     def end(self):
         """End of game.
@@ -677,43 +679,45 @@ class Game:                # Main game class
         x = 1
         for mapx in xrange(MAP_W - 1,0,-1): 
             for mapy in xrange(MAP_H,0,-1):
-                if gamemap[mapx][mapy].type[0] and gamemap[mapx][mapy].fval \
-                != x:
+                if gamemap[mapx][mapy].type[0] and gamemap[mapx][mapy].fval\
+                 == 0:
                     xl,yl = mapx,mapy
-                    self.flood(xl,yl,x)
-                 
-    def flood(self,x,y,v):
+                    self.flood(xl,yl,x,0)
+                    x += 1
+    def flood(self,x,y,v,d):
         global gamemap
         sys.setrecursionlimit(2000)
-        if gamemap[x][y].type[0] == False or gamemap[x][y].fval  == v:
+        if gamemap[x][y].type[0] == False or gamemap[x][y].fval  == v or\
+        gamemap[x][y].fval != d:
             return  0
         if gamemap[x][y].mob:
             gamemap[x][y].undercell.fval = v
         gamemap[x][y].fval = v
-        self.flood(x + 1,y,v)
-        self.flood(x + 1,y + 1,v)
-        self.flood(x - 1,y,v)
-        self.flood(x - 1,y - 1,v)
-        self.flood(x,y + 1,v)
-        self.flood(x,y - 1,v)
-        self.flood(x + 1,y - 1,v)
-        self.flood(x - 1,y + 1,v)
+        self.flood(x + 1,y,v,d)
+        self.flood(x + 1,y + 1,v,d)
+        self.flood(x - 1,y,v,d)
+        self.flood(x - 1,y - 1,v,d)
+        self.flood(x,y + 1,v,d)
+        self.flood(x,y - 1,v,d)
+        self.flood(x + 1,y - 1,v,d)
+        self.flood(x - 1,y + 1,v,d)
         return
     def spawnMobs(self):
         global gamemap,x,y
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):        
-                if random.choice([True,False] + [False] * 1000):
+                if not random.randint(0,1000):
                     if gamemap[mapx][mapy].type[0] and not self.\
                     inLos(x, y, mapx, mapy) and gamemap[mapx][mapy].fval==\
                     gamemap[x][y].fval:
                         gamemap[mapx][mapy] = cell.Newt("Newt",":",gamemap\
                                                         [mapx][mapy])
-    def logWrite(self,name,score,hp,maxhp,version):
-        log = open("mainlog.log","a")
-        log.write("version=%f:name=%s:score=%d:hp=%d:maxhp=%d" %
-        (version,name,score,hp,maxhp)
-                  )
+    def logWrite(self,name,score,hp,maxhp,version,death):
+        global wizmode
+        if not wizmode:
+            log = open("mainlog.log","a")
+            log.write("version=%f:name=%s:score=%d:hp=%d:maxhp=%d:killer=%s\n" %
+                      (version,name,score,hp,maxhp,death))
 #TODO:
 # Stairs
 # plot
@@ -721,7 +725,6 @@ class Game:                # Main game class
 #BUGS:
 
 #1 Sometimes mob attacks player when it shouldn't
-#2 Floodfilling filling only one fragment of map. it should fill more
 
 #
 #  __           _       _  _    ___    
