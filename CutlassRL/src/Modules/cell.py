@@ -7,6 +7,7 @@ class Cell:
     door= False
     lit = False      #All cells are unlit by default
     fval = 0
+    olev = {}
     color = 4
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent)

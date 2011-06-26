@@ -59,6 +59,7 @@ class Game:                # Main game class
         global hp,regen,maxhp
         global score,gold
         global kills
+        global level
         global name,save
         global io,pstack
         
@@ -69,7 +70,9 @@ class Game:                # Main game class
         score = 0
         gold  = 0
         kills = 0
-        
+
+        level = 1
+                
         pstack = []
                 
         fovblock = False
@@ -143,8 +146,11 @@ class Game:                # Main game class
                 y1+=1
                 turn = True
             elif key == "q":
-                self.logWrite(name, score, hp, maxhp, VERSION,"quit",gold,kills)
-                self.end()
+                io.printex(0,0,"PRESS '!' TO QUIT:" + " " * 20,2)
+                key = io.readkey()
+                if key == "!":
+                    self.logWrite(name, score, hp, maxhp, VERSION,"Quit",gold,kills)
+                    self.end()
             elif key == "m":
                 io.printex(23,0,"")
                 screen.curs_set(1)
@@ -250,6 +256,53 @@ class Game:                # Main game class
                 mapchanged = True
             elif key == "w":
                 turn = True
+            elif key == ">" or key == "<":
+                if gamemap[x][y].stairs:
+                    if level == 1 and gamemap[x][y].up:
+                        io.printex(0, 0, "PRESS '!' IF YOU WANT TO ESCAPE:",2)
+                        key = io.readkey()
+                        if key == "!":
+                            killer = "Escaped"
+                            self.logWrite(name, score, hp, maxhp, VERSION,\
+                                          killer,gold,kills)
+                            self.end()
+                    else:
+                        if level + gamemap[x][y].move() in gamemap[x][y].olev:
+                            next = level + gamemap[x][y].move()
+                            level = next
+                            for mapx in xrange(MAP_W - 1): 
+                                for mapy in xrange(MAP_H):
+                                    gamemap[mapx][mapy] = gamemap[mapx][mapy]\
+                                    .olev[level]
+                            self.amnesia()
+                            self.spawnMobs()
+                            x1,y1 = x,y
+                            self.resetFlood()
+                            self.floodFill()
+                            self.resetFov()
+                            self.drawmap()
+                            fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                                            self.isBlocking)                        
+                        else:
+                            next = level + gamemap[x][y].move()
+                            level = next
+                            for mapx in xrange(MAP_W - 1): 
+                                for mapy in xrange(MAP_H):
+                                    gamemap[mapx][mapy].olev[level] = \
+                                    gamemap[mapx][mapy]
+                            gen = Level.levGen()
+                            (gamemap,y,x) = gen.generateLevel(gamemap)
+                            self.amnesia()
+                            self.spawnMobs()
+                            x1,y1 = x,y
+                            self.resetFlood()
+                            self.floodFill()
+                            self.resetFov()
+                            self.drawmap()
+                            fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                                            self.isBlocking)                        
+                else:
+                    pstack.append((23,0,"There is no stairs!",2))
             else:
                 if wizmode and key == "#":
                     key = io.readkey()
@@ -772,10 +825,20 @@ class Game:                # Main game class
                     + "gold=%d:kills=%d\n") %
                       (version,name,score,hp,maxhp,death,gold,kills))
 #TODO:
-# Stairs
 # plot
+# wilderness/town
+# npc's
+# more items
+# more mobs
+# items stats
+# ac
+# dice based rng
+# traps
+# monster hit messages
+# like Newt bittes! (not hits!)
 
 #BUGS:
+# No bugs?
 
 #
 #  __           _       _  _    ___    
