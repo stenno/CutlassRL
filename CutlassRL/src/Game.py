@@ -560,7 +560,8 @@ class Game:                # Main game class
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H - 1):
                 #If cell is in map range
-                if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
+                if gamemap[mapx][mapy] != None and(mapx <= 22 and mapx >= 1\
+                                                and mapy <= 61 and mapy >= 1):
                     if gamemap[mapx][mapy].lit and not gamemap[mapx][mapy].mob:
                         if self.inLos(mapx, mapy, x, y):
                             gamemap[mapx][mapy].visible = True
@@ -684,7 +685,6 @@ class Game:                # Main game class
             io.printex(23, 0, "Wrong direction!")
             return False
         return x1,y1
-    
     def load(self):
         """Load game from save"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
@@ -692,16 +692,6 @@ class Game:                # Main game class
         saved = gzip.open(save, 'rb')
         (level,info,gamemap,levs) = pickle.load(saved)
         (gold,kills,score,x,y,rx,ry,fovblock,hp,turns) = info
-#        x = gamemap[0][0].pc[0]
-#        y = gamemap[0][0].pc[1]
-#        rx = gamemap[0][0].sc[0]
-#        ry = gamemap[0][0].sc[1]
-#        gold = gamemap[0][0].gold
-#        kills = gamemap[0][0].kills
-#        score = gamemap[0][0].score
-#        fovblock = gamemap[0][0].fov
-#        turns = gamemap[0][0].turns
-#        hp = gamemap[0][0].hp
         saved.close()
         pstack.append((23,0,"Loaded...",1))
         if not wizmode:
@@ -713,19 +703,11 @@ class Game:                # Main game class
         global gold,kills,score,levs,level
         saved = gzip.open(save, 'wb')
         info = (gold,kills,score,x,y,rx,ry,fovblock,hp,turns)
-#        gamemap[0][0].gold = gold
-#        gamemap[0][0].kills = kills
-#        gamemap[0][0].score = score
-#        gamemap[0][0].pc = [x,y]
-#        gamemap[0][0].sc = [rx,ry]
-#        gamemap[0][0].fov = fovblock
-#        gamemap[0][0].hp = hp
-#        gamemap[0][0].turns = turns
         pickle.dump((level,info,gamemap,levs), saved,2)
         pstack.append((23,0,"Saved...",1))
         if not wizmode:
             saved.close()
-            self.end()
+            self.end()    
 
     def get_line(self,x1, y1, x2, y2):
         """Bresenham's line algorithm"""

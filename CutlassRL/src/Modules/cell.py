@@ -1,4 +1,6 @@
 class Cell:
+    __slots__ = ("visible","explored","type","mob","stairs","sdoor","door",\
+                 "item","lit","fval","color")
     visible = False  #All cells are invisible by default
     explored = False #All cells are unexplored by default
     mob = False
@@ -16,10 +18,6 @@ class Cell:
             return '.'
         else:
             return '#'
-    def __setstate__(self,state):
-        pass
-    def __getstate__(self):
-        pass
 class Stair(Cell):
     up = False
     color = 1
