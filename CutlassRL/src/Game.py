@@ -289,8 +289,8 @@ class Game:                # Main game class
                             mapchanged = True
                             self.resetFov()
                             self.resetFlood()
-                            fov.fieldOfView(x, y, MAP_W, MAP_H, 9, \
-                                            self.setVisible, self.isBlocking)
+                            fov.fieldOfView(x, y, MAP_W, MAP_H, 9,\
+                                             self.setVisible, self.isBlocking)
                         else:
                             levs[level] = copy.deepcopy(gamemap)
                             for mapx in xrange(MAP_W - 1): 
@@ -690,18 +690,18 @@ class Game:                # Main game class
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
         global gold,kills,score,levs,level
         saved = gzip.open(save, 'rb')
-#        saved = open(save, 'rb')
-        (level,gamemap,levs) = pickle.load(saved)
-        x = gamemap[0][0].pc[0]
-        y = gamemap[0][0].pc[1]
-        rx = gamemap[0][0].sc[0]
-        ry = gamemap[0][0].sc[1]
-        gold = gamemap[0][0].gold
-        kills = gamemap[0][0].kills
-        score = gamemap[0][0].score
-        fovblock = gamemap[0][0].fov
-        turns = gamemap[0][0].turns
-        hp = gamemap[0][0].hp
+        (level,info,gamemap,levs) = pickle.load(saved)
+        (gold,kills,score,x,y,rx,ry,fovblock,hp,turns) = info
+#        x = gamemap[0][0].pc[0]
+#        y = gamemap[0][0].pc[1]
+#        rx = gamemap[0][0].sc[0]
+#        ry = gamemap[0][0].sc[1]
+#        gold = gamemap[0][0].gold
+#        kills = gamemap[0][0].kills
+#        score = gamemap[0][0].score
+#        fovblock = gamemap[0][0].fov
+#        turns = gamemap[0][0].turns
+#        hp = gamemap[0][0].hp
         saved.close()
         pstack.append((23,0,"Loaded...",1))
         if not wizmode:
@@ -712,16 +712,16 @@ class Game:                # Main game class
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
         global gold,kills,score,levs,level
         saved = gzip.open(save, 'wb')
-#        saved = open(save, 'wb')
-        gamemap[0][0].gold = gold
-        gamemap[0][0].kills = kills
-        gamemap[0][0].score = score
-        gamemap[0][0].pc = [x,y]
-        gamemap[0][0].sc = [rx,ry]
-        gamemap[0][0].fov = fovblock
-        gamemap[0][0].hp = hp
-        gamemap[0][0].turns = turns
-        pickle.dump((level,gamemap,levs), saved, 2)
+        info = (gold,kills,score,x,y,rx,ry,fovblock,hp,turns)
+#        gamemap[0][0].gold = gold
+#        gamemap[0][0].kills = kills
+#        gamemap[0][0].score = score
+#        gamemap[0][0].pc = [x,y]
+#        gamemap[0][0].sc = [rx,ry]
+#        gamemap[0][0].fov = fovblock
+#        gamemap[0][0].hp = hp
+#        gamemap[0][0].turns = turns
+        pickle.dump((level,info,gamemap,levs), saved,2)
         pstack.append((23,0,"Saved...",1))
         if not wizmode:
             saved.close()
@@ -805,8 +805,8 @@ class Game:                # Main game class
     def hasSpaceAround(self,x,y):
         """Checks if there is free cells
             around x,y"""
-        c = 0
         global gamemap
+        c = 0
         for x2 in xrange(-2,2):
             for y2 in xrange(-2,2):
                 if self.near(x, y,x + x2,y + y2):
