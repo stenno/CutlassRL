@@ -20,6 +20,7 @@ import sys
 import pickle
 import os.path
 import random
+import gzip
 
 from Modules import AStar
 from Modules import cell
@@ -122,7 +123,8 @@ class Game:                # Main game class
         io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr)
         io.printex(8, 63, "T:%d" % (turns))
         io.printex(10, 63, "Score:%d" % (score),3)
-        
+        io.printex(12, 63, "Level:%d" % (level),3)
+     
         if wizmode:
             io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
                          +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #DEBUG 
@@ -267,40 +269,7 @@ class Game:                # Main game class
                                           killer,gold,kills)
                             self.end()
                     else:
-                        if level + gamemap[x][y].move() in gamemap[x][y].olev:
-                            next = level + gamemap[x][y].move()
-                            level = next
-                            for mapx in xrange(MAP_W - 1): 
-                                for mapy in xrange(MAP_H):
-                                    gamemap[mapx][mapy] = gamemap[mapx][mapy]\
-                                    .olev[level]
-                            self.amnesia()
-                            self.spawnMobs()
-                            x1,y1 = x,y
-                            self.resetFlood()
-                            self.floodFill()
-                            self.resetFov()
-                            self.drawmap()
-                            fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
-                                            self.isBlocking)                        
-                        else:
-                            next = level + gamemap[x][y].move()
-                            level = next
-                            for mapx in xrange(MAP_W - 1): 
-                                for mapy in xrange(MAP_H):
-                                    gamemap[mapx][mapy].olev[level] = \
-                                    gamemap[mapx][mapy]
-                            gen = Level.levGen()
-                            (gamemap,y,x) = gen.generateLevel(gamemap)
-                            self.amnesia()
-                            self.spawnMobs()
-                            x1,y1 = x,y
-                            self.resetFlood()
-                            self.floodFill()
-                            self.resetFov()
-                            self.drawmap()
-                            fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
-                                            self.isBlocking)                        
+                        pass
                 else:
                     pstack.append((23,0,"There is no stairs!",2))
             else:
@@ -377,7 +346,6 @@ class Game:                # Main game class
                         x1,y1 = x,y
             if gamemap[x1][y1].type[0]:
                 x,y = x1,y1
-                self.resetFov()
             else:
                 turn = False                        
                 if gamemap[x1][y1].door:
@@ -445,7 +413,6 @@ class Game:                # Main game class
                                                     .damage)
                                 if hp <= 0:
                                     killer = gamemap[mapx][mapy].name
-
                             else:
                                 if gamemap[x][y].fval ==\
                                         gamemap[mapx][mapy].undercell.fval and\
@@ -489,6 +456,7 @@ class Game:                # Main game class
                                                     + my)
                                         gamemap[mapx + mx][mapy + my]\
                                         .has_turn = False
+            self.resetFov()
             fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                         self.isBlocking)
             self.drawmap()
@@ -510,6 +478,7 @@ class Game:                # Main game class
             io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr)
             io.printex(8, 63, "T:%d" % (turns))
             io.printex(10, 63, "Score:%d" % (score),3)
+            io.printex(12, 63, "Level:%d" % (level),3)
             if len(pstack) > 1:
                 for line in pstack:
                     (mx,my,msg,attr) = line
@@ -663,7 +632,7 @@ class Game:                # Main game class
     def load(self):
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
         global gold,kills,score
-        saved = open(save,'r')
+        saved = gzip.open(save, 'rb')
         gamemap = pickle.load(saved)
         x = gamemap[0][0].pc[0]
         y = gamemap[0][0].pc[1]
@@ -682,7 +651,7 @@ class Game:                # Main game class
     def save(self):
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
         global gold,kills,score
-        saved = open(save,'w')
+        saved = gzip.open(save, 'wb')
         gamemap[0][0].gold = gold
         gamemap[0][0].kills = kills
         gamemap[0][0].score = score
