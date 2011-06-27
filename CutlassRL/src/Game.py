@@ -29,7 +29,7 @@ from Modules import Level
 from Modules import IO
 
 class Game:                # Main game class
-    def __init__(self):
+    def __init__(self,yname = None):
         global screen,name,wizmode
         global io
         """Initializer of Game class.
@@ -37,16 +37,21 @@ class Game:                # Main game class
         """
         io = IO.IO()
         screen = io.retSceen()
-        
-        io.printex(0, 0, "What is your name? ", 3)
-        screen.curs_set(1)
-        
-        wizmode = False
 
-        try:
-            name = screen.getstr()
-        except KeyboardInterrupt:
-            self.end()
+        if yname and yname.isalnum():
+            name = yname
+        else:
+            name = ""
+        screen.curs_set(1)
+        wizmode = False
+        while len(name) < 3:
+            io.printex(0, 0, "What is your name? ", 3)
+            try:
+                name = screen.getstr()
+                if not name.isalnum():
+                    self.end()
+            except KeyboardInterrupt:
+                self.end()
         screen.curs_set(0)
         if name == "Wizard":
             wizmode = True

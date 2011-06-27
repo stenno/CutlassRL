@@ -17,11 +17,21 @@
 
 # CutlassRL - a roguelike game.
 
+import sys
+
 from Modules.constants import *
 
 import Game  # importing main game library
 
-play = Game.Game()
+try:
+    if sys.argv[1]:
+        name = sys.argv[1]
+    else:
+        name = None
+except IndexError:
+    name = None
+    
+play = Game.Game(name)
 
 try:
     play.main_loop()
