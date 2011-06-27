@@ -68,6 +68,7 @@ class Game:                # Main game class
         global level
         global name,save
         global io,pstack  
+        global levs
         
         maxhp = random.randint(20,40)  #Max hp always random
         hp = maxhp                     #Hp is at max
@@ -80,7 +81,7 @@ class Game:                # Main game class
         level = 1                       #Starting level
                 
         pstack = []
-                
+
         fovblock = False   #Fov is not blocked
         
         x,y = 5,5
@@ -108,6 +109,7 @@ class Game:                # Main game class
             (gamemap,y,x) = gen.generateLevel(gamemap)
             self.spawnMobs()
         x1,y1 = x,y
+        levs = {1:gamemap}
         mapchanged = True #Map has been changed
         # Count fov
         fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible, self.isBlocking)                        
@@ -264,6 +266,9 @@ class Game:                # Main game class
                 mapchanged = True
             elif key == "w": #Wait
                 turn = True
+                mx,my = random.randint(-1,1),random.randint(-1,1)
+                if gamemap[x+mx][y+my].sdoor:
+                    gamemap[x+mx][y+my] = cell.Door(False)
             elif key == ">" or key == "<": #Move up or down
                 if gamemap[x][y].stairs:
                     if level == 1 and gamemap[x][y].up:
@@ -275,7 +280,32 @@ class Game:                # Main game class
                                           killer,gold,kills)
                             self.end()
                     else:
-                        pass
+                        next = gamemap[x][y].move() + level
+                        if next in levs:
+                            for mapx in xrange(MAP_W - 1): 
+                                for mapy in xrange(MAP_H):
+                                    gamemap[mapx][mapy] = cell.Cell(False,False)
+                            gamemap = levs[next]
+                            mapchanged = True
+                            self.resetFov()
+                            self.resetFlood()
+                            fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                                        self.isBlocking)
+                        else:
+                            levs[level] = gamemap
+                            for mapx in xrange(MAP_W - 1): 
+                                for mapy in xrange(MAP_H):
+                                    gamemap[mapx][mapy] = cell.Cell(False,False)
+                            gen = Level.levGen()
+                            (gamemap,y,x) = gen.generateLevel(gamemap)
+                            levs[next] = gamemap
+                            mapchanged = True
+                            self.resetFov()
+                            self.resetFlood()
+                            self.amnesia()
+                            fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                                        self.isBlocking)
+                            level = next
                 else:
                     pstack.append((23,0,"There is no stairs!",2))
             else:
@@ -657,9 +687,9 @@ class Game:                # Main game class
     def load(self):
         """Load game from save"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
-        global gold,kills,score
+        global gold,kills,score,levs
         saved = gzip.open(save, 'rb')
-        gamemap = pickle.load(saved)
+        (gamemap,levs) = pickle.load(saved)
         x = gamemap[0][0].pc[0]
         y = gamemap[0][0].pc[1]
         rx = gamemap[0][0].sc[0]
@@ -678,7 +708,7 @@ class Game:                # Main game class
     def save(self):
         """Save game"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
-        global gold,kills,score
+        global gold,kills,score,levs
         saved = gzip.open(save, 'wb')
         gamemap[0][0].gold = gold
         gamemap[0][0].kills = kills
@@ -688,10 +718,10 @@ class Game:                # Main game class
         gamemap[0][0].fov = fovblock
         gamemap[0][0].hp = hp
         gamemap[0][0].turns = turns
-        saved.close()
-        pickle.dump(gamemap, saved)
+        pickle.dump((gamemap,levs), saved)
         pstack.append((23,0,"Saved...",1))
         if not wizmode:
+            saved.close()
             self.end()
 
     def get_line(self,x1, y1, x2, y2):

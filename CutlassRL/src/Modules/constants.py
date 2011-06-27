@@ -18,10 +18,19 @@ VERSION = 0.04;
 
 MAX_ROOM_SIZE = 8
 MIN_ROOM_SIZE = 8
-MAX_ROOMS     = 35
+MAX_ROOMS     = 50
 
 MAP_H=80
 MAP_W=24
 
 MAX_H = 59
 MAX_W = 20
+
+DEFAULT = 1
+RED     = 2
+GREEN   = 3
+YELLOW  = 4
+BLUE    = 5
+MAGENTA = 6
+CYAN    = 7
+WHITE   = 8

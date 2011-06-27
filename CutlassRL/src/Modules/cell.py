@@ -3,6 +3,7 @@ class Cell:
     explored = False #All cells are unexplored by default
     mob = False
     stairs = False
+    sdoor = False
     item = False
     door= False
     lit = False      #All cells are unlit by default
@@ -30,9 +31,9 @@ class Stair(Cell):
             return ">"
     def move(self):
         if self.up:
-            return 1
-        else:
             return -1
+        else:
+            return 1
 class Mob(Cell):
     mob = True
     hp = 10
@@ -88,6 +89,15 @@ class Door(Cell):
             return '-'
         else:
             return '+'
+
+class secretDoor(Cell):
+    known = False
+    sdoor = True
+    color = 4
+    def __init__(self):
+        self.type = [False,False]
+    def  char(self):
+            return "#"
         
 class item(Mob): #Yeah, it is funny :D
     mob = False

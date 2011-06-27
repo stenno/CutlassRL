@@ -88,8 +88,11 @@ class levGen:
                         not self.lmap[y - 1][x].type[0] or\
                         not self.lmap[y][x - 1].type[0] and\
                         not self.lmap[y][x + 1].type[0]:
-                            if random.choice([True,False] + [False] * 10):
-                                self.lmap[y][x] = lcell.Door(False)
+                            if not random.randint(0,5):
+                                if not random.randint(0,3):
+                                    self.lmap[y][x] = lcell.secretDoor()
+                                else:
+                                    self.lmap[y][x] = lcell.Door(False)
                             else:
                                 self.lmap[y][x] = lcell.Door(True)
         rn = random.randint(1,len(rooms) - 1)
