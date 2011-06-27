@@ -21,6 +21,7 @@ import pickle  #Used for saves
 import os.path
 import random
 import gzip
+import copy
 
 from Modules import AStar  #Pathfinding
 from Modules import cell   #Cell class
@@ -109,7 +110,7 @@ class Game:                # Main game class
             (gamemap,y,x) = gen.generateLevel(gamemap)
             self.spawnMobs()
         x1,y1 = x,y
-        levs = {1:gamemap}
+        levs = [gamemap,None]
         mapchanged = True #Map has been changed
         # Count fov
         fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible, self.isBlocking)                        
@@ -281,23 +282,23 @@ class Game:                # Main game class
                             self.end()
                     else:
                         next = gamemap[x][y].move() + level
-                        if next in levs:
-                            for mapx in xrange(MAP_W - 1): 
-                                for mapy in xrange(MAP_H):
-                                    gamemap[mapx][mapy] = cell.Cell(False,False)
-                            gamemap = levs[next]
+                        levs.append(None)
+                        if levs[next]:
+                            gamemap = copy.deepcopy(levs[next])
+                            level = next
                             mapchanged = True
                             self.resetFov()
                             self.resetFlood()
-                            fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
-                                        self.isBlocking)
+                            fov.fieldOfView(x, y, MAP_W, MAP_H, 9, \
+                                            self.setVisible, self.isBlocking)
                         else:
-                            levs[level] = gamemap
+                            levs[level] = copy.deepcopy(gamemap)
                             for mapx in xrange(MAP_W - 1): 
                                 for mapy in xrange(MAP_H):
                                     gamemap[mapx][mapy] = cell.Cell(False,False)
                             gen = Level.levGen()
                             (gamemap,y,x) = gen.generateLevel(gamemap)
+                            levs.append(None)
                             levs[next] = gamemap
                             mapchanged = True
                             self.resetFov()
@@ -687,9 +688,10 @@ class Game:                # Main game class
     def load(self):
         """Load game from save"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
-        global gold,kills,score,levs
+        global gold,kills,score,levs,level
         saved = gzip.open(save, 'rb')
-        (gamemap,levs) = pickle.load(saved)
+#        saved = open(save, 'rb')
+        (level,gamemap,levs) = pickle.load(saved)
         x = gamemap[0][0].pc[0]
         y = gamemap[0][0].pc[1]
         rx = gamemap[0][0].sc[0]
@@ -708,8 +710,9 @@ class Game:                # Main game class
     def save(self):
         """Save game"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
-        global gold,kills,score,levs
+        global gold,kills,score,levs,level
         saved = gzip.open(save, 'wb')
+#        saved = open(save, 'wb')
         gamemap[0][0].gold = gold
         gamemap[0][0].kills = kills
         gamemap[0][0].score = score
@@ -718,7 +721,7 @@ class Game:                # Main game class
         gamemap[0][0].fov = fovblock
         gamemap[0][0].hp = hp
         gamemap[0][0].turns = turns
-        pickle.dump((gamemap,levs), saved)
+        pickle.dump((level,gamemap,levs), saved, 2)
         pstack.append((23,0,"Saved...",1))
         if not wizmode:
             saved.close()
@@ -802,8 +805,8 @@ class Game:                # Main game class
     def hasSpaceAround(self,x,y):
         """Checks if there is free cells
             around x,y"""
-        global gamemap
         c = 0
+        global gamemap
         for x2 in xrange(-2,2):
             for y2 in xrange(-2,2):
                 if self.near(x, y,x + x2,y + y2):
