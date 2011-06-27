@@ -670,6 +670,7 @@ class Game:                # Main game class
         fovblock = gamemap[0][0].fov
         turns = gamemap[0][0].turns
         hp = gamemap[0][0].hp
+        saved.close()
         pstack.append((23,0,"Loaded...",1))
         if not wizmode:
             os.remove(save)
@@ -687,6 +688,7 @@ class Game:                # Main game class
         gamemap[0][0].fov = fovblock
         gamemap[0][0].hp = hp
         gamemap[0][0].turns = turns
+        saved.close()
         pickle.dump(gamemap, saved)
         pstack.append((23,0,"Saved...",1))
         if not wizmode:
