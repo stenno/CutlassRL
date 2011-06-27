@@ -14,27 +14,27 @@
 #    You should have received a copy of the GNU General Public License
 #    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
 
-from Modules.constants import *
+from Modules.constants import *  #Import constants
 
 import sys
-import pickle
+import pickle  #Used for saves
 import os.path
 import random
 import gzip
 
-from Modules import AStar
-from Modules import cell
-from Modules import fov
-from Modules import Level
-from Modules import IO
+from Modules import AStar  #Pathfinding
+from Modules import cell   #Cell class
+from Modules import fov    #FOV algorithm
+from Modules import Level  #Level generation
+from Modules import IO     #Input/Output
 
 class Game:                # Main game class
-    def __init__(self,yname = None):
-        global screen,name,wizmode
-        global io
+    def __init__(self,yname = None):  #yname = Your name
         """Initializer of Game class.
-            Will start curses.
+            Will start curses and ask for name.
         """
+        global screen,name,wizmode
+        global io                      #For input/output
         io = IO.IO()
         screen = io.retSceen()
 
@@ -67,25 +67,25 @@ class Game:                # Main game class
         global kills
         global level
         global name,save
-        global io,pstack
+        global io,pstack  
         
-        maxhp = random.randint(20,40)
-        hp = maxhp
+        maxhp = random.randint(20,40)  #Max hp always random
+        hp = maxhp                     #Hp is at max
         regen = 0
 
-        score = 0
+        score = 0                       #Zero score
         gold  = 0
         kills = 0
 
-        level = 1
+        level = 1                       #Starting level
                 
         pstack = []
                 
-        fovblock = False
+        fovblock = False   #Fov is not blocked
         
         x,y = 5,5
         rx,ry = 0,0 
-        key = ""
+        key = None   #No key is pressed
         
         save = name + ".sav"
         
@@ -100,17 +100,19 @@ class Game:                # Main game class
                     gamemap[mapx].append(cell.Cell(True,True))
                 else:
                     gamemap[mapx].append(cell.Cell(False,False))
+
         if os.path.isfile(save):           
-            self.load()
+            self.load()  #Load savefile
         else:  #level generator
             gen = Level.levGen()
             (gamemap,y,x) = gen.generateLevel(gamemap)
             self.spawnMobs()
         x1,y1 = x,y
-        mapchanged = True
+        mapchanged = True #Map has been changed
+        # Count fov
         fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible, self.isBlocking)                        
         self.drawmap()
-        io.printex(x,y ,"@", refresh=False)
+        io.printex(x,y ,"@", refresh=False) #Draw player
         io.printex(2, 63, name, 3)
         if wizmode:
             state = "Wizard"
@@ -118,13 +120,14 @@ class Game:                # Main game class
             state = "Player"
         io.printex(4, 63, state, 2)
         io.printex(6, 63, " " * 10)            
+
         hpattr = 3
         if hp == maxhp:
-            hpattr = 3
+            hpattr = 3 #Green
         if hp <= maxhp / 2:
-            hpattr = 4
+            hpattr = 4 #Yellow
             if hp <= 5:
-                hpattr = 2
+                hpattr = 2 #Red
         io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr)
         io.printex(8, 63, "T:%d" % (turns))
         io.printex(10, 63, "Score:%d" % (score),3)
@@ -132,7 +135,7 @@ class Game:                # Main game class
      
         if wizmode:
             io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
-                         +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #DEBUG 
+                         +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #For debug 
         else:
             io.printex(0, 0,"")
         turn = False
@@ -153,21 +156,21 @@ class Game:                # Main game class
                 y1+=1
                 turn = True
             elif key == "q":
-                io.printex(0,0,"PRESS '!' TO QUIT:" + " " * 20,2)
+                io.printex(0,0,"PRESS '!' TO QUIT:" + " " * 20,2) #Paranoid
                 key = io.readkey()
                 if key == "!":
-                    self.logWrite(name, score, hp, maxhp, VERSION,"Quit",gold,kills)
+                    self.logWrite(name, score, hp, maxhp, VERSION,\
+                                  "Quit",gold,kills)
                     self.end()
-            elif key == "m":
+            elif key == "m":  #Message (for ttyrecs)
                 io.printex(23,0,"")
                 screen.curs_set(1)
                 screen.getstr()
                 screen.curs_set(0)
             elif key == "s":
-                x,y = x1,y1
                 self.save()
             elif key == "r":
-                if os.path.isfile(save):           
+                if os.path.isfile(save):   #If there is savefile        
                     self.load()                    
                     x1,y1 = x,y
                     self.resetFlood()
@@ -177,9 +180,7 @@ class Game:                # Main game class
                     fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                     self.isBlocking)                        
                 io.printex(0,0,"")
-            elif key == "z":
-                fovblock = not fovblock
-            elif key == ";":
+            elif key == ";":  #Farlook
                 io.printex(23, 0, "You")
                 screen.curs_set(1)
                 io.printex(x, y, "")
@@ -212,8 +213,8 @@ class Game:                # Main game class
                     else:
                         cx1,cy1 = cx,cy
                     type = ""
-                    if not gamemap[cx][cy].explored:
-                        type = "Unexplored"
+                    if not gamemap[cx][cy].explored: #You haven't explored
+                        type = "Unexplored"          #that cell yet
                     elif gamemap[cx][cy].stairs:
                         if gamemap[cx][cy].up:
                             type = "Staircase up"
@@ -245,7 +246,7 @@ class Game:                # Main game class
                     io.printex(cx, cy, "")
                     io.printex(23, 0, " " * 20, refresh = False)                                        
                 screen.curs_set(0)
-            elif key == "o":
+            elif key == "o": #Open door
                 d = self.askDirection()
                 if d:
                     dx = d[0]
@@ -253,7 +254,7 @@ class Game:                # Main game class
                     if gamemap[dx][dy].door:
                         gamemap[dx][dy].open()
                 mapchanged = True
-            elif key == "c":
+            elif key == "c": #Close door
                 d = self.askDirection()
                 if d:
                     dx = d[0]
@@ -261,9 +262,9 @@ class Game:                # Main game class
                     if gamemap[dx][dy].door:
                         gamemap[dx][dy].close()
                 mapchanged = True
-            elif key == "w":
+            elif key == "w": #Wait
                 turn = True
-            elif key == ">" or key == "<":
+            elif key == ">" or key == "<": #Move up or down
                 if gamemap[x][y].stairs:
                     if level == 1 and gamemap[x][y].up:
                         io.printex(0, 0, "PRESS '!' IF YOU WANT TO ESCAPE:",2)
@@ -278,11 +279,13 @@ class Game:                # Main game class
                 else:
                     pstack.append((23,0,"There is no stairs!",2))
             else:
-                if wizmode and key == "#":
+                if wizmode and key == "#": #Debug commands.
                     key = io.readkey()
                     if key == "x":
                         gamemap[x][y].type = (False,False,False)
                         mapchanged = True
+                    elif key == "z":
+                        fovblock = not fovblock  
                     elif key == "d":
                         gamemap[x][y] = cell.Door(True)
                         gamemap[x][y].close()
@@ -316,6 +319,7 @@ class Game:                # Main game class
                         self.amnesia()
                         pstack.append((23, 0, \
                             "Thinking of Maud you forget everything else."))
+                            #NetHack reference
                     elif key == "i":
                         d = self.askDirection()
                         if d:
@@ -328,8 +332,8 @@ class Game:                # Main game class
                         ucell = gamemap[x][y]
                         gamemap[x][y] = cell.Newt("Newt",":",ucell)
                         mapchanged = True
-                if not gamemap[x][y].door:
-                    if key == "7" or key == "y":
+                if not gamemap[x][y].door:       #You can't use diagonal keys
+                    if key == "7" or key == "y": #while you are in door.
                         x1-=1
                         y1-=1
                         turn = True
@@ -346,20 +350,29 @@ class Game:                # Main game class
                         y1+=1
                         turn = True
                     else:
-                        turn = False
+                        turn = False #You haven't moved
                     if gamemap[x1][y1].door:
                         x1,y1 = x,y
             if gamemap[x1][y1].type[0]:
                 x,y = x1,y1
+                self.resetFov()
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                            self.isBlocking)
             else:
                 turn = False                        
                 if gamemap[x1][y1].door:
                     gamemap[x1][y1].open()
                     turn = True
+                    self.resetFov()
+                    fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                                self.isBlocking)
                     mapchanged = True
                 elif gamemap[x1][y1].mob:
                     pstack.append((23, 0, "You hit %s" % gamemap[x1][y1].name\
                                    ,3))
+                    self.resetFov()
+                    fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                                self.isBlocking)
                     gamemap[x1][y1].hp -= random.randint(3,10)
                     turn = True
                 x1,y1 = x,y
@@ -371,7 +384,7 @@ class Game:                # Main game class
                     gold += gold_
                     pstack.append((23, 0, "You found some gold!",4))
             #mob's turn
-            if turn:
+            if turn: #You had moved.
                 turns += 1
                 regen += random.randint(1,5)
                 if regen >= 5:
@@ -380,18 +393,20 @@ class Game:                # Main game class
                             hp += random.randint(1,3)
                             if hp > maxhp:
                                 hp = maxhp
-                mapx,mapy = 0,0
-                for mapx in xrange(MAP_W - 1): 
+                mapx,mapy = 0,0               #Start from first tile
+                for mapx in xrange(MAP_W - 1):#And move to end of map 
                     for mapy in xrange(MAP_H):
-                        gamemap[mapx][mapy].has_turn = True
+                        if gamemap[mapx][mapy].mob:
+                            gamemap[mapx][mapy].has_turn = True #Give a turn to
+                                                                # monster
                 for mapx in xrange(MAP_W - 1): 
                     for mapy in xrange(MAP_H):
                         if not random.randint(0,1000):
                             if gamemap[mapx][mapy].type[0] and not self.\
-                            inLos(x, y, mapx, mapy) and gamemap[mapx][mapy].fval==\
-                            gamemap[x][y].fval:
-                                gamemap[mapx][mapy] = cell.Newt("Newt",":",gamemap\
-                                                                [mapx][mapy])
+                            inLos(x, y, mapx, mapy) and gamemap[mapx][mapy]\
+                            .fval==gamemap[x][y].fval:
+                                gamemap[mapx][mapy] = cell.Newt("Newt",":",\
+                                                        gamemap[mapx][mapy])
                         if mapchanged:
                             self.floodFill()
                             mapchanged = False
@@ -406,7 +421,7 @@ class Game:                # Main game class
                                 gamemap[mapx][mapy].visible = True
                                 if random.choice([True,False] + [False] * 10):
                                     gamemap[mapx][mapy] = cell.item("Gold",\
-                                                        "$",gamemap[mapx][mapy])
+                                                    "$",gamemap[mapx][mapy])
                                 mapchanged = True
                                 continue
                             if self.near(x,y,mapx,mapy) and gamemap[mapx]\
@@ -417,6 +432,7 @@ class Game:                # Main game class
                                 hp -= random.randint(1,gamemap[mapx][mapy]\
                                                     .damage)
                                 if hp <= 0:
+                                    #Mob killed you.
                                     killer = gamemap[mapx][mapy].name
                             else:
                                 if gamemap[x][y].fval ==\
@@ -444,7 +460,7 @@ class Game:                # Main game class
                                                          mapy + my)
                                             gamemap[mapx + mx][mapy + my].\
                                             has_turn = False
-                                else:
+                                else: #Move randomly
                                     mx,my = 0,0
                                     s = 0
                                     if self.hasSpaceAround(mapx, mapy) and\
@@ -461,9 +477,6 @@ class Game:                # Main game class
                                                     + my)
                                         gamemap[mapx + mx][mapy + my]\
                                         .has_turn = False
-            self.resetFov()
-            fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
-                        self.isBlocking)
             self.drawmap()
             io.printex(x,y ,"@",refresh=False)
             io.printex(0,0," " * 50,refresh=False)
@@ -496,6 +509,7 @@ class Game:                # Main game class
             pstack = []
         else:
             io.printex(23, 0, "You died! --press any key--",2)
+            # Write to log
             self.logWrite(name, score, hp, maxhp, VERSION,killer,gold,kills)
             io.readkey()
     def end(self):
@@ -514,6 +528,7 @@ class Game:                # Main game class
         mapx,mapy=0,0 
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H - 1):
+                #If cell is in map range
                 if mapx <= 22 and mapx >= 1 and mapy <= 61 and mapy >= 1:
                     if gamemap[mapx][mapy].lit and not gamemap[mapx][mapy].mob:
                         if self.inLos(mapx, mapy, x, y):
@@ -534,22 +549,23 @@ class Game:                # Main game class
                                                 else:
                                                     gamemap[mapx+x2][mapy+y2]\
                                                     .lit = False
-                    if gamemap[mapx][mapy].visible:
+                    if gamemap[mapx][mapy].visible: #Visible always explored
                         gamemap[mapx][mapy].explored = True
                         if gamemap[mapx][mapy].mob:
                             gamemap[mapx][mapy].undercell.explored = True
                             gamemap[mapx][mapy].explored = False
-                        screen.attron(screen.A_BOLD)
+                        screen.attron(screen.A_BOLD) #Visible is bold
                         if gamemap[mapx][mapy].type[0] and not gamemap[mapx]\
                         [mapy].item:
-                            color = 1
+                            color = 1 #Dots are white not yellow
                         else:
-                            color = gamemap[mapx][mapy].color
+                            color = gamemap[mapx][mapy].color #Normal color
+                                                                # of cell
                         io.printex(mapx, mapy, gamemap[mapx][mapy].char(),\
-                           color,False)
+                           color,False) #Print cell.
                         screen.attroff(screen.A_BOLD)
                     elif gamemap[mapx][mapy].explored:
-                        screen.attron(screen.A_DIM)
+                        screen.attron(screen.A_DIM) #Explored is dim
                         if gamemap[mapx][mapy].mob and not\
                          gamemap[mapx][mapy].visible:
                             if gamemap[mapx][mapy].undercell.door:
@@ -559,7 +575,7 @@ class Game:                # Main game class
                         else: 
                             io.printex(mapx, mapy, gamemap[mapx][mapy].\
                                          char(),5,False)
-                    elif gamemap[mapx][mapy].mob:
+                    elif gamemap[mapx][mapy].mob: #For monsters.
                         if gamemap[mapx][mapy].undercell.explored == True:
                             io.printex(mapx, mapy, gamemap[mapx][mapy].\
                                          undercell.char(),5,False)
@@ -577,33 +593,37 @@ class Game:                # Main game class
         screen.refresh()
 
     def isBlocking(self,x,y):
+        """Checks if tile is blocking FOV"""
         global gamemap
         return not gamemap[x][y].type[1]
 
     def setVisible(self,x,y):
-    
+        """Sets tile as visible"""
         global gamemap,fovblock
         gamemap[x][y].visible = not fovblock
 
     def resetFov(self):
+        """Resets FOV"""
         global gamemap
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):        
                 gamemap[mapx][mapy].visible = False
 
     def resetFlood(self):
+        """Resets flood fill"""
         global gamemap
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):        
                 gamemap[mapx][mapy].fval = 0
 
     def amnesia(self):
+        """Reset explored cells"""
         global gamemap
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):        
                 gamemap[mapx][mapy].explored = False
- 
     def askDirection(self):
+        """Asks direction"""
         global x,y
         global io
         x1,y1 = x,y
@@ -635,6 +655,7 @@ class Game:                # Main game class
         return x1,y1
     
     def load(self):
+        """Load game from save"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
         global gold,kills,score
         saved = gzip.open(save, 'rb')
@@ -654,6 +675,7 @@ class Game:                # Main game class
             os.remove(save)
         
     def save(self):
+        """Save game"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
         global gold,kills,score
         saved = gzip.open(save, 'wb')
@@ -671,6 +693,7 @@ class Game:                # Main game class
             self.end()
 
     def get_line(self,x1, y1, x2, y2):
+        """Bresenham's line algorithm"""
         points = []
         issteep = abs(y2-y1) > abs(x2-x1)
         if issteep:
@@ -704,6 +727,7 @@ class Game:                # Main game class
             points.reverse()
         return points
     def moveMob(self,x,y,mx,my):
+        """Moves mob"""
         global gamemap
         if self.near(x, y, mx, my):
             ucell = gamemap[mx][my]
@@ -712,6 +736,7 @@ class Game:                # Main game class
             gamemap[mx][my].undercell = ucell
         
     def inLos(self,x1,y1,x,y):
+        """Checks if point is in LOS"""
         global gamemap
         b = False
         ret = True
@@ -727,6 +752,7 @@ class Game:                # Main game class
             return ret
 
     def aStarPathfind(self,mx,my,yx,yy):
+        """Pathfinding for monsters"""
         global gamemap
         (mx1,my1) = AStar.getPath(mx, my, yx, yy, gamemap, MAP_W, MAP_H)
         if (mx1,my1) != (0,0):
@@ -735,12 +761,15 @@ class Game:                # Main game class
             return 0,0
             
     def near(self,x1,y1,x2,y2):
+        """Checks if x1,y1 near x2,y2"""
         if x1 - x2 >= -1 and x1 - x2 <= 1 and\
                  y1 - y2 >= -1 and y1 - y2 <= 1:
             return True
         else:
             return False
     def hasSpaceAround(self,x,y):
+        """Checks if there is free cells
+            around x,y"""
         global gamemap
         c = 0
         for x2 in xrange(-2,2):
@@ -753,6 +782,8 @@ class Game:                # Main game class
         else:
             return True
     def floodFill(self):
+        """Floodfills map
+            for reachability test"""
         global gamemap
         x = 1
         self.resetFlood()
@@ -764,6 +795,7 @@ class Game:                # Main game class
                     self.flood(xl,yl,x,0)
                     x += 1
     def flood(self,x,y,v,d):
+        """Recursive floodfill function"""
         global gamemap
         sys.setrecursionlimit(2000)
         if gamemap[x][y].type[0] == False or gamemap[x][y].fval  == v or\
@@ -782,6 +814,7 @@ class Game:                # Main game class
         self.flood(x - 1,y + 1,v,d)
         return
     def spawnMobs(self):
+        """Spawn mobs"""
         global gamemap,x,y
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):        
@@ -792,6 +825,7 @@ class Game:                # Main game class
                         gamemap[mapx][mapy] = cell.Newt("Newt",":",gamemap\
                                                         [mapx][mapy])
     def logWrite(self,name,score,hp,maxhp,version,death,gold,kills):
+        """Write text to log"""
         global wizmode
         if not wizmode:
             log = open("mainlog.log","a")
