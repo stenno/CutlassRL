@@ -290,6 +290,10 @@ class Game:                # Main game class
                             gamemap = copy.deepcopy(levs[next])
                             for mapx in xrange(MAP_W - 1): 
                                 for mapy in xrange(MAP_H):
+                                    if gamemap[mapx][mapy].mob:
+                                        if gamemap[mapx][mapy].undercell.stairs:
+                                            gamemap[mapx][mapy] = gamemap[mapx]\
+                                            [mapy].undercell
                                     if gamemap[mapx][mapy].stairs and \
                                     gamemap[mapx][mapy].up != moved:
                                         x,y = mapx,mapy
@@ -308,6 +312,10 @@ class Game:                # Main game class
                             (gamemap,y,x) = gen.generateLevel(gamemap)
                             for mapx in xrange(MAP_W - 1): 
                                 for mapy in xrange(MAP_H):
+                                    if gamemap[mapx][mapy].mob:
+                                        if gamemap[mapx][mapy].undercell.stairs:
+                                            gamemap[mapx][mapy] = gamemap[mapx]\
+                                            [mapy].undercell
                                     if gamemap[mapx][mapy].stairs and \
                                     gamemap[mapx][mapy].up != moved:
                                         x,y = mapx,mapy
@@ -702,7 +710,7 @@ class Game:                # Main game class
         """Load game from save"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
         global gold,kills,score,levs,level
-        saved = gzip.GzipFile(save,"rb",4)
+        saved = gzip.GzipFile(save,"rb",2)
         (level,info,gamemap,levs) = pickle.load(saved)
         (gold,kills,score,x,y,rx,ry,fovblock,hp,turns) = info
         saved.close()
@@ -714,7 +722,7 @@ class Game:                # Main game class
         """Save game"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
         global gold,kills,score,levs,level
-        saved = gzip.GzipFile(save,"wb",4)
+        saved = gzip.GzipFile(save,"wb",2)
         info = (gold,kills,score,x,y,rx,ry,fovblock,hp,turns)
         pickle.dump((level,info,gamemap,levs), saved,2)
         pstack.append((23,0,"Saved...",1))
