@@ -458,6 +458,8 @@ class Game:                # Main game class
                 for mapx in xrange(MAP_W - 1): 
                     for mapy in xrange(MAP_H):
                         if not random.randint(0,1000) and moremobs: 
+                            if mapchanged:
+                                gamemap[mapx][mapy].fval = 0
                             if gamemap[mapx][mapy].type[0] and not self.\
                             inLos(x, y, mapx, mapy) and gamemap[mapx][mapy]\
                             .fval==gamemap[x][y].fval:
