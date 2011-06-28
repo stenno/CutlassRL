@@ -82,7 +82,7 @@ class IO:
             reads one key from stdin.
         """
         try:
-            key = sys.stdin.read(1)
+            key = chr(screen.getch())
         except IOError:
             key = ""
             

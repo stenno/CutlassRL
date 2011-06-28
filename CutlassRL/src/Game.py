@@ -95,6 +95,9 @@ class Game:                # Main game class
         
         gamemap = []  
 
+        moremobs = True
+        mc = 0
+
         for mapx in xrange(MAP_W+1):
             gamemap.append([])
             for mapy in xrange(MAP_H+1):
@@ -409,24 +412,15 @@ class Game:                # Main game class
                         x1,y1 = x,y
             if gamemap[x1][y1].type[0]:
                 x,y = x1,y1
-                self.resetFov()
-                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
-                            self.isBlocking)
             else:
                 turn = False                        
                 if gamemap[x1][y1].door:
                     gamemap[x1][y1].open()
                     turn = True
-                    self.resetFov()
-                    fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
-                                self.isBlocking)
                     mapchanged = True
                 elif gamemap[x1][y1].mob:
                     pstack.append((23, 0, "You hit %s" % gamemap[x1][y1].name\
                                    ,3))
-                    self.resetFov()
-                    fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
-                                self.isBlocking)
                     gamemap[x1][y1].hp -= random.randint(3,10)
                     turn = True
                 x1,y1 = x,y
@@ -437,25 +431,30 @@ class Game:                # Main game class
                     score += gold_
                     gold += gold_
                     pstack.append((23, 0, "You found some gold!",4))
+            mapx,mapy = 0,0               #Start from first tile
+            for mapx in xrange(MAP_W - 1):#And move to end of map 
+                for mapy in xrange(MAP_H):
+                    if gamemap[mapx][mapy].mob:
+                        gamemap[mapx][mapy].has_turn = True #Give a turn to
+                                                            # monster
+                    if mapchanged or turn:
+                        gamemap[mapx][mapy].visible = False
+            if mapchanged or turn:
+                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                                self.isBlocking)                        
             #mob's turn
             if turn: #You had moved.
                 turns += 1
                 regen += random.randint(1,5)
-                if regen >= 5:
+                if regen >= 15:
                         regen = 0
                         if hp < maxhp:
                             hp += random.randint(1,3)
                             if hp > maxhp:
                                 hp = maxhp
-                mapx,mapy = 0,0               #Start from first tile
-                for mapx in xrange(MAP_W - 1):#And move to end of map 
-                    for mapy in xrange(MAP_H):
-                        if gamemap[mapx][mapy].mob:
-                            gamemap[mapx][mapy].has_turn = True #Give a turn to
-                                                                # monster
                 for mapx in xrange(MAP_W - 1): 
                     for mapy in xrange(MAP_H):
-                        if not random.randint(0,1000):
+                        if not random.randint(0,1000) and moremobs: 
                             if gamemap[mapx][mapy].type[0] and not self.\
                             inLos(x, y, mapx, mapy) and gamemap[mapx][mapy]\
                             .fval==gamemap[x][y].fval:
@@ -465,6 +464,11 @@ class Game:                # Main game class
                             self.floodFill()
                             mapchanged = False
                         if gamemap[mapx][mapy].mob:
+                            mc += 1
+                            if mc >= MAX_MOBS:
+                                moremobs= False
+                            else:
+                                moremobs = True
                             if gamemap[mapx][mapy].hp < 1:
                                 pstack.append((23, 0, "You kill the %s" %
                                               gamemap[mapx][mapy].name ,3))
@@ -531,25 +535,27 @@ class Game:                # Main game class
                                                     + my)
                                         gamemap[mapx + mx][mapy + my]\
                                         .has_turn = False
-            self.drawmap()
+            if turn or mapchanged:
+                self.drawmap()
             io.printex(x,y ,"@",refresh=False)
             io.printex(0,0," " * 60,refresh=False)
             if wizmode:
                 io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
-                             +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #DEBUG 
+                             +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp),\
+                             refresh=False) #DEBUG 
 
-            io.printex(4, 63, state, 2)
-            io.printex(6, 63, " " * 10)            
-            hpattr = 3
+            io.printex(4, 63, state, 2,refresh=False)
+            io.printex(6, 63, " " * 10,refresh=False)            
+            hpattr = GREEN
             if hp == maxhp:
-                hpattr = 3
+                hpattr = GREEN
             if hp <= maxhp / 2:
-                hpattr = 4
+                hpattr = YELLOW
             if hp <= 5:
-                hpattr = 2
-            io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr)
-            io.printex(8, 63, "T:%d" % (turns))
-            io.printex(10, 63, "Score:%d" % (score),3)
+                hpattr = RED
+            io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr,refresh=False)
+            io.printex(8, 63, "T:%d" % (turns),refresh=False)
+            io.printex(10, 63, "Score:%d" % (score),3,refresh=False)
             io.printex(12, 63, "Level:%d" % (level),3)
             if len(pstack) > 1:
                 for line in pstack:
@@ -563,6 +569,7 @@ class Game:                # Main game class
             pstack = []
         else:
             io.printex(23, 0, "You died! --press any key--",2)
+            io.readkey()
             # Write to log
             self.logWrite(name, score, hp, maxhp, VERSION,killer,gold,kills)
             io.readkey()
@@ -825,7 +832,6 @@ class Game:                # Main game class
             for reachability test"""
         global gamemap
         x = 1
-        self.resetFlood()
         for mapx in xrange(MAP_W - 1,0,-1): 
             for mapy in xrange(MAP_H,0,-1):
                 if gamemap[mapx][mapy].type[0] and gamemap[mapx][mapy].fval\
