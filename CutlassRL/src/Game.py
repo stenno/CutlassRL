@@ -275,6 +275,7 @@ class Game:                # Main game class
                     gamemap[x+mx][y+my] = cell.Door(False)
             elif key == ">" or key == "<": #Move up or down
                 if gamemap[x][y].stairs:
+                    moved = gamemap[x][y].up
                     if level == 1 and gamemap[x][y].up:
                         io.printex(0, 0, "PRESS '!' IF YOU WANT TO ESCAPE:",2)
                         key = io.readkey()
@@ -287,6 +288,11 @@ class Game:                # Main game class
                         next = gamemap[x][y].move() + level
                         if levs[next]:
                             gamemap = copy.deepcopy(levs[next])
+                            for mapx in xrange(MAP_W - 1): 
+                                for mapy in xrange(MAP_H):
+                                    if gamemap[mapx][mapy].stairs and \
+                                    gamemap[mapx][mapy].up != moved:
+                                        x,y = mapx,mapy
                             level = next
                             mapchanged = True
                             self.resetFov()
@@ -300,6 +306,11 @@ class Game:                # Main game class
                                     gamemap[mapx][mapy] = cell.Cell(False,False)
                             gen = Level.levGen()
                             (gamemap,y,x) = gen.generateLevel(gamemap)
+                            for mapx in xrange(MAP_W - 1): 
+                                for mapy in xrange(MAP_H):
+                                    if gamemap[mapx][mapy].stairs and \
+                                    gamemap[mapx][mapy].up != moved:
+                                        x,y = mapx,mapy
                             self.opMap()
                             levs[next] = gamemap
                             mapchanged = True
