@@ -286,30 +286,37 @@ class Game:                # Main game class
                             self.end()
                     else:
                         next = gamemap[x][y].move() + level
-                        levs[level] = copy.deepcopy(gamemap)
-                        if levs[next] == None: #Generate level
-                            for mapx in xrange(MAP_W - 1): 
+                        #restore or gen level:
+                        if levs[next]:
+                            levs[level] = copy.deepcopy(gamemap)
+                            gamemap = copy.deepcopy(levs[next])
+                            level = next
+                        else:
+                            levs[level] = copy.deepcopy(gamemap)
+                            for mapx in xrange(MAP_W - 1):
                                 for mapy in xrange(MAP_H):
                                     gamemap[mapx][mapy] = cell.Cell(False,False)
                             gen = Level.levGen()
                             (gamemap,y,x) = gen.generateLevel(gamemap)
                             levs[next] = copy.deepcopy(gamemap)
-                        gamemap = copy.deepcopy(levs[next])
-                        for mapx in xrange(MAP_W - 1): 
+                            level = next
+                            self.opMap()
+                            self.amnesia()
+                        #end gen level
+                        for mapx in xrange(MAP_W - 1):
                             for mapy in xrange(MAP_H):
                                 if gamemap[mapx][mapy].mob:
                                     if gamemap[mapx][mapy].undercell.stairs:
                                         gamemap[mapx][mapy] = gamemap[mapx]\
                                         [mapy].undercell
                                 if gamemap[mapx][mapy].stairs and \
-                                 gamemap[mapx][mapy].up != moved:
+                                gamemap[mapx][mapy].up != moved:
                                     x,y = mapx,mapy
-                        level = next
                         mapchanged = True
                         self.resetFov()
                         self.resetFlood()
                         fov.fieldOfView(x, y, MAP_W, MAP_H, 9,\
-                                            self.setVisible, self.isBlocking)
+                                         self.setVisible, self.isBlocking)
                 else:
                     pstack.append((23,0,"There is no stairs!",2))
             else:
