@@ -103,17 +103,19 @@ class Game:                # Main game class
                 else:
                     gamemap[mapx].append(cell.Cell(False,False))
 
+        levs = [None] * 20
         if os.path.isfile(save):           
             self.load()  #Load savefile
+            levs[level] = copy.deepcopy(gamemap)
         else:  #level generator
             gen = Level.levGen()
             (gamemap,y,x) = gen.generateLevel(gamemap)
             self.opMap()
             self.spawnMobs()
+        levs[0] = copy.deepcopy(gamemap)
         x1,y1 = x,y
-        levs = [gamemap,None]
         mapchanged = True #Map has been changed
-        # Count fov
+        # Calculate fov
         fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible, self.isBlocking)                        
         self.drawmap()
         io.printex(x,y ,"@", refresh=False) #Draw player
@@ -283,7 +285,6 @@ class Game:                # Main game class
                             self.end()
                     else:
                         next = gamemap[x][y].move() + level
-                        levs.append(None)
                         if levs[next]:
                             gamemap = copy.deepcopy(levs[next])
                             level = next
@@ -300,7 +301,6 @@ class Game:                # Main game class
                             gen = Level.levGen()
                             (gamemap,y,x) = gen.generateLevel(gamemap)
                             self.opMap()
-                            levs.append(None)
                             levs[next] = gamemap
                             mapchanged = True
                             self.resetFov()
