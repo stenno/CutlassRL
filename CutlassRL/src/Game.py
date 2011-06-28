@@ -115,7 +115,6 @@ class Game:                # Main game class
         else:  #level generator
             gen = Level.levGen()
             (gamemap,y,x) = gen.generateLevel(gamemap)
-            self.opMap()
             self.spawnMobs()
         levs[0] = copy.deepcopy(gamemap)
         x1,y1 = x,y
@@ -307,7 +306,6 @@ class Game:                # Main game class
                             (gamemap,y,x) = gen.generateLevel(gamemap)
                             levs[next] = copy.deepcopy(gamemap)
                             level = next
-                            self.opMap()
                             self.amnesia()
                         #end gen level
                         for mapx in xrange(MAP_W - 1):
@@ -724,7 +722,7 @@ class Game:                # Main game class
         """Load game from save"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
         global gold,kills,score,levs,level
-        saved = gzip.GzipFile(save,"rb",2)
+        saved = gzip.open(save,"rb",2)
         (level,info,gamemap,levs) = pickle.load(saved)
         (gold,kills,score,x,y,rx,ry,fovblock,hp,turns) = info
         saved.close()
@@ -736,7 +734,7 @@ class Game:                # Main game class
         """Save game"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
         global gold,kills,score,levs,level
-        saved = gzip.GzipFile(save,"wb",2)
+        saved = gzip.open(save,"wb",2)
         info = (gold,kills,score,x,y,rx,ry,fovblock,hp,turns)
         pickle.dump((level,info,gamemap,levs), saved,2)
         pstack.append((23,0,"Saved...",1))
@@ -863,25 +861,6 @@ class Game:                # Main game class
         self.flood(x + 1,y - 1,v,d)
         self.flood(x - 1,y + 1,v,d)
         return
-    def wflood(self,x,y,v,d):
-        """Recursive floodfill function with ignoring non-walls"""
-        global gamemap
-        sys.setrecursionlimit(2000)
-        if gamemap[x][y].type[0] or gamemap[x][y].fval  == v or\
-        gamemap[x][y].fval != d:
-            return  0
-        if gamemap[x][y].mob:
-            gamemap[x][y].undercell.fval = v
-        gamemap[x][y].fval = v
-        self.flood(x + 1,y,v,d)
-        self.flood(x + 1,y + 1,v,d)
-        self.flood(x - 1,y,v,d)
-        self.flood(x - 1,y - 1,v,d)
-        self.flood(x,y + 1,v,d)
-        self.flood(x,y - 1,v,d)
-        self.flood(x + 1,y - 1,v,d)
-        self.flood(x - 1,y + 1,v,d)
-        return
     def spawnMobs(self):
         """Spawn mobs"""
         global gamemap,x,y
@@ -901,9 +880,6 @@ class Game:                # Main game class
             log.write(("version=%f:name=%s:score=%d:hp=%d:maxhp=%d:killer=%s:"
                     + "gold=%d:kills=%d\n") %
                       (version,name,score,hp,maxhp,death,gold,kills))
-    def opMap(self):
-        self.wflood(0, 0, 1, 0)
-        pass
 #
 #  __           _       _  _    ___    
 # /        _/_  /  _   /  /   /   /  /
