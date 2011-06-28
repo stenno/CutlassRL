@@ -31,6 +31,7 @@ class IO:
         
         screen.curs_set(0)
         screen.cbreak()
+        screen.noecho()
         screen.start_color()
         screen.use_default_colors()
 

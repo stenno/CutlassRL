@@ -48,11 +48,13 @@ class Game:                # Main game class
         while len(name) < 3:
             io.printex(0, 0, "What is your name? ", 3)
             try:
+                screen.echo()
                 name = screen.getstr()
                 if not name.isalnum():
                     self.end()
             except KeyboardInterrupt:
                 self.end()
+        screen.noecho()
         screen.curs_set(0)
         if name == "Wizard":
             wizmode = True
@@ -452,6 +454,7 @@ class Game:                # Main game class
                             hp += random.randint(1,3)
                             if hp > maxhp:
                                 hp = maxhp
+                mc = 0
                 for mapx in xrange(MAP_W - 1): 
                     for mapy in xrange(MAP_H):
                         if not random.randint(0,1000) and moremobs: 
