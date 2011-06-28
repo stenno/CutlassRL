@@ -103,7 +103,7 @@ class Game:                # Main game class
                 else:
                     gamemap[mapx].append(cell.Cell(False,False))
 
-        levs = [None] * 20
+        levs = [None,None]
         if os.path.isfile(save):           
             self.load()  #Load savefile
             levs[level] = copy.deepcopy(gamemap)
@@ -127,13 +127,14 @@ class Game:                # Main game class
         io.printex(4, 63, state, 2)
         io.printex(6, 63, " " * 10)            
 
-        hpattr = 3
+        hpattr = GREEN
         if hp == maxhp:
-            hpattr = 3 #Green
+            hpattr = GREEN
         if hp <= maxhp / 2:
-            hpattr = 4 #Yellow
+            hpattr = YELLOW
             if hp <= 5:
-                hpattr = 2 #Red
+                hpattr = RED
+
         io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr)
         io.printex(8, 63, "T:%d" % (turns))
         io.printex(10, 63, "Score:%d" % (score),3)
@@ -286,6 +287,8 @@ class Game:                # Main game class
                     else:
                         next = gamemap[x][y].move() + level
                         #restore or gen level:
+                        if next <= len(levs):
+                            levs.append(None)
                         if levs[next]:
                             levs[level] = copy.deepcopy(gamemap)
                             gamemap = copy.deepcopy(levs[next])
