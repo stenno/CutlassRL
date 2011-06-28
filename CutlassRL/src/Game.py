@@ -173,6 +173,7 @@ class Game:                # Main game class
                 screen.curs_set(1)
                 screen.getstr()
                 screen.curs_set(0)
+                io.printex(23,0," " * 100,False)
             elif key == "s":
                 self.save()
             elif key == "r":
@@ -529,7 +530,7 @@ class Game:                # Main game class
                                         .has_turn = False
             self.drawmap()
             io.printex(x,y ,"@",refresh=False)
-            io.printex(0,0," " * 50,refresh=False)
+            io.printex(0,0," " * 60,refresh=False)
             if wizmode:
                 io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
                              +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp)) #DEBUG 
@@ -784,8 +785,7 @@ class Game:                # Main game class
             jy = j[0]
             if not gamemap[jx][jy].type[1]:
                 b = True
-        if len(line) <= 40:
-            return ret
+        return ret
 
     def aStarPathfind(self,mx,my,yx,yy):
         """Pathfinding for monsters"""
@@ -890,22 +890,6 @@ class Game:                # Main game class
     def opMap(self):
         self.wflood(0, 0, 1, 0)
         pass
-#TODO:
-# plot
-# wilderness/town
-# npc's
-# more items
-# more mobs
-# items stats
-# ac
-# dice based rng
-# traps
-# monster hit messages
-# like Newt bittes! (not hits!)
-
-#BUGS:
-# No bugs?
-
 #
 #  __           _       _  _    ___    
 # /        _/_  /  _   /  /   /   /  /
