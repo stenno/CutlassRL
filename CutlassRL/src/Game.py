@@ -219,33 +219,31 @@ class Game:                # Main game class
                     else:
                         cx1,cy1 = cx,cy
                     type = ""
-                    if not gamemap[cx][cy].explored: #You haven't explored
-                        type = "Unexplored"          #that cell yet
-                    elif gamemap[cx][cy].stairs:
-                        if gamemap[cx][cy].up:
-                            type = "Staircase up"
-                        else:
-                            type = "Staircase down"
-                    elif gamemap[cx][cy].type[0] and not gamemap[cx][cy].door:
-                        type = "Ground"
-                    elif gamemap[cx][cy].mob:
-                        if gamemap[cx][cy].visible:
-                            type = gamemap[cx][cy].name
-                        else:
-                            if gamemap[cx][cy].undercell.type[2]:
-                                type = "Open door"
-                            else:
-                                type = "Ground"
-                    elif  not gamemap[cx][cy].type[0] and not\
-                     gamemap[cx][cy].door:
+                    if gamemap[cx][cy].item and gamemap[cx][cy].explored:
+                        type = gamemap[cx][cy].name
+                    elif gamemap[cx][cy].mob and (gamemap[cx][cy].visible or\
+                    self.inLos(x, y, cx, cy)):
+                        type = gamemap[cx][cy].name
+                    elif gamemap[cx][cy].sdoor:
                         type = "Wall"
-                    elif gamemap[cx][cy].door:
+                    elif gamemap[cx][cy].door and gamemap[cx][cy].explored:
                         if gamemap[cx][cy].opened:
                             type = "Open door"
                         else:
                             type = "Closed door"
-                    if gamemap[cx][cy].item:
-                        type = gamemap[cx][cy].name
+                    elif gamemap[cx][cy].stairs and gamemap[cx][cy].explored:
+                        if gamemap[cx][cy].up:
+                            type = "Staircase up"
+                        else:
+                            type = "Staircase down"
+                    else:
+                        if gamemap[cx][cy].explored == False:
+                            type = "Unexplored"
+                        else:
+                            if gamemap[cx][cy].type[0]:
+                                type = "Ground"
+                            else:
+                                type = "Wall"
                     if [cx,cy] == [x,y]:
                         type = "You"
                     io.printex(23, 0, type)
