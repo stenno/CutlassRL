@@ -312,6 +312,7 @@ class Game:                # Main game class
                                 if gamemap[mapx][mapy].stairs and \
                                 gamemap[mapx][mapy].up != moved:
                                     x,y = mapx,mapy
+                        x1,y1 = x,y
                         mapchanged = True
                         self.resetFov()
                         self.resetFlood()
