@@ -17,7 +17,7 @@
 from Modules.constants import *  #Import constants
 
 import sys
-import pickle  #Used for saves
+import cPickle  #Used for saves
 import os.path
 import random
 import gzip
@@ -723,7 +723,7 @@ class Game:                # Main game class
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
         global gold,kills,score,levs,level
         saved = gzip.open(save,"rb",2)
-        (level,info,gamemap,levs) = pickle.load(saved)
+        (level,info,gamemap,levs) = cPickle.load(saved)
         (gold,kills,score,x,y,rx,ry,fovblock,hp,turns) = info
         saved.close()
         pstack.append((23,0,"Loaded...",1))
@@ -736,7 +736,7 @@ class Game:                # Main game class
         global gold,kills,score,levs,level
         saved = gzip.open(save,"wb",2)
         info = (gold,kills,score,x,y,rx,ry,fovblock,hp,turns)
-        pickle.dump((level,info,gamemap,levs), saved,2)
+        cPickle.dump((level,info,gamemap,levs), saved,2)
         pstack.append((23,0,"Saved...",1))
         if not wizmode:
             saved.close()
