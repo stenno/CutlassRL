@@ -253,6 +253,8 @@ class Game:                # Main game class
                                 type = "Ground"
                             else:
                                 type = "Wall"
+                            if gamemap[cx][cy].boulder:
+                                type = "Boulder"
                     if [cx,cy] == [x,y]:
                         type = "You"
                     io.printex(23, 0, " " * 20, refresh = False)                                        
@@ -439,6 +441,14 @@ class Game:                # Main game class
                                     "$",gamemap[x1][y1])
                         mapchanged = True
                     turn = True
+                if gamemap[x1][y1].boulder:
+                    mx = x - x1
+                    my = y - y1
+                    if gamemap[x1 + mx * 2][y1 + my * 2].type[0]:
+                        pstack.append((23,0,"You push the boulder!",WHITE))
+                        gamemap[x1][y1] = gamemap[x1][y1].undercell
+                        gamemap[x1 + mx * 2][y1 + my * 2] = cell.Boulder(
+                                        gamemap[x1 + mx * 2][y1 + my * 2])
                 x1,y1 = x,y
             if gamemap[x][y].item:
                 if gamemap[x][y].name == "Gold":
@@ -458,21 +468,8 @@ class Game:                # Main game class
             if mapchanged or turn:
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                 self.isBlocking)                        
-            mob_turn = False
             if turn:
-                p1.has_turns += 1
-                if p1.has_turns == p1.speed:
-                    p1.has_turn = False
-                    p1.has_turns = 0
-                    mob_turn = True
-                    turns += 1
-                    regen += random.randint(1,5)
-                    if regen >= 15:
-                            regen = 0
-                            if hp < maxhp:
-                                hp += random.randint(1,3)
-                                if hp > maxhp:
-                                    hp = maxhp
+                mob_turn = True
                 maxspeed = 0
                 for mapx in xrange(MAP_W - 1):  #Find fastest mob
                     for mapy in xrange(MAP_H): 
@@ -481,6 +478,14 @@ class Game:                # Main game class
                                 maxspeed = gamemap[mapx][mapy].speed
             #mob's turn
             if turn:
+                turns += 1
+                regen += random.randint(1,5)
+                if regen >= 15:
+                    regen = 0
+                if hp < maxhp:
+                    hp += random.randint(1,3)
+                else:
+                    hp = maxhp
                 mc = 0
                 for mapx in xrange(MAP_W - 1): 
                     for mapy in xrange(MAP_H):

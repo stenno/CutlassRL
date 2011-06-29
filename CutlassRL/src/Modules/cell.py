@@ -1,3 +1,21 @@
+# -*- coding: utf-8 -*-
+#     This file is part of CutlassRL.
+#
+#    CutlassRL is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    CutlassRL is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
+
+from Modules.constants import *  #Import constants
+
 class Cell:
     __slots__ = ("visible","explored","type","mob","stairs","sdoor","door",\
                  "item","lit","fval","color")
@@ -7,6 +25,7 @@ class Cell:
     stairs = False
     sdoor = False
     item = False
+    boulder = False
     door= False
     lit = False      #All cells are unlit by default
     fval = 0
@@ -18,6 +37,7 @@ class Cell:
             return '.'
         else:
             return '#'
+    
 class Stair(Cell):
     up = False
     color = 1
@@ -104,4 +124,13 @@ class item(Mob): #Yeah, it is funny :D
     name = "Gold"
     color = 4
     type = (True,True)
+
+class Boulder(item):
+    type = [False,False]
+    color = WHITE
+    boulder = True
+    def char(self):
+        return '0'
+    def __init__(self,undercell):
+        self.undercell = undercell        
     

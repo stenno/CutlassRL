@@ -20,6 +20,7 @@ from Modules.constants import *
 from Modules import cell as lcell
 
 class levGen:
+    boulders = []
     def createRoom(self,room):
         lit = random.randint(0,1)
         for x in range(room.x1 + 1, room.x2):
@@ -28,12 +29,21 @@ class levGen:
                 if lit:
                     self.lmap[y][x].lit = True
     def vCorridor(self,y1,y2,x):
+        boulder = False
         for y in range(min(y1, y2), max(y1, y2) + 1):
             self.lmap[y][x].type =  True,True
+            if not random.randint(0,40) and not boulder:
+                boulder = True
+                self.boulders.append((y,x))
     def hCorridor(self,x1,x2,y):
+        boulder = False
         for x in range(min(x1, x2), max(x1, x2) + 1):
             self.lmap[y][x].type = True,True
+            if not random.randint(0,40) and not boulder:
+                boulder = True
+                self.boulders.append((y,x))
     def generateLevel(self,lmap):
+        global playerx, playery
         self.lmap = lmap
         rooms = []
         num_rooms = 0
@@ -95,11 +105,16 @@ class levGen:
                                     self.lmap[y][x] = lcell.Door(False)
                             else:
                                 self.lmap[y][x] = lcell.Door(True)
+        for boulder in self.boulders:
+            self.lmap[boulder[0]][boulder[1]] = lcell.Boulder(self.lmap\
+                                                    [boulder[0]][boulder[1]])
+        (x1,y1) = rooms[0].center()
         rn = random.randint(1,len(rooms) - 1)
         (x,y) = rooms[rn].center()
         self.lmap[y][x] = lcell.Stair(False)
+        self.lmap[y1][x1] = lcell.Stair(True)
         return lmap,playerx,playery
-    
+        
     def near(self,x1,y1,x2,y2):
         if x1 - x2 >= -1 and x1 - x2 <= 1 and\
                     y1 - y2 >= -1 and y1 - y2 <= 1:
