@@ -141,8 +141,8 @@ class Game:                # Main game class
 
         io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr)
         io.printex(8, 63, "T:%d" % (turns))
-        io.printex(10, 63, "Score:%d" % (score),3)
-        io.printex(12, 63, "Level:%d" % (level),3)
+        io.printex(10, 63, "Score:%d" % (score),GREEN)
+        io.printex(12, 63, "Level:%d" % (level),GREEN)
      
         if wizmode:
             io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
@@ -153,7 +153,7 @@ class Game:                # Main game class
         while hp >= 1 or wizmode:
             turn = False
             io.printex(23, 0, " " * 60, refresh = False)
-            key = io.readkey()
+            key = io.rkey()
             if key == "8" or key == "k":
                 x1-=1
                 turn = True
@@ -224,6 +224,7 @@ class Game:                # Main game class
                         cx,cy = cx1,cy1
                     else:
                         cx1,cy1 = cx,cy
+
                     type = ""
                     if gamemap[cx][cy].item and gamemap[cx][cy].explored:
                         type = gamemap[cx][cy].name
@@ -252,9 +253,9 @@ class Game:                # Main game class
                                 type = "Wall"
                     if [cx,cy] == [x,y]:
                         type = "You"
+                    io.printex(23, 0, " " * 20, refresh = False)                                        
                     io.printex(23, 0, type)
                     io.printex(cx, cy, "")
-                    io.printex(23, 0, " " * 20, refresh = False)                                        
                 screen.curs_set(0)
             elif key == "o": #Open door
                 d = self.askDirection()
@@ -816,6 +817,7 @@ class Game:                # Main game class
             return True
         else:
             return False
+
     def hasSpaceAround(self,x,y):
         """Checks if there is free cells
             around x,y"""
@@ -830,6 +832,7 @@ class Game:                # Main game class
             return False
         else:
             return True
+
     def floodFill(self):
         """Floodfills map
             for reachability test"""
@@ -842,6 +845,7 @@ class Game:                # Main game class
                     xl,yl = mapx,mapy
                     self.flood(xl,yl,x,0)
                     x += 1
+
     def flood(self,x,y,v,d):
         """Recursive floodfill function"""
         global gamemap
@@ -861,6 +865,7 @@ class Game:                # Main game class
         self.flood(x + 1,y - 1,v,d)
         self.flood(x - 1,y + 1,v,d)
         return
+
     def spawnMobs(self):
         """Spawn mobs"""
         global gamemap,x,y

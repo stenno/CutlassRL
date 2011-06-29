@@ -17,7 +17,7 @@
 
 import sys
 try:
-    from Modules import unicurses as curses               # Game will use curses to draw things
+    from Modules import unicurses as curses# Game will use curses to draw things
 except ImportError:
     print "Curses library is missing."
     sys.exit()
@@ -78,13 +78,33 @@ class IO:
             screen.attroff(screen.color_pair(pair))
 
     def readkey(self):
-        global screen
         """Readkey function.
             reads one key from stdin.
         """
+        global screen
         try:
-            key = chr(screen.getch())
+            screen.cbreak()
+            screen.timeout(-1000)
+            key = screen.getch()
+            if key != -1:
+                key = chr(key)
         except IOError:
             key = ""
-            
+        return key
+
+    def rkey(self):
+        """Realtime readkey function.
+            reads one key from stdin.
+        """
+        global screen
+        try:
+            screen.nocbreak()
+            screen.halfdelay(2)
+            screen.timeout(-1000)
+            key = screen.getch()
+            if key != -1:
+                key = chr(key)
+            screen.cbreak()
+        except IOError:
+            key = ""
         return key
