@@ -28,13 +28,15 @@ from Modules import cell   #Cell class
 from Modules import fov    #FOV algorithm
 from Modules import Level  #Level generation
 from Modules import IO     #Input/Output
+from Modules import you    #Character.
+
 
 class Game:                # Main game class
     def __init__(self,yname = None):  #yname = Your name
         """Initializer of Game class.
             Will start curses and ask for name.
         """
-        global screen,name,wizmode
+        global screen,name,wizmode,p1
         global io                      #For input/output
         io = IO.IO()
         screen = io.retSceen()
@@ -58,7 +60,7 @@ class Game:                # Main game class
         screen.curs_set(0)
         if name == "Wizard":
             wizmode = True
-
+        p1 = you.Player(name)
     def main_loop(self):
         """Main loop of game.
             Drawing things, generating map, playing
@@ -69,10 +71,10 @@ class Game:                # Main game class
         global score,gold
         global kills
         global level
-        global name,save
+        global name,save,p1
         global io,pstack  
         global levs
-        
+
         maxhp = random.randint(20,40)  #Max hp always random
         hp = maxhp                     #Hp is at max
         regen = 0
@@ -122,7 +124,7 @@ class Game:                # Main game class
         # Calculate fov
         fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible, self.isBlocking)                        
         self.drawmap()
-        io.printex(x,y ,"@", refresh=False) #Draw player
+        io.printex(x,y ,p1.char(), refresh=False) #Draw player
         io.printex(2, 63, name, 3)
         if wizmode:
             state = "Wizard"
@@ -424,6 +426,18 @@ class Game:                # Main game class
                     pstack.append((23, 0, "You hit %s" % gamemap[x1][y1].name\
                                    ,3))
                     gamemap[x1][y1].hp -= random.randint(3,10)
+                    if gamemap[x1][y1].hp <= 0:
+                        pstack.append((23, 0, "You kill the %s" %
+                                    gamemap[x1][y1].name ,3))
+                        score += 5
+                        kills += 1
+                        gamemap[x1][y1] = gamemap[x1][y1]\
+                            .undercell
+                        gamemap[x1][y1].visible = True
+                        if random.choice([True,False] + [False] * 10):
+                            gamemap[x1][y1] = cell.item("Gold",\
+                                    "$",gamemap[x1][y1])
+                        mapchanged = True
                     turn = True
                 x1,y1 = x,y
             if gamemap[x][y].item:
@@ -444,16 +458,23 @@ class Game:                # Main game class
             if mapchanged or turn:
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                 self.isBlocking)                        
+            mob_turn = False
+            if turn:
+                p1.has_turns += 1
+                if p1.has_turns == p1.speed:
+                    p1.has_turn = False
+                    p1.has_turns = 0
+                    mob_turn = True
+                    turns += 1
+                    regen += random.randint(1,5)
+                    if regen >= 15:
+                            regen = 0
+                            if hp < maxhp:
+                                hp += random.randint(1,3)
+                                if hp > maxhp:
+                                    hp = maxhp
             #mob's turn
-            if turn: #You had moved.
-                turns += 1
-                regen += random.randint(1,5)
-                if regen >= 15:
-                        regen = 0
-                        if hp < maxhp:
-                            hp += random.randint(1,3)
-                            if hp > maxhp:
-                                hp = maxhp
+            if turn:
                 mc = 0
                 for mapx in xrange(MAP_W - 1): 
                     for mapy in xrange(MAP_H):
@@ -462,7 +483,7 @@ class Game:                # Main game class
                                 gamemap[mapx][mapy].fval = 0
                             if gamemap[mapx][mapy].type[0] and not self.\
                             inLos(x, y, mapx, mapy) and gamemap[mapx][mapy]\
-                            .fval==gamemap[x][y].fval:
+                            .fval==gamemap[x][y].fval and mob_turn:
                                 gamemap[mapx][mapy] = cell.Newt("Newt",":",\
                                                         gamemap[mapx][mapy])
                         if mapchanged:
@@ -474,21 +495,8 @@ class Game:                # Main game class
                                 moremobs= False
                             else:
                                 moremobs = True
-                            if gamemap[mapx][mapy].hp < 1:
-                                pstack.append((23, 0, "You kill the %s" %
-                                              gamemap[mapx][mapy].name ,3))
-                                score += 5
-                                kills += 1
-                                gamemap[mapx][mapy] = gamemap[mapx][mapy]\
-                                .undercell
-                                gamemap[mapx][mapy].visible = True
-                                if random.choice([True,False] + [False] * 10):
-                                    gamemap[mapx][mapy] = cell.item("Gold",\
-                                                    "$",gamemap[mapx][mapy])
-                                mapchanged = True
-                                continue
                             if self.near(x,y,mapx,mapy) and gamemap[mapx]\
-                            [mapy].has_turn:
+                            [mapy].has_turn and mob_turn:
                                 gamemap[mapx][mapy].has_turn = False
                                 pstack.append((23, 0, "%s hits!" %\
                                         gamemap[mapx][mapy].name,2)   )
@@ -502,7 +510,8 @@ class Game:                # Main game class
                                         gamemap[mapx][mapy].undercell.fval and\
                                         self.inLos(x, y, mapx, mapy) and\
                                         self.hasSpaceAround(mapx, mapy) and\
-                                        gamemap[mapx][mapy].has_turn:
+                                        gamemap[mapx][mapy].has_turn and \
+                                            mob_turn:
                                     mx,my = self.aStarPathfind(mapx, mapy, x, y)
                                     if self.near(mapx, mapy,mapx + mx,\
                                                  mapy + my):
@@ -514,7 +523,7 @@ class Game:                # Main game class
                                         gamemap[mapx][mapy].undercell.fval and\
                                         self.hasSpaceAround(mapx, mapy) and\
                                         gamemap[mapx][mapy].has_turn and\
-                                        not random.randint(0,10):
+                                        not random.randint(0,10) and mob_turn:
                                         mx,my = self.aStarPathfind(mapx,\
                                                                     mapy, x, y)
                                         if self.near(mapx, mapy,mapx + mx,\
@@ -527,7 +536,7 @@ class Game:                # Main game class
                                     mx,my = 0,0
                                     s = 0
                                     if self.hasSpaceAround(mapx, mapy) and\
-                                    gamemap[mapx][mapy].has_turn:
+                                    gamemap[mapx][mapy].has_turn and mob_turn:
                                         while not gamemap[mapx + mx][mapy + my]\
                                         .type[0]:
                                             s += 1
