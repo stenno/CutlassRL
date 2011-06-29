@@ -473,6 +473,12 @@ class Game:                # Main game class
                                 hp += random.randint(1,3)
                                 if hp > maxhp:
                                     hp = maxhp
+                maxspeed = 0
+                for mapx in xrange(MAP_W - 1):  #Find fastest mob
+                    for mapy in xrange(MAP_H): 
+                        if gamemap[mapx][mapy].mob:
+                            if gamemap[mapx][mapy].speed > maxspeed:
+                                maxspeed = gamemap[mapx][mapy].speed
             #mob's turn
             if turn:
                 mc = 0
