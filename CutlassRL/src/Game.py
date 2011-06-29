@@ -154,16 +154,16 @@ class Game:                # Main game class
             turn = False
             io.printex(23, 0, " " * 60, refresh = False)
             key = io.rkey()
-            if key == "8" or key == "k":
+            if key == "8" or key == "k" or key == 259:
                 x1-=1
                 turn = True
-            elif key == "2" or key == "j":
+            elif key == "2" or key == "j" or key == 258:
                 x1+=1
                 turn = True
-            elif key == "4" or key == "h":
+            elif key == "4" or key == "h" or key == 260:
                 y1-=1
                 turn = True
-            elif key == "6" or key == "l":
+            elif key == "6" or key == "l" or key == 261:
                 y1+=1
                 turn = True
             elif key == "q":
@@ -200,24 +200,24 @@ class Game:                # Main game class
                 key = ""
                 while key != ";":
                     key = io.readkey()
-                    if key == "8" or key == "k":
+                    if key == "8" or key == "k" or key == 259:
                         cx1-=1
-                    elif key == "2" or key == "j":
+                    elif key == "2" or key == "j" or key == 258:
                         cx1+=1
-                    elif key == "4" or key == "h":
+                    elif key == "4" or key == "h" or key == 260:
                         cy1-=1
-                    elif key == "6" or key == "l":
+                    elif key == "6" or key == "l" or key == 261:
                         cy1+=1
-                    elif key == "7" or key == "y":
+                    elif key == "7" or key == "y" or key == 262:
                         cx1-=1
                         cy1-=1
-                    elif key == "9" or key == "u":
+                    elif key == "9" or key == "u" or key == 339:
                         cx1-=1
                         cy1+=1
-                    elif key == "1" or key == "b":
+                    elif key == "1" or key == "b" or key == 360:
                         cx1+=1
                         cy1-=1
-                    elif key == "3" or key == "n":
+                    elif key == "3" or key == "n" or key == 338:
                         cx1+=1
                         cy1+=1
                     if cx1 <= 22 and cx1 >= 1 and cy1 <= 61 and cy1 >= 1:
@@ -391,19 +391,20 @@ class Game:                # Main game class
                         gamemap[x][y] = cell.Newt("Newt",":",ucell)
                         mapchanged = True
                 if not gamemap[x][y].door:       #You can't use diagonal keys
-                    if key == "7" or key == "y": #while you are in door.
+                                                #while you are in door.
+                    if key == "7" or key == "y"  or key == 262: 
                         x1-=1
                         y1-=1
                         turn = True
-                    elif key == "9" or key == "u":
+                    elif key == "9" or key == "u" or key == 339:
                         x1-=1
                         y1+=1
                         turn = True
-                    elif key == "1" or key == "b":
+                    elif key == "1" or key == "b" or key == 360:
                         x1+=1
                         y1-=1
                         turn = True
-                    elif key == "3" or key == "n":
+                    elif key == "3" or key == "n" or key == 338:
                         x1+=1
                         y1+=1
                         turn = True
@@ -695,24 +696,24 @@ class Game:                # Main game class
         x1,y1 = x,y
         io.printex(23, 0, "What direction:")
         key = io.readkey()
-        if key == "8" or key == "k":
+        if key == "8" or key == "k" or key == 259:
             x1-=1
-        elif key == "2" or key == "j":
+        elif key == "2" or key == "j" or key == 258:
             x1+=1
-        elif key == "4" or key == "h":
+        elif key == "4" or key == "h" or key == 260:
             y1-=1
-        elif key == "6" or key == "l":
+        elif key == "6" or key == "l" or key == 261:
             y1+=1
-        elif key == "7" or key == "y":
+        elif key == "7" or key == "y" or key == 262:
             x1-=1
             y1-=1
-        elif key == "9" or key == "u":
+        elif key == "9" or key == "u" or key == 339:
             x1-=1
             y1+=1
-        elif key == "1" or key == "b":
+        elif key == "1" or key == "b" or key == 360:
             x1+=1
             y1-=1
-        elif key == "3" or key == "n":
+        elif key == "3" or key == "n" or key == 338:
             x1+=1
             y1+=1
         else:

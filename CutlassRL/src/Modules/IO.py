@@ -27,13 +27,15 @@ class IO:
         global screen
         screen = curses;
 
-        screen.initscr()
+        stdscr = screen.initscr()
         
         screen.curs_set(0)
         screen.cbreak()
         screen.noecho()
         screen.start_color()
         screen.use_default_colors()
+
+        screen.keypad(stdscr, True)
 
         #Color pairs
         screen.init_pair(1,-1,-1) #Default
@@ -86,7 +88,7 @@ class IO:
             screen.cbreak()
             screen.timeout(-1000)
             key = screen.getch()
-            if key != -1:
+            if key > -1 and key < 257:
                 key = chr(key)
         except IOError:
             key = ""
@@ -102,7 +104,7 @@ class IO:
             screen.halfdelay(2)
             screen.timeout(-1000)
             key = screen.getch()
-            if key != -1:
+            if key > -1 and key < 257:
                 key = chr(key)
             screen.cbreak()
         except IOError:
