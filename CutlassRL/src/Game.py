@@ -489,7 +489,7 @@ class Game:                # Main game class
                             if gamemap[mapx][mapy].speed > maxspeed:
                                 maxspeed = gamemap[mapx][mapy].speed
                                 
-            if turn:#TODO: Remove this code          |
+            if turn:#TODO: Remove this code          | 
                 for mapx in xrange(MAP_W - 1): #     |
                     for mapy in xrange(MAP_H): #     V
                         if not random.randint(0,1000) and moremobs: 
