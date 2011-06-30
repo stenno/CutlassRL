@@ -568,7 +568,8 @@ class Game:                # Main game class
                                                              my + my2)
                                 else: #Move randomly
                                     if gamemap[mx][my].has_turns ==\
-                                     gamemap[mx][my].speed and gamemap[mx][my].has_turn:
+                                     gamemap[mx][my].speed and gamemap[mx][my]\
+                                     .has_turn:
                                         gamemap[mx][my].has_turn = False
                                     mx2,my2 = 0,0
                                     s = 0
@@ -586,8 +587,8 @@ class Game:                # Main game class
                                             self.moveMob(mx, my,mx + mx2,my\
                                                         + my2)
                             mobs[id] = [mx + mx2,my + my2]
-                            i += 1
                             id += 1
+                        i += 1
             if turn or mapchanged:
                 self.drawmap()
             io.printex(x,y ,p1.char(),refresh=False)
