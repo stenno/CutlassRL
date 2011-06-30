@@ -515,7 +515,6 @@ class Game:                # Main game class
                         for mob in mobs:
                             mx = mob[0]
                             my = mob[1]
-                            io.printex(mx,my,"&",2)
                             if gamemap[mx][my].has_turns ==\
                              gamemap[mx][my].speed and gamemap[mx][my].has_turn:
                                 gamemap[mx][my].has_turn = False
