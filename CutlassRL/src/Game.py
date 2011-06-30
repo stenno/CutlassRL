@@ -241,6 +241,8 @@ class Game:                # Main game class
                         type = gamemap[cx][cy].name
                     elif gamemap[cx][cy].sdoor:
                         type = "Wall"
+                    elif gamemap[cx][cy].boulder and gamemap[cx][cy].explored:
+                        type = "Boulder"
                     elif gamemap[cx][cy].door and gamemap[cx][cy].explored:
                         if gamemap[cx][cy].opened:
                             type = "Open door"
@@ -445,7 +447,19 @@ class Game:                # Main game class
                                     "$",gamemap[x1][y1])
                         mapchanged = True
                     turn = True
-                x1,y1 = x,y
+                if gamemap[x1][y1].boulder:
+                    nx = x1 - x
+                    ny = y1 - y
+                    if gamemap[x1 + nx][y1 + ny].type[0]:
+                        self.moveMob(x1, y1, x1 + nx, y1 + ny) #Not only mob 
+                        pstack.append((23,0,"You moved the boulder."))
+                        x,y = x1,y1
+                    else:
+                        pstack.append((23,0,"You can't move the boulder."))
+                        x1,y1 = x,y
+                    turn = True
+                else:
+                    x1,y1 = x,y
             if gamemap[x][y].item:
                 if gamemap[x][y].name == "Gold":
                     gamemap[x][y] = gamemap[x][y].undercell

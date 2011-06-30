@@ -128,6 +128,7 @@ class item(Mob): #Yeah, it is funny :D
 class Boulder(item):
     type = [False,False]
     color = WHITE
+    item = False
     boulder = True
     def char(self):
         return '0'
