@@ -452,10 +452,10 @@ class Game:                # Main game class
                     ny = y1 - y
                     if gamemap[x1 + nx][y1 + ny].type[0]:
                         self.moveMob(x1, y1, x1 + nx, y1 + ny) #Not only mob 
-                        pstack.append((23,0,"You moved the boulder."))
+                        pstack.append((23,0,"You moved the boulder.",1))
                         x,y = x1,y1
                     else:
-                        pstack.append((23,0,"You can't move the boulder."))
+                        pstack.append((23,0,"You can't move the boulder.",2))
                         x1,y1 = x,y
                     turn = True
                 else:
