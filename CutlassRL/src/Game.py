@@ -484,36 +484,45 @@ class Game:                # Main game class
                 maxspeed = 0
                 for mapx in xrange(MAP_W - 1):  #Find fastest mob
                     for mapy in xrange(MAP_H): 
-                        if gamemap[mapx][mapy].mob:
-                            mobs.append((mapx,mapy)) #Find all monsters
-                            if gamemap[mapx][mapy].speed > maxspeed:
-                                maxspeed = gamemap[mapx][mapy].speed
-                                
-            if turn:#TODO: Remove this code          | 
-                for mapx in xrange(MAP_W - 1): #     |
-                    for mapy in xrange(MAP_H): #     V
-                        if not random.randint(0,1000) and moremobs: 
-                            if mapchanged:
-                                gamemap[mapx][mapy].fval = 0
-                            if gamemap[mapx][mapy].type[0] and not self.\
-                            inLos(x, y, mapx, mapy) and gamemap[mapx][mapy]\
-                            .fval==gamemap[x][y].fval and mob_turn:
-                                gamemap[mapx][mapy] = cell.Newt("Newt",":",\
-                                                        gamemap[mapx][mapy])
                         if mapchanged:
-                            self.floodFill()
-                            mapchanged = False
+                            gamemap[mapx][mapy].fval = 0
+                        #TODO: Generate RANDOM monsters.
                         if gamemap[mapx][mapy].mob:
                             mc += 1
                             if mc >= MAX_MOBS:
                                 moremobs= False
                             else:
                                 moremobs = True
-                            if self.near(x,y,mapx,mapy) and gamemap[mapx]\
-                            [mapy].has_turn and mob_turn:
-                                gamemap[mapx][mapy].has_turn = False
+                        if not random.randint(0,1000) and moremobs:
+                            if gamemap[mapx][mapy].type[0] and not self.\
+                            inLos(x, y, mapx, mapy) and gamemap[mapx][mapy]\
+                            .fval==gamemap[x][y].fval and mob_turn: 
+                                gamemap[mapx][mapy] = cell.Newt("Newt",":",\
+                                                          gamemap[mapx][mapy]) 
+
+                        if gamemap[mapx][mapy].mob:
+                            mobs.append([mapx,mapy]) #Find all monsters
+                            if gamemap[mapx][mapy].speed > maxspeed:
+                                maxspeed = gamemap[mapx][mapy].speed
+                if mob_turn:
+                    if mapchanged:
+                        self.floodFill()
+                        mapchanged = False
+                    i = 0
+                    while i <= maxspeed:
+                        i += 1
+                        id = 0
+                        for mob in mobs:
+                            mx = mob[0]
+                            my = mob[1]
+                            io.printex(mx,my,"&",2)
+                            if gamemap[mx][my].has_turns ==\
+                             gamemap[mx][my].speed and gamemap[mx][my].has_turn:
+                                gamemap[mx][my].has_turn = False
+                            if self.near(x,y,mx,my) and gamemap[mx]\
+                            [my].has_turn and mob_turn:
                                 pstack.append((23, 0, "%s hits!" %\
-                                        gamemap[mapx][mapy].name,2)   )
+                                        gamemap[mx][my].name,2)   )
                                 hp -= random.randint(1,gamemap[mapx][mapy]\
                                                     .damage)
                                 if hp <= 0:
@@ -521,50 +530,44 @@ class Game:                # Main game class
                                     killer = gamemap[mapx][mapy].name
                             else:
                                 if gamemap[x][y].fval ==\
-                                        gamemap[mapx][mapy].undercell.fval and\
-                                        self.inLos(x, y, mapx, mapy) and\
-                                        self.hasSpaceAround(mapx, mapy) and\
-                                        gamemap[mapx][mapy].has_turn and \
+                                        gamemap[mx][my].undercell.fval and\
+                                        self.inLos(x, y, mx, my) and\
+                                        self.hasSpaceAround(mx, my) and\
+                                        gamemap[mx][my].has_turn and \
                                             mob_turn:
-                                    mx,my = self.aStarPathfind(mapx, mapy, x, y)
-                                    if self.near(mapx, mapy,mapx + mx,\
-                                                 mapy + my):
-                                        self.moveMob(mapx, mapy,mapx + mx,\
-                                                     mapy + my)
-                                        gamemap[mapx + mx][mapy + my].has_turn\
-                                         = False
+                                    mx2,my2 = self.aStarPathfind(mx, my, x, y)
+                                    self.moveMob(mx, my,mx + mx2,\
+                                                      my + my2)
+                                    mobs[id] = [mx + mx2,my + my2]
                                 elif gamemap[x][y].fval ==\
-                                        gamemap[mapx][mapy].undercell.fval and\
-                                        self.hasSpaceAround(mapx, mapy) and\
-                                        gamemap[mapx][mapy].has_turn and\
+                                        gamemap[mx][my].undercell.fval and\
+                                        self.hasSpaceAround(mx, my) and\
+                                        gamemap[mx][my].has_turn and\
                                         not random.randint(0,10) and mob_turn:
-                                        mx,my = self.aStarPathfind(mapx,\
-                                                                    mapy, x, y)
-                                        if self.near(mapx, mapy,mapx + mx,\
-                                                     mapy + my):
-                                            self.moveMob(mapx, mapy,mapx + mx,\
-                                                         mapy + my)
-                                            gamemap[mapx + mx][mapy + my].\
-                                            has_turn = False
+                                        mx2,my2 = self.aStarPathfind(mx,\
+                                                                    my, x, y)
+                                        self.moveMob(mx, my,mx + mx2,\
+                                                         my + my2)
+                                        mobs[id] = [mx + mx2,my + my2]
                                 else: #Move randomly
-                                    mx,my = 0,0
+                                    mx2,my2 = 0,0
                                     s = 0
-                                    if self.hasSpaceAround(mapx, mapy) and\
-                                    gamemap[mapx][mapy].has_turn and mob_turn:
-                                        while not gamemap[mapx + mx][mapy + my]\
+                                    if self.hasSpaceAround(mx, my) and\
+                                    gamemap[mx][my].has_turn and mob_turn:
+                                        while not gamemap[mx + mx2][my + my2]\
                                         .type[0]:
                                             s += 1
                                             if s >= 5:
-                                                mx,my = 0,0
+                                                mx2,my2 = 0,0
                                                 break
-                                            mx = random.choice([-1,1])
-                                            my = random.choice([-1,1])
-                                        self.moveMob(mapx, mapy,mapx + mx,mapy\
-                                                    + my)
-                                        gamemap[mapx + mx][mapy + my]\
-                                        .has_turn = False             #   A
-            if turn or mapchanged:   #TODO: Remove that code              |
-                self.drawmap()                                        #   |
+                                            mx2 = random.choice([-1,1])
+                                            my2 = random.choice([-1,1])
+                                        self.moveMob(mx, my,mx + mx2,my\
+                                                    + my2)
+                                    mobs[id] = [mx + mx2,my + my2]
+                            id += 1
+            if turn or mapchanged:
+                self.drawmap()
             io.printex(x,y ,p1.char(),refresh=False)
             if turn:
                 io.printex(0,0," " * 60,refresh=False)
