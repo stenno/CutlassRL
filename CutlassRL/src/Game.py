@@ -152,9 +152,15 @@ class Game:                # Main game class
         else:
             io.printex(0, 0,"")
         turn = False
+        addedmsg = True
         while hp >= 1 or wizmode:
+            key = -1
+            if addedmsg:
+                addedmsg = False
+            else:
+                if turn:
+                    io.printex(23, 0, " " * 60, refresh = False)
             turn = False
-            io.printex(23, 0, " " * 60, refresh = False)
             key = io.rkey()
             if key == "8" or key == "k" or key == 259:
                 x1-=1
@@ -253,8 +259,6 @@ class Game:                # Main game class
                                 type = "Ground"
                             else:
                                 type = "Wall"
-                            if gamemap[cx][cy].boulder:
-                                type = "Boulder"
                     if [cx,cy] == [x,y]:
                         type = "You"
                     io.printex(23, 0, " " * 20, refresh = False)                                        
@@ -441,14 +445,6 @@ class Game:                # Main game class
                                     "$",gamemap[x1][y1])
                         mapchanged = True
                     turn = True
-                if gamemap[x1][y1].boulder:
-                    mx = x - x1
-                    my = y - y1
-                    if gamemap[x1 + mx * 2][y1 + my * 2].type[0]:
-                        pstack.append((23,0,"You push the boulder!",WHITE))
-                        gamemap[x1][y1] = gamemap[x1][y1].undercell
-                        gamemap[x1 + mx * 2][y1 + my * 2] = cell.Boulder(
-                                        gamemap[x1 + mx * 2][y1 + my * 2])
                 x1,y1 = x,y
             if gamemap[x][y].item:
                 if gamemap[x][y].name == "Gold":
@@ -468,27 +464,34 @@ class Game:                # Main game class
             if mapchanged or turn:
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                 self.isBlocking)                        
+            mob_turn = False
             if turn:
-                mob_turn = True
+                p1.has_turns += 1
+                if p1.has_turns == p1.speed:
+                    p1.has_turn = False
+                    p1.has_turns = 0
+                    mob_turn = True
+                    turns += 1
+                    regen += random.randint(1,5)
+                    if regen >= 15:
+                            regen = 0
+                            if hp < maxhp:
+                                hp += random.randint(1,3)
+                                if hp > maxhp:
+                                    hp = maxhp
+                mobs = []
+                mc = 0
                 maxspeed = 0
                 for mapx in xrange(MAP_W - 1):  #Find fastest mob
                     for mapy in xrange(MAP_H): 
                         if gamemap[mapx][mapy].mob:
+                            mobs.append((mapx,mapy)) #Find all monsters
                             if gamemap[mapx][mapy].speed > maxspeed:
                                 maxspeed = gamemap[mapx][mapy].speed
-            #mob's turn
-            if turn:
-                turns += 1
-                regen += random.randint(1,5)
-                if regen >= 15:
-                    regen = 0
-                if hp < maxhp:
-                    hp += random.randint(1,3)
-                else:
-                    hp = maxhp
-                mc = 0
-                for mapx in xrange(MAP_W - 1): 
-                    for mapy in xrange(MAP_H):
+                                
+            if turn:#TODO: Remove this code          |
+                for mapx in xrange(MAP_W - 1): #     |
+                    for mapy in xrange(MAP_H): #     V
                         if not random.randint(0,1000) and moremobs: 
                             if mapchanged:
                                 gamemap[mapx][mapy].fval = 0
@@ -559,11 +562,12 @@ class Game:                # Main game class
                                         self.moveMob(mapx, mapy,mapx + mx,mapy\
                                                     + my)
                                         gamemap[mapx + mx][mapy + my]\
-                                        .has_turn = False
-            if turn or mapchanged:
-                self.drawmap()
-            io.printex(x,y ,"@",refresh=False)
-            io.printex(0,0," " * 60,refresh=False)
+                                        .has_turn = False             #   A
+            if turn or mapchanged:   #TODO: Remove that code              |
+                self.drawmap()                                        #   |
+            io.printex(x,y ,p1.char(),refresh=False)
+            if turn:
+                io.printex(0,0," " * 60,refresh=False)
             if wizmode:
                 io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
                              +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp),\
@@ -587,10 +591,11 @@ class Game:                # Main game class
                     (mx,my,msg,attr) = line
                     io.printex(mx,my,msg + " --More--",attr)
                     io.readkey()
-                    io.printex(mx,my," " * 60,5)
+                    io.printex(23,0," " * 100)
             elif len(pstack) == 1:
                     (mx,my,msg,attr) = pstack[0]                
                     io.printex(mx,my,msg,attr)
+                    addedmsg = True
             pstack = []
         else:
             io.printex(23, 0, "You died! --press any key--",2)
