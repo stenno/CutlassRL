@@ -550,6 +550,7 @@ class Game:                # Main game class
                                 mobs.append((mapx,mapy))
                 i = 0
                 while i <= best_energy and best_energy != 0 and mob_turn:
+                    id = 0
                     for mob in mobs:
                         mapx = mob[0]
                         mapy = mob[1]
@@ -578,6 +579,7 @@ class Game:                # Main game class
                                         if (mx,my) != (0,0):
                                             gamemap[mapx + mx][mapy + my].\
                                             energy -= 1
+                                        mobs[id] = (mapx + mx, mapy + my)
                                 elif gamemap[x][y].fval ==\
                                         gamemap[mapx][mapy].undercell.fval and\
                                         self.hasSpaceAround(mapx, mapy) and\
@@ -590,6 +592,7 @@ class Game:                # Main game class
                                         if (mx,my) != (0,0):
                                             gamemap[mapx + mx][mapy + my].\
                                             energy -= 1
+                                        mobs[id] = (mapx + mx, mapy + my)
                                     #Move randomly.
                                 elif self.hasSpaceAround(mapx, mapy) and\
                                             gamemap[mapx][mapy].energy > 0:
@@ -608,6 +611,8 @@ class Game:                # Main game class
                                             if (mx,my) != (0,0):
                                                 gamemap[mapx + mx][mapy + my].\
                                                 energy -= 1
+                                            mobs[id] = (mapx + mx, mapy + my)
+                        id += 1
                     i += 1        
             if turn or mapchanged:
                 self.drawmap()
