@@ -468,6 +468,7 @@ class Game:                # Main game class
                         self.moveMob(x1, y1, x1 + nx, y1 + ny) #Not only mob 
                         pstack.append((23,0,"You moved the boulder.",1))
                         mapchanged = True
+                        turn = True
                         x,y = x1,y1
                     else:
                         if gamemap[x1 + nx][y1 + ny].explored:
