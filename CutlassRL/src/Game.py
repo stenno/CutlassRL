@@ -266,6 +266,9 @@ class Game:                # Main game class
                     else:
                         if gamemap[cx][cy].explored == False:
                             type = "Unexplored"
+                            for char in chars:
+                                if (char[0],char[1],char[2]) == (level,cx,cy):
+                                    type = "Something unseen and blocking way"
                         else:
                             if gamemap[cx][cy].type[0]:
                                 type = "Ground"
@@ -273,7 +276,7 @@ class Game:                # Main game class
                                 type = "Wall"
                     if [cx,cy] == [x,y]:
                         type = "You"
-                    io.printex(23, 0, " " * 20, refresh = False)                                        
+                    io.printex(23, 0, " " * 200, refresh = False)                                        
                     io.printex(23, 0, type)
                     io.printex(cx, cy, "")
                 screen.curs_set(0)
@@ -351,7 +354,7 @@ class Game:                # Main game class
                 if wizmode and key == "#": #Debug commands.
                     key = io.readkey()
                     if key == "x":
-                        gamemap[x][y].type = (False,False,False)
+                        gamemap[x][y].type = [False,False]
                         mapchanged = True
                     elif key == "z":
                         fovblock = not fovblock  
@@ -471,7 +474,7 @@ class Game:                # Main game class
                             turn = False
                         else:
                             turn = True
-                            self.setChar(x1 + nx,y1 + ny,"?",1)
+                            self.setChar(level,x1 + nx,y1 + ny,"?",1)
                         pstack.append((23,0,"You can't move the boulder.",2))
                         x1,y1 = x,y
                 else:
@@ -709,7 +712,7 @@ class Game:                # Main game class
                                 
                     else:
                         io.printex(mapx, mapy, " ",5,False)
-                        self.drawChar(mapx, mapy)
+                        self.drawChar(mapx, mapy, level)
                         screen.attroff(screen.A_DIM)
                         
         screen.refresh()
@@ -941,7 +944,7 @@ class Game:                # Main game class
             log.write(("version=%f:name=%s:score=%d:hp=%d:maxhp=%d:killer=%s:"
                     + "gold=%d:kills=%d\n") %
                       (version,name,score,hp,maxhp,death,gold,kills))
-    def setChar(self,x,y,char,attr):
+    def setChar(self,levl,x,y,char,attr):
         global chars
         chars.append((level,x,y,char,attr))
                      
@@ -949,7 +952,7 @@ class Game:                # Main game class
         global chars
         for char in chars:
             if (char[0],char[1],char[2]) == (level,x,y):
-                io.printex(x,y,char[2],char[3])
+                io.printex(x,y,char[3],char[4])
 #
 #  __           _       _  _    ___    
 # /        _/_  /  _   /  /   /   /  /
