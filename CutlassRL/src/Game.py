@@ -75,7 +75,8 @@ class Game:                # Main game class
         global name,save,p1
         global io,pstack  
         global levs
-
+        global chars
+        
         maxhp = random.randint(20,40)  #Max hp always random
         hp = maxhp                     #Hp is at max
         regen = 0
@@ -83,7 +84,9 @@ class Game:                # Main game class
         score = 0                       #Zero score
         gold  = 0
         kills = 0
-
+        
+        chars = []
+        
         level = 1                       #Starting level
                 
         pstack = []
@@ -387,7 +390,7 @@ class Game:                # Main game class
                     elif key == "a":
                         self.amnesia()
                         pstack.append((23, 0, \
-                            "Thinking of Maud you forget everything else."))
+                            "Thinking of Maud you forget everything else.",1))
                             #NetHack reference
                     elif key == "i":
                         d = self.askDirection()
@@ -457,9 +460,13 @@ class Game:                # Main game class
                         mapchanged = True
                         x,y = x1,y1
                     else:
+                        if gamemap[x1 + nx][y1 + ny].explored:
+                            turn = False
+                        else:
+                            turn = True
+                            self.setChar(x1 + nx,y1 + ny,"?",1)
                         pstack.append((23,0,"You can't move the boulder.",2))
                         x1,y1 = x,y
-                    turn = True
                 else:
                     x1,y1 = x,y
             if gamemap[x][y].item:
@@ -681,6 +688,7 @@ class Game:                # Main game class
                                 
                     else:
                         io.printex(mapx, mapy, " ",5,False)
+                        self.drawChar(mapx, mapy)
                         screen.attroff(screen.A_DIM)
                         
         screen.refresh()
@@ -912,6 +920,15 @@ class Game:                # Main game class
             log.write(("version=%f:name=%s:score=%d:hp=%d:maxhp=%d:killer=%s:"
                     + "gold=%d:kills=%d\n") %
                       (version,name,score,hp,maxhp,death,gold,kills))
+    def setChar(self,x,y,char,attr):
+        global chars
+        chars.append((x,y,char,attr))
+                     
+    def drawChar(self,x,y):
+        global chars
+        for char in chars:
+            if (char[0],char[1]) == (x,y):
+                io.printex(x,y,char[2],char[3])
 #
 #  __           _       _  _    ___    
 # /        _/_  /  _   /  /   /   /  /
