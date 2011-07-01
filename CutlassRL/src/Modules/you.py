@@ -17,7 +17,7 @@
 class Player():
     name = None
     speed = 1
-    has_turns = 0
+    energy = 0
     chr = "@"
     has_turn = False
     

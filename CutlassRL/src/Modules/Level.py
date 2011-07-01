@@ -114,6 +114,7 @@ class levGen:
         (x,y) = rooms[rn].center()
         self.lmap[y][x] = lcell.Stair(False)
         self.lmap[y1][x1] = lcell.Stair(True)
+        
         return lmap,playerx,playery
         
     def near(self,x1,y1,x2,y2):
@@ -122,6 +123,30 @@ class levGen:
             return True
         else:
             return False
+
+    def oMap(self):
+        self.flood(0,0,5,0,gamemap)
+        for mapx in xrange(MAP_W - 1):
+            for mapy in xrange(MAP_H):        
+                if self.lmap[mapx][mapy].fval == 5:
+                    self.lmap[mapx][mapy] = self.lmap[0][0]
+
+    def flood(self,x,y,v,d,gamemap):
+        """Recursive floodfill function"""
+        sys.setrecursionlimit(2000)
+        if not gamemap[x][y].type[0]:
+            return  0
+        gamemap[x][y].fval = v
+        self.flood(x + 1,y,v,d,gamemap)
+        self.flood(x + 1,y + 1,v,d,gamemap)
+        self.flood(x - 1,y,v,d,gamemap)
+        self.flood(x - 1,y - 1,v,d,gamemap)
+        self.flood(x,y + 1,v,d,gamemap)
+        self.flood(x,y - 1,v,d,gamemap)
+        self.flood(x + 1,y - 1,v,d,gamemap)
+        self.flood(x - 1,y + 1,v,d,gamemap)
+        return
+
 
 class Rect:
     #a rectangle on the map. used to characterize a room.

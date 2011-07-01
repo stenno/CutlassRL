@@ -58,7 +58,7 @@ class Stair(Cell):
             return 1
 class Mob(Cell):
     speed = 1
-    has_turns = 0
+    energy = 0
     mob = True
     hp = 10
     name = "Mob"

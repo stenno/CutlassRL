@@ -524,10 +524,6 @@ class Game:                # Main game class
                                             gamemap[mapx][mapy].name,2)   )
                                     hp -= random.randint(1,gamemap[mapx][mapy]\
                                                         .damage)
-                                    if gamemap[mapx][mapy].has_turns ==\
-                                     gamemap[mapx][mapy].speed and gamemap\
-                                     [mapx][mapy].has_turn:
-                                        gamemap[mapx][mapy].has_turn = False
                                     if hp <= 0:
                                         #Mob killed you.
                                         killer = gamemap[mapx][mapy].name
