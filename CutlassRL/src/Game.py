@@ -943,12 +943,12 @@ class Game:                # Main game class
                       (version,name,score,hp,maxhp,death,gold,kills))
     def setChar(self,x,y,char,attr):
         global chars
-        chars.append((x,y,char,attr))
+        chars.append((level,x,y,char,attr))
                      
-    def drawChar(self,x,y):
+    def drawChar(self,x,y,level):
         global chars
         for char in chars:
-            if (char[0],char[1]) == (x,y):
+            if (char[0],char[1],char[2]) == (level,x,y):
                 io.printex(x,y,char[2],char[3])
 #
 #  __           _       _  _    ___    
