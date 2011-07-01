@@ -488,6 +488,7 @@ class Game:                # Main game class
                         hp += random.randint(1,3)
                         if hp > maxhp:
                             hp = maxhp
+                mc = 0
                 for mapx in xrange(MAP_W - 1):
                     for mapy in xrange(MAP_H): 
                         if mapchanged:
