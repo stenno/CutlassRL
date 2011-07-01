@@ -70,7 +70,7 @@ class Game:                # Main game class
         global x,y,rx,ry
         global hp,regen,maxhp
         global score,gold
-        global kills
+        global kills, killer
         global level
         global name,save,p1
         global io,pstack  
@@ -555,63 +555,9 @@ class Game:                # Main game class
                         mapx = mob[0]
                         mapy = mob[1]
                         if gamemap[mapx][mapy].mob:
-                            if near(x,y,mapx,mapy) and gamemap[mapx]\
-                                [mapy].has_turn and gamemap[mapx][mapy].\
-                                energy > 0:
-                                    pstack.append((23, 0, "%s hits!" %\
-                                            gamemap[mapx][mapy].name,2))
-                                    hp -= random.randint(1,gamemap[mapx][mapy]\
-                                                        .damage)
-                                    gamemap[mapx][mapy].energy -= 80
-                                    if hp <= 0:
-                                        #Mob killed you.
-                                        killer = gamemap[mapx][mapy].name
-                            else:
-                                if gamemap[x][y].fval ==\
-                                    gamemap[mapx][mapy].undercell.fval and\
-                                    gamemap[mapx][mapy].visible and\
-                                    hasSpaceAround(mapx, mapy) and\
-                                    gamemap[mapx][mapy].energy > 0:
-                                        mx,my = self.aStarPathfind(mapx, mapy,\
-                                                                    x, y)
-                                        self.moveMob(mapx, mapy,mapx + mx,\
-                                                        mapy + my)
-                                        if (mx,my) != (0,0):
-                                            gamemap[mapx + mx][mapy + my].\
-                                            energy -= 100
-                                        mobs[id] = (mapx + mx, mapy + my)
-                                elif gamemap[x][y].fval ==\
-                                        gamemap[mapx][mapy].undercell.fval and\
-                                        hasSpaceAround(mapx, mapy) and\
-                                        not random.randint(0,10) and gamemap\
-                                        [mapx][mapy].energy > 0:
-                                        mx,my = self.aStarPathfind(mapx,\
-                                                                    mapy, x, y)
-                                        self.moveMob(mapx, mapy,mapx + mx,\
-                                                                mapy + my)
-                                        if (mx,my) != (0,0):
-                                            gamemap[mapx + mx][mapy + my].\
-                                            energy -= 110
-                                        mobs[id] = (mapx + mx, mapy + my)
-                                    #Move randomly.
-                                elif hasSpaceAround(mapx, mapy) and\
-                                            gamemap[mapx][mapy].energy > 0:
-                                            mx,my = 0,0
-                                            s = 0
-                                            while not gamemap[mapx + mx][mapy+\
-                                                                 my].type[0]:
-                                                s += 1
-                                                if s >= 5:
-                                                    mx,my = 0,0
-                                                    break
-                                                mx = random.choice([-1,1])
-                                                my = random.choice([-1,1])
-                                            self.moveMob(mapx, mapy,mapx +\
-                                                          mx,mapy+ my)
-                                            if (mx,my) != (0,0):
-                                                gamemap[mapx + mx][mapy + my].\
-                                                energy -= 115
-                                            mobs[id] = (mapx + mx, mapy + my)
+                            if gamemap[mapx][mapy].energy > 0:
+                                (mvx,mvy) = self.mobTurn(mapx,mapy)
+                                mobs[id] = (mvx,mvy) 
                         id += 1
                     i += 1        
             if turn or mapchanged:
@@ -979,12 +925,62 @@ class Game:                # Main game class
                 if gamemap[x][y].explored:
                     del char
 
-def near(x1,y1,x2,y2):
-    """Checks if x1,y1 near x2,y2"""
-    if -1 <= (x1 - x2) <= 1 and -1 <= (y1 - y2) <= 1:
-        return True
-    else:
-        return False
+    def mobTurn(self,mapx,mapy):
+        global gamemap, pstack,hp,killer
+        ret = (mapx,mapy)
+        if near(x,y,mapx,mapy):
+                pstack.append((23, 0, "%s hits!" %\
+                        gamemap[mapx][mapy].name,2))
+                hp -= random.randint(1,gamemap[mapx][mapy]\
+                                    .damage)
+                gamemap[mapx][mapy].energy -= 80
+                if hp <= 0:
+                    #Mob killed you.
+                    killer = gamemap[mapx][mapy].name
+        else:
+            if gamemap[x][y].fval ==\
+                gamemap[mapx][mapy].undercell.fval and\
+                gamemap[mapx][mapy].visible and\
+                hasSpaceAround(mapx, mapy):
+                    mx,my = self.aStarPathfind(mapx, mapy,\
+                                                x, y)
+                    self.moveMob(mapx, mapy,mapx + mx,\
+                                    mapy + my)
+                    if (mx,my) != (0,0):
+                        gamemap[mapx + mx][mapy + my].\
+                        energy -= 100
+                    ret = (mapx + mx, mapy + my)
+            elif gamemap[x][y].fval ==\
+                    gamemap[mapx][mapy].undercell.fval and\
+                    hasSpaceAround(mapx, mapy) and\
+                    not random.randint(0,10):
+                    mx,my = self.aStarPathfind(mapx,\
+                                                mapy, x, y)
+                    self.moveMob(mapx, mapy,mapx + mx,\
+                                            mapy + my)
+                    if (mx,my) != (0,0):
+                        gamemap[mapx + mx][mapy + my].\
+                        energy -= 110
+                    ret = (mapx + mx, mapy + my)
+                #Move randomly.
+            elif hasSpaceAround(mapx, mapy):
+                        mx,my = 0,0
+                        s = 0
+                        while not gamemap[mapx + mx][mapy+\
+                                             my].type[0]:
+                            s += 1
+                            if s >= 5:
+                                mx,my = 0,0
+                                break
+                            mx = random.choice([-1,1])
+                            my = random.choice([-1,1])
+                        self.moveMob(mapx, mapy,mapx +\
+                                      mx,mapy+ my)
+                        if (mx,my) != (0,0):
+                            gamemap[mapx + mx][mapy + my].\
+                            energy -= 115
+                        ret = (mapx + mx, mapy + my)
+        return ret
 
 def hasSpaceAround(x,y):
     """Checks if there is free cells
@@ -1000,6 +996,12 @@ def hasSpaceAround(x,y):
         return False
     else:
         return True
+def near(x1,y1,x2,y2):
+    """Checks if x1,y1 near x2,y2"""
+    if -1 <= (x1 - x2) <= 1 and -1 <= (y1 - y2) <= 1:
+        return True
+    else:
+        return False
 # TODO: Speed system should work somewhat different!
 #
 #  __           _       _  _    ___    
