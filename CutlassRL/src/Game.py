@@ -298,6 +298,7 @@ class Game:                # Main game class
                 mapchanged = True
             elif key == "w": #Wait
                 turn = True
+                p1.energy -= 1
                 mx,my = random.randint(-1,1),random.randint(-1,1)
                 if gamemap[x+mx][y+my].sdoor:
                     gamemap[x+mx][y+my] = cell.Door(False)
@@ -438,11 +439,13 @@ class Game:                # Main game class
                         x1,y1 = x,y
             if gamemap[x1][y1].type[0]:
                 x,y = x1,y1
+                p1.energy -= 1
             else:
                 turn = False                        
                 if gamemap[x1][y1].door:
                     gamemap[x1][y1].open()
                     turn = True
+                    p1.energy -= 1
                     mapchanged = True
                 elif gamemap[x1][y1].mob:
                     pstack.append((23, 0, "You hit %s" % gamemap[x1][y1].name\
@@ -460,6 +463,7 @@ class Game:                # Main game class
                             gamemap[x1][y1] = cell.item("Gold",\
                                     "$",gamemap[x1][y1])
                         mapchanged = True
+                    p1.energy -= 1
                     turn = True
                 if gamemap[x1][y1].boulder:
                     nx = x1 - x
@@ -469,6 +473,7 @@ class Game:                # Main game class
                         pstack.append((23,0,"You moved the boulder.",1))
                         mapchanged = True
                         turn = True
+                        p1.energy -= 2
                         x,y = x1,y1
                     else:
                         if gamemap[x1 + nx][y1 + ny].explored and not gamemap\
@@ -476,6 +481,7 @@ class Game:                # Main game class
                             turn = False
                         else:
                             turn = True
+                            p1.energy -= 1
                             self.setChar(level,x1 + nx,y1 + ny,"?",1)
                         pstack.append((23,0,"You can't move the boulder.",2))
                         x1,y1 = x,y
@@ -500,7 +506,6 @@ class Game:                # Main game class
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                 self.isBlocking)                        
             if turn:
-                turns += 1
                 regen += random.randint(1,5)
                 if regen >= 15:
                     regen = 0
@@ -508,14 +513,20 @@ class Game:                # Main game class
                         hp += random.randint(1,3)
                         if hp > maxhp:
                             hp = maxhp
-
+                p1.energy += p1.speed
+                if p1.energy > 0:
+                    mob_turn = False
+                else:
+                    mob_turn = True
+                    turns += 1
+                    
                 mc = 0
                 mobs = []
                 if mapchanged:
                     self.resetFlood()
                     self.floodFill()
                     mapchanged = False
-                best_energy = -1
+                best_energy = 0
                 for mapx in xrange(MAP_W - 1):
                     for mapy in xrange(MAP_H): 
                         if gamemap[mapx][mapy].mob:
@@ -538,7 +549,7 @@ class Game:                # Main game class
                                                           gamemap[mapx][mapy]) 
                                 mobs.append((mapx,mapy))
                 i = 0
-                while i <= best_energy and best_energy != 0:
+                while i <= best_energy and best_energy != 0 and mob_turn:
                     for mob in mobs:
                         mapx = mob[0]
                         mapy = mob[1]
@@ -559,8 +570,7 @@ class Game:                # Main game class
                                     gamemap[mapx][mapy].undercell.fval and\
                                     self.inLos(x, y, mapx, mapy) and\
                                     self.hasSpaceAround(mapx, mapy) and\
-                                    gamemap[mapx][mapy].has_turn and gamemap\
-                                    [mapx][mapy].energy > 0:
+                                    gamemap[mapx][mapy].energy > 0:
                                         mx,my = self.aStarPathfind(mapx, mapy,\
                                                                     x, y)
                                         self.moveMob(mapx, mapy,mapx + mx,\
@@ -568,12 +578,9 @@ class Game:                # Main game class
                                         if (mx,my) != (0,0):
                                             gamemap[mapx + mx][mapy + my].\
                                             energy -= 1
-                                        gamemap[mapx + mx][mapy + my].has_turn\
-                                            = False
                                 elif gamemap[x][y].fval ==\
                                         gamemap[mapx][mapy].undercell.fval and\
                                         self.hasSpaceAround(mapx, mapy) and\
-                                        gamemap[mapx][mapy].has_turn and\
                                         not random.randint(0,10) and gamemap\
                                         [mapx][mapy].energy > 0:
                                         mx,my = self.aStarPathfind(mapx,\
@@ -583,11 +590,8 @@ class Game:                # Main game class
                                         if (mx,my) != (0,0):
                                             gamemap[mapx + mx][mapy + my].\
                                             energy -= 1
-                                        gamemap[mapx + mx][mapy + my].has_turn\
-                                         = False
                                     #Move randomly.
                                 elif self.hasSpaceAround(mapx, mapy) and\
-                                            gamemap[mapx][mapy].has_turn and\
                                             gamemap[mapx][mapy].energy > 0:
                                             mx,my = 0,0
                                             s = 0
@@ -601,8 +605,6 @@ class Game:                # Main game class
                                                 my = random.choice([-1,1])
                                             self.moveMob(mapx, mapy,mapx +\
                                                           mx,mapy+ my)
-                                            gamemap[mapx + mx][mapy + my].\
-                                            has_turn = False
                                             if (mx,my) != (0,0):
                                                 gamemap[mapx + mx][mapy + my].\
                                                 energy -= 1
