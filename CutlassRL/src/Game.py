@@ -542,8 +542,8 @@ class Game:                # Main game class
                                 moremobs = True
                         #TODO: Generate RANDOM monsters.
                         if not random.randint(0,1000) and moremobs:
-                            if gamemap[mapx][mapy].type[0] and not self.\
-                            inLos(x, y, mapx, mapy) and gamemap[mapx][mapy]\
+                            if gamemap[mapx][mapy].type[0] and not gamemap\
+                            [mapx][mapy].visible and gamemap[mapx][mapy]\
                             .fval==gamemap[x][y].fval: 
                                 gamemap[mapx][mapy] = cell.Newt("Newt",":",\
                                                           gamemap[mapx][mapy]) 
@@ -569,7 +569,7 @@ class Game:                # Main game class
                             else:
                                 if gamemap[x][y].fval ==\
                                     gamemap[mapx][mapy].undercell.fval and\
-                                    self.inLos(x, y, mapx, mapy) and\
+                                    gamemap[mapx][mapy].visible and\
                                     hasSpaceAround(mapx, mapy) and\
                                     gamemap[mapx][mapy].energy > 0:
                                         mx,my = self.aStarPathfind(mapx, mapy,\
