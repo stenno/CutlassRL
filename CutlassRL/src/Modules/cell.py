@@ -57,7 +57,7 @@ class Stair(Cell):
         else:
             return 1
 class Mob(Cell):
-    speed = 1
+    speed = 95
     energy = 0
     mob = True
     hp = 10

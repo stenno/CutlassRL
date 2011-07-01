@@ -298,7 +298,7 @@ class Game:                # Main game class
                 mapchanged = True
             elif key == "w": #Wait
                 turn = True
-                p1.energy -= 1
+                p1.energy -= 100
                 mx,my = random.randint(-1,1),random.randint(-1,1)
                 if gamemap[x+mx][y+my].sdoor:
                     gamemap[x+mx][y+my] = cell.Door(False)
@@ -439,13 +439,13 @@ class Game:                # Main game class
                         x1,y1 = x,y
             if gamemap[x1][y1].type[0]:
                 x,y = x1,y1
-                p1.energy -= 1
+                p1.energy -= 95
             else:
                 turn = False                        
                 if gamemap[x1][y1].door:
                     gamemap[x1][y1].open()
                     turn = True
-                    p1.energy -= 1
+                    p1.energy -= 120
                     mapchanged = True
                 elif gamemap[x1][y1].mob:
                     pstack.append((23, 0, "You hit %s" % gamemap[x1][y1].name\
@@ -463,7 +463,7 @@ class Game:                # Main game class
                             gamemap[x1][y1] = cell.item("Gold",\
                                     "$",gamemap[x1][y1])
                         mapchanged = True
-                    p1.energy -= 1
+                    p1.energy -= 100
                     turn = True
                 if gamemap[x1][y1].boulder:
                     nx = x1 - x
@@ -473,7 +473,7 @@ class Game:                # Main game class
                         pstack.append((23,0,"You moved the boulder.",1))
                         mapchanged = True
                         turn = True
-                        p1.energy -= 2
+                        p1.energy -= 150
                         x,y = x1,y1
                     else:
                         if gamemap[x1 + nx][y1 + ny].explored and not gamemap\
@@ -481,7 +481,7 @@ class Game:                # Main game class
                             turn = False
                         else:
                             turn = True
-                            p1.energy -= 1
+                            p1.energy -= 90
                             self.setChar(level,x1 + nx,y1 + ny,"?",1)
                         pstack.append((23,0,"You can't move the boulder.",2))
                         x1,y1 = x,y
@@ -562,7 +562,7 @@ class Game:                # Main game class
                                             gamemap[mapx][mapy].name,2))
                                     hp -= random.randint(1,gamemap[mapx][mapy]\
                                                         .damage)
-                                    gamemap[mapx][mapy].energy -= 1
+                                    gamemap[mapx][mapy].energy -= 80
                                     if hp <= 0:
                                         #Mob killed you.
                                         killer = gamemap[mapx][mapy].name
@@ -578,7 +578,7 @@ class Game:                # Main game class
                                                         mapy + my)
                                         if (mx,my) != (0,0):
                                             gamemap[mapx + mx][mapy + my].\
-                                            energy -= 1
+                                            energy -= 100
                                         mobs[id] = (mapx + mx, mapy + my)
                                 elif gamemap[x][y].fval ==\
                                         gamemap[mapx][mapy].undercell.fval and\
@@ -591,7 +591,7 @@ class Game:                # Main game class
                                                                 mapy + my)
                                         if (mx,my) != (0,0):
                                             gamemap[mapx + mx][mapy + my].\
-                                            energy -= 1
+                                            energy -= 110
                                         mobs[id] = (mapx + mx, mapy + my)
                                     #Move randomly.
                                 elif self.hasSpaceAround(mapx, mapy) and\
@@ -610,7 +610,7 @@ class Game:                # Main game class
                                                           mx,mapy+ my)
                                             if (mx,my) != (0,0):
                                                 gamemap[mapx + mx][mapy + my].\
-                                                energy -= 1
+                                                energy -= 115
                                             mobs[id] = (mapx + mx, mapy + my)
                         id += 1
                     i += 1        
