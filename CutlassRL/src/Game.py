@@ -126,7 +126,8 @@ class Game:                # Main game class
         x1,y1 = x,y
         mapchanged = True #Map has been changed
         # Calculate fov
-        fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible, self.isBlocking)                        
+        fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                         self.isBlocking)                        
         self.drawmap()
         io.printex(x,y ,p1.char(), refresh=False) #Draw player
         io.printex(2, 63, name, 3)
@@ -317,7 +318,8 @@ class Game:                # Main game class
                             levs[level] = copy.deepcopy(gamemap)
                             for mapx in xrange(MAP_W - 1):
                                 for mapy in xrange(MAP_H):
-                                    gamemap[mapx][mapy] = cell.Cell(False,False)
+                                    gamemap[mapx][mapy] = cell.\
+                                    Cell(False,False)
                             gen = Level.levGen()
                             (gamemap,y,x) = gen.generateLevel(gamemap)
                             levs[next] = copy.deepcopy(gamemap)
@@ -544,8 +546,8 @@ class Game:                # Main game class
                                         self.moveMob(mapx, mapy,mapx + mx,\
                                                         mapy + my)
                                         if (mx,my) != (0,0):
-                                            gamemap[mapx + mx][mapy + my].energy\
-                                             -= 1
+                                            gamemap[mapx + mx][mapy + my].\
+                                            energy -= 1
                                         gamemap[mapx + mx][mapy + my].has_turn\
                                          = False
                                 elif gamemap[x][y].fval ==\
@@ -559,8 +561,8 @@ class Game:                # Main game class
                                         self.moveMob(mapx, mapy,mapx + mx,\
                                                                 mapy + my)
                                         if (mx,my) != (0,0):
-                                            gamemap[mapx + mx][mapy + my].energy\
-                                             -= 1
+                                            gamemap[mapx + mx][mapy + my].\
+                                            energy -= 1
                                         gamemap[mapx + mx][mapy + my].has_turn\
                                          = False
                                     #Move randomly.
@@ -590,10 +592,9 @@ class Game:                # Main game class
             if turn:
                 io.printex(0,0," " * 60,refresh=False)
             if wizmode:
-                io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+";T:"\
-                             +str(turns)+"; HP:"+str(hp)+"/"+str(maxhp),\
+                io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+\
+                           ";T:"+str(turns)+"; HP:"+str(hp)+"/"+str(maxhp),\
                              refresh=False) #DEBUG 
-
             io.printex(4, 63, state, 2,refresh=False)
             io.printex(6, 63, " " * 10,refresh=False)            
             hpattr = GREEN
@@ -643,18 +644,21 @@ class Game:                # Main game class
                 #If cell is in map range
                 if gamemap[mapx][mapy] != None and(mapx <= 22 and mapx >= 1\
                                                 and mapy <= 61 and mapy >= 1):
-                    if gamemap[mapx][mapy].lit and not gamemap[mapx][mapy].mob:
+                    if gamemap[mapx][mapy].lit and not gamemap[mapx][mapy].\
+                    mob:
                         if self.inLos(mapx, mapy, x, y):
                             gamemap[mapx][mapy].visible = True
                         if gamemap[mapx][mapy].type[0]:
                             for x2 in xrange(-2,2):
                                 for y2 in xrange(-2,2):
-                                    if self.near(mapx,mapy,mapx + x2,mapy + y2):
+                                    if self.near(mapx,mapy,mapx + x2,mapy +\
+                                                  y2):
                                         if gamemap[mapx][mapy].type[0]:
                                             if not gamemap[mapx+x2]\
                                             [mapy+y2].type[0]:
-                                                if self.inLos(x, y, mapx, mapy)\
-                                                 and (x2,y2) != (0,0) and not\
+                                                if self.inLos(x, y, mapx,\
+                                                mapy) and (x2,y2) != (0,0)\
+                                                 and not\
                                                   gamemap[mapx + x2]\
                                                   [mapy + y2].type[0]:
                                                     gamemap[mapx+x2][mapy+y2]\
