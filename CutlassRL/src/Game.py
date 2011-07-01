@@ -192,6 +192,7 @@ class Game:                # Main game class
                 screen.curs_set(0)
                 io.printex(23,0," " * 100,False)
             elif key == "s":
+                regen = 0
                 self.save()
             elif key == "r":
                 if os.path.isfile(save):   #If there is savefile        
@@ -769,10 +770,10 @@ class Game:                # Main game class
     def load(self):
         """Load game from save"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
-        global gold,kills,score,levs,level
+        global gold,kills,score,levs,level,regen,maxhp
         saved = gzip.open(save,"rb",-1)
         (level,info,gamemap,levs) = cPickle.load(saved)
-        (gold,kills,score,x,y,rx,ry,fovblock,hp,turns) = info
+        (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen) = info
         saved.close()
         pstack.append((23,0,"Loaded...",1))
         if not wizmode:
@@ -781,9 +782,9 @@ class Game:                # Main game class
     def save(self):
         """Save game"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
-        global gold,kills,score,levs,level
+        global gold,kills,score,levs,level,regen,maxhp
         saved = gzip.open(save,"wb",-1)
-        info = (gold,kills,score,x,y,rx,ry,fovblock,hp,turns)
+        info = (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen)
         cPickle.dump((level,info,gamemap,levs), saved,2)
         pstack.append((23,0,"Saved...",1))
         if not wizmode:
