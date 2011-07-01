@@ -555,7 +555,7 @@ class Game:                # Main game class
                         mapx = mob[0]
                         mapy = mob[1]
                         if gamemap[mapx][mapy].mob:
-                            if self.near(x,y,mapx,mapy) and gamemap[mapx]\
+                            if near(x,y,mapx,mapy) and gamemap[mapx]\
                                 [mapy].has_turn and gamemap[mapx][mapy].\
                                 energy > 0:
                                     pstack.append((23, 0, "%s hits!" %\
@@ -570,7 +570,7 @@ class Game:                # Main game class
                                 if gamemap[x][y].fval ==\
                                     gamemap[mapx][mapy].undercell.fval and\
                                     self.inLos(x, y, mapx, mapy) and\
-                                    self.hasSpaceAround(mapx, mapy) and\
+                                    hasSpaceAround(mapx, mapy) and\
                                     gamemap[mapx][mapy].energy > 0:
                                         mx,my = self.aStarPathfind(mapx, mapy,\
                                                                     x, y)
@@ -582,7 +582,7 @@ class Game:                # Main game class
                                         mobs[id] = (mapx + mx, mapy + my)
                                 elif gamemap[x][y].fval ==\
                                         gamemap[mapx][mapy].undercell.fval and\
-                                        self.hasSpaceAround(mapx, mapy) and\
+                                        hasSpaceAround(mapx, mapy) and\
                                         not random.randint(0,10) and gamemap\
                                         [mapx][mapy].energy > 0:
                                         mx,my = self.aStarPathfind(mapx,\
@@ -594,7 +594,7 @@ class Game:                # Main game class
                                             energy -= 110
                                         mobs[id] = (mapx + mx, mapy + my)
                                     #Move randomly.
-                                elif self.hasSpaceAround(mapx, mapy) and\
+                                elif hasSpaceAround(mapx, mapy) and\
                                             gamemap[mapx][mapy].energy > 0:
                                             mx,my = 0,0
                                             s = 0
@@ -679,7 +679,7 @@ class Game:                # Main game class
                         if gamemap[mapx][mapy].type[0]:
                             for x2 in xrange(-2,2):
                                 for y2 in xrange(-2,2):
-                                    if self.near(mapx,mapy,mapx + x2,mapy +\
+                                    if near(mapx,mapy,mapx + x2,mapy +\
                                                   y2):
                                         if gamemap[mapx][mapy].type[0]:
                                             if not gamemap[mapx+x2]\
@@ -733,7 +733,8 @@ class Game:                # Main game class
                                 
                     else:
                         io.printex(mapx, mapy, " ",5,False)
-                        self.drawChar(mapx, mapy, level)
+                        if chars:
+                            self.drawChar(mapx, mapy, level)
                         screen.attroff(screen.A_DIM)
                         
         screen.refresh()
@@ -860,7 +861,7 @@ class Game:                # Main game class
     def moveMob(self,x,y,mx,my):
         """Moves mob"""
         global gamemap
-        if self.near(x, y, mx, my):
+        if near(x, y, mx, my):
             ucell = gamemap[mx][my]
             gamemap[mx][my] = gamemap[x][y]
             gamemap[x][y] = gamemap[x][y].undercell
@@ -890,28 +891,6 @@ class Game:                # Main game class
         else:
             return 0,0
             
-    def near(self,x1,y1,x2,y2):
-        """Checks if x1,y1 near x2,y2"""
-        if x1 - x2 >= -1 and x1 - x2 <= 1 and\
-                 y1 - y2 >= -1 and y1 - y2 <= 1:
-            return True
-        else:
-            return False
-
-    def hasSpaceAround(self,x,y):
-        """Checks if there is free cells
-            around x,y"""
-        global gamemap
-        c = 0
-        for x2 in xrange(-2,2):
-            for y2 in xrange(-2,2):
-                if self.near(x, y,x + x2,y + y2):
-                    if not gamemap[x + x2][y + y2].type[0]:
-                        c += 1
-        if c >= 8:
-            return False
-        else:
-            return True
 
     def floodFill(self):
         """Floodfills map
@@ -920,31 +899,54 @@ class Game:                # Main game class
         x = 1
         for mapx in xrange(MAP_W - 1,0,-1): 
             for mapy in xrange(MAP_H,0,-1):
+                if not gamemap[mapx][mapy].type[0]:
+                    gamemap[mapx][mapy].fval = -1
                 if gamemap[mapx][mapy].type[0] and gamemap[mapx][mapy].fval\
                  == 0:
                     xl,yl = mapx,mapy
-                    self.flood(xl,yl,x,0)
+                    self.flood(xl,yl,0,x)
                     x += 1
-
-    def flood(self,x,y,v,d):
-        """Recursive floodfill function"""
+    def flood(self,x,y,old,new):
         global gamemap
-        sys.setrecursionlimit(2000)
-        if gamemap[x][y].type[0] == False or gamemap[x][y].fval  == v or\
-        gamemap[x][y].fval != d:
-            return  0
-        if gamemap[x][y].mob:
-            gamemap[x][y].undercell.fval = v
-        gamemap[x][y].fval = v
-        self.flood(x + 1,y,v,d)
-        self.flood(x + 1,y + 1,v,d)
-        self.flood(x - 1,y,v,d)
-        self.flood(x - 1,y - 1,v,d)
-        self.flood(x,y + 1,v,d)
-        self.flood(x,y - 1,v,d)
-        self.flood(x + 1,y - 1,v,d)
-        self.flood(x - 1,y + 1,v,d)
-        return
+        seed_pos = (x,y)
+        if old == new:
+            return
+        stack = []
+    
+        w, h = MAP_W, MAP_H
+        max_x = max_y = 0
+        min_x = w
+        min_y = h
+        stack.append(seed_pos)
+        iterations = 0
+        while(stack):
+           iterations += 1
+           x,y = stack.pop()
+           y1 = y
+           while y1 >= 0 and gamemap[x][y1].fval == old:
+                y1 -= 1
+           y1 += 1
+           spanLeft = spanRight = False
+           inner_iterations = 0
+           while(y1 < h and gamemap[x][y1].fval == old):
+               inner_iterations += 1
+               gamemap[x][y1].fval = new
+               min_x = min(min_x, x)
+               max_x = max(max_x, x)
+               min_y = min(min_y, y1)
+               max_y = max(max_y, y1)
+               if not spanLeft and x > 0 and gamemap[x - 1][y1].fval == old:
+                   stack.append((x - 1, y1))
+                   spanLeft = True
+               elif spanLeft and x > 0 and gamemap[x - 1][y1].fval != old:
+                   spanLeft = False
+               if not spanRight and x < w - 1 and gamemap[x + 1][y1].fval ==\
+                old:
+                   stack.append((x + 1, y1))
+                   spanRight = True
+               elif spanRight and x < w - 1 and gamemap[x + 1][y1].fval != old:
+                   spanRight = False
+               y1 += 1
 
     def spawnMobs(self):
         """Spawn mobs"""
@@ -974,6 +976,30 @@ class Game:                # Main game class
         for char in chars:
             if (char[0],char[1],char[2]) == (level,x,y):
                 io.printex(x,y,char[3],char[4])
+                if gamemap[x][y].explored:
+                    del char
+
+def near(x1,y1,x2,y2):
+    """Checks if x1,y1 near x2,y2"""
+    if -1 <= (x1 - x2) <= 1 and -1 <= (y1 - y2) <= 1:
+        return True
+    else:
+        return False
+
+def hasSpaceAround(x,y):
+    """Checks if there is free cells
+        around x,y"""
+    global gamemap
+    c = 0
+    for x2 in xrange(-2,2):
+        for y2 in xrange(-2,2):
+            if near(x, y,x + x2,y + y2):
+                if not gamemap[x + x2][y + y2].type[0]:
+                    c += 1
+    if c >= 8:
+        return False
+    else:
+        return True
 # TODO: Speed system should work somewhat different!
 #
 #  __           _       _  _    ___    
