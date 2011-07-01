@@ -498,6 +498,7 @@ class Game:                # Main game class
                 fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
                                 self.isBlocking)                        
             if turn:
+                turns += 1
                 regen += random.randint(1,5)
                 if regen >= 15:
                     regen = 0
@@ -505,11 +506,14 @@ class Game:                # Main game class
                         hp += random.randint(1,3)
                         if hp > maxhp:
                             hp = maxhp
+
                 mc = 0
+                if mapchanged:
+                    self.resetFlood()
+                    self.floodFill()
+                    mapchanged = False
                 for mapx in xrange(MAP_W - 1):
                     for mapy in xrange(MAP_H): 
-                        if mapchanged:
-                            gamemap[mapx][mapy].fval = 0
                         if gamemap[mapx][mapy].mob:     
                             mc += 1
                             if mc >= MAX_MOBS:
@@ -524,9 +528,6 @@ class Game:                # Main game class
                                 gamemap[mapx][mapy] = cell.Newt("Newt",":",\
                                                           gamemap[mapx][mapy]) 
 
-                        if mapchanged:
-                            self.floodFill()
-                            mapchanged = False
                         if gamemap[mapx][mapy].mob:
                             gamemap[mapx][mapy].energy += gamemap[mapx][mapy].\
                             speed
