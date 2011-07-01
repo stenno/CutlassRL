@@ -433,7 +433,7 @@ class Game:                # Main game class
                         y1+=1
                         turn = True
                     else:
-                        turn = False #You haven't moved
+                        turn = False # You haven't moved
                     if gamemap[x1][y1].door:
                         x1,y1 = x,y
             if gamemap[x1][y1].type[0]:
