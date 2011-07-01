@@ -189,8 +189,12 @@ class Game:                # Main game class
             elif key == "m":  #Message (for ttyrecs)
                 io.printex(23,0,"")
                 screen.curs_set(1)
+                screen.nocbreak()
+                screen.echo()
                 screen.getstr()
                 screen.curs_set(0)
+                screen.cbreak()
+                screen.noecho()
                 io.printex(23,0," " * 100,False)
             elif key == "s":
                 regen = 0
