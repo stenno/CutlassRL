@@ -471,7 +471,8 @@ class Game:                # Main game class
                         turn = True
                         x,y = x1,y1
                     else:
-                        if gamemap[x1 + nx][y1 + ny].explored:
+                        if gamemap[x1 + nx][y1 + ny].explored and not gamemap\
+                        [x1 + nx][y1 + ny].mob:
                             turn = False
                         else:
                             turn = True
@@ -509,13 +510,20 @@ class Game:                # Main game class
                             hp = maxhp
 
                 mc = 0
+                mobs = []
                 if mapchanged:
                     self.resetFlood()
                     self.floodFill()
                     mapchanged = False
+                best_energy = -1
                 for mapx in xrange(MAP_W - 1):
                     for mapy in xrange(MAP_H): 
-                        if gamemap[mapx][mapy].mob:     
+                        if gamemap[mapx][mapy].mob:
+                            gamemap[mapx][mapy].energy += gamemap[mapx][mapy].\
+                            speed
+                            mobs.append((mapx,mapy))     
+                            if gamemap[mapx][mapy].energy > best_energy:
+                                best_energy = gamemap[mapx][mapy].energy
                             mc += 1
                             if mc >= MAX_MOBS:
                                 moremobs= False
@@ -528,10 +536,13 @@ class Game:                # Main game class
                             .fval==gamemap[x][y].fval: 
                                 gamemap[mapx][mapy] = cell.Newt("Newt",":",\
                                                           gamemap[mapx][mapy]) 
-
+                                mobs.append((mapx,mapy))
+                i = 0
+                while i <= best_energy and best_energy != 0:
+                    for mob in mobs:
+                        mapx = mob[0]
+                        mapy = mob[1]
                         if gamemap[mapx][mapy].mob:
-                            gamemap[mapx][mapy].energy += gamemap[mapx][mapy].\
-                            speed
                             if self.near(x,y,mapx,mapy) and gamemap[mapx]\
                                 [mapy].has_turn and gamemap[mapx][mapy].\
                                 energy > 0:
@@ -551,14 +562,14 @@ class Game:                # Main game class
                                     gamemap[mapx][mapy].has_turn and gamemap\
                                     [mapx][mapy].energy > 0:
                                         mx,my = self.aStarPathfind(mapx, mapy,\
-                                                                   x, y)
+                                                                    x, y)
                                         self.moveMob(mapx, mapy,mapx + mx,\
                                                         mapy + my)
                                         if (mx,my) != (0,0):
                                             gamemap[mapx + mx][mapy + my].\
                                             energy -= 1
                                         gamemap[mapx + mx][mapy + my].has_turn\
-                                         = False
+                                            = False
                                 elif gamemap[x][y].fval ==\
                                         gamemap[mapx][mapy].undercell.fval and\
                                         self.hasSpaceAround(mapx, mapy) and\
@@ -595,6 +606,7 @@ class Game:                # Main game class
                                             if (mx,my) != (0,0):
                                                 gamemap[mapx + mx][mapy + my].\
                                                 energy -= 1
+                    i += 1        
             if turn or mapchanged:
                 self.drawmap()
             io.printex(x,y ,p1.char(),refresh=False)
