@@ -969,6 +969,7 @@ class Game:                # Main game class
         for char in chars:
             if (char[0],char[1],char[2]) == (level,x,y):
                 io.printex(x,y,char[3],char[4])
+# TODO: Speed system should work somewhat different!
 #
 #  __           _       _  _    ___    
 # /        _/_  /  _   /  /   /   /  /
