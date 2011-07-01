@@ -13,6 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#    Copyright (c) init
 
 # import Curses (either natively if supported or via PDCurses using FFI if on MS Windows)
 import sys

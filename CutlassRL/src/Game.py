@@ -13,6 +13,7 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
+#    Copyright (c) init
 
 from Modules.constants import *  #Import constants
 
@@ -527,8 +528,11 @@ class Game:                # Main game class
                     while i <= maxspeed and maxspeed != 0:
                         id = 0
                         for mob in mobs:
+                            moved = False
                             mx = mob[0]
                             my = mob[1]
+                            mx2 = 0
+                            my2 = 0
                             if self.near(x,y,mx,my) and gamemap[mx]\
                             [my].has_turn:
                                 pstack.append((23, 0, "%s hits!" %\
@@ -540,24 +544,26 @@ class Game:                # Main game class
                                     gamemap[mx][my].has_turn = False
                                 if hp <= 0:
                                     #Mob killed you.
-                                    killer = gamemap[mapx][mapy].name
+                                    killer = gamemap[mx][my].name
                             else:
                                 if gamemap[x][y].fval ==\
                                         gamemap[mx][my].undercell.fval and\
                                         self.inLos(x, y, mx, my) and\
                                         self.hasSpaceAround(mx, my) and\
-                                        gamemap[mx][my].has_turn:
+                                        gamemap[mx][my].has_turn and not moved:
                                     if gamemap[mx][my].has_turns ==\
                                      gamemap[mx][my].speed and gamemap[mx][my].has_turn:
                                         gamemap[mx][my].has_turn = False
                                     mx2,my2 = self.aStarPathfind(mx, my, x, y)
-                                    self.moveMob(mx, my,mx + mx2,\
-                                                      my + my2)
+                                    if gamemap[mx][my].has_turn:
+                                        self.moveMob(mx, my,mx + mx2,\
+                                                     my + my2)
+                                    moved = True
                                 elif gamemap[x][y].fval ==\
                                         gamemap[mx][my].undercell.fval and\
                                         self.hasSpaceAround(mx, my) and\
                                         gamemap[mx][my].has_turn and\
-                                        not random.randint(0,10):
+                                        not random.randint(0,10) and not moved:
                                         if gamemap[mx][my].has_turns ==\
                                          gamemap[mx][my].speed and gamemap[mx][my].has_turn:
                                             gamemap[mx][my].has_turn = False
@@ -566,15 +572,16 @@ class Game:                # Main game class
                                         if gamemap[mx][my].has_turn:
                                             self.moveMob(mx, my,mx + mx2,\
                                                              my + my2)
-                                else: #Move randomly
-                                    if gamemap[mx][my].has_turns ==\
-                                     gamemap[mx][my].speed and gamemap[mx][my]\
-                                     .has_turn:
-                                        gamemap[mx][my].has_turn = False
-                                    mx2,my2 = 0,0
-                                    s = 0
-                                    if self.hasSpaceAround(mx, my) and\
-                                    gamemap[mx][my].has_turn and mob_turn:
+                                            moved = True
+                                #Move randomly.
+                                elif self.hasSpaceAround(mx, my) and\
+                                        gamemap[mx][my].has_turn and\
+                                        not random.randint(0,10) and not moved:
+                                        if gamemap[mx][my].has_turns ==\
+                                         gamemap[mx][my].speed and gamemap[mx][my].has_turn:
+                                            gamemap[mx][my].has_turn = False
+                                        mx2,my2 = 0,0
+                                        s = 0
                                         while not gamemap[mx + mx2][my + my2]\
                                         .type[0]:
                                             s += 1
@@ -586,6 +593,7 @@ class Game:                # Main game class
                                         if gamemap[mx][my].has_turn:
                                             self.moveMob(mx, my,mx + mx2,my\
                                                         + my2)
+                                            moved = True
                             mobs[id] = [mx + mx2,my + my2]
                             id += 1
                         i += 1
