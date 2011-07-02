@@ -221,7 +221,10 @@ class Game:                # Main game class
                                 mobs.append((mapx,mapy))
                 i = 0
                 mapx,mapy = 0,0
-                for gmap in levs:
+                for lnum in xrange(level - 2,level + 3):
+                    if lnum >= len(levs):
+                        continue
+                    gmap = levs[lnum]
                     mc = 0
                     if gmap != None:
                         for mapx in xrange(MAP_W - 1):
@@ -1043,15 +1046,15 @@ def hasSpaceAround(x,y):
         around x,y"""
     global gamemap
     c = 0
-    for x2 in xrange(-2,2):
-        for y2 in xrange(-2,2):
-            if near(x, y,x + x2,y + y2):
-                if not gamemap[x + x2][y + y2].type[0]:
-                    c += 1
-    if c >= 8:
-        return False
+    for x2 in xrange(-1,2):
+        for y2 in xrange(-1,2):
+            if not gamemap[x + x2][y + y2].type[0]:
+                c += 1
+            else:
+                return True
     else:
-        return True
+        return False
+
 def near(x1,y1,x2,y2):
     """Checks if x1,y1 near x2,y2"""
     if -1 <= (x1 - x2) <= 1 and -1 <= (y1 - y2) <= 1:
