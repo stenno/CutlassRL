@@ -72,7 +72,7 @@ class Game:                # Main game class
         global score,gold
         global kills, killer
         global level,mapchanged
-        global name,save,p1
+        global name,save,p1,frad
         global io,pstack,addmsg  
         global levs
         global chars
@@ -84,6 +84,7 @@ class Game:                # Main game class
         score = 0                       #Zero score
         gold  = 0
         kills = 0
+        frad = 5
         
         chars = []
         
@@ -126,7 +127,7 @@ class Game:                # Main game class
         x1,y1 = x,y
         mapchanged = True #Map has been changed
         # Calculate fov
-        fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+        fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
                          self.isBlocking)                        
         self.drawmap()
         io.printex(x,y ,p1.char(), refresh=False) #Draw player
@@ -179,10 +180,10 @@ class Game:                # Main game class
                     
             io.printex(x,y ,p1.char(),refresh=True)
             while p1.energy > 0:
-                self.playerTurn() #Player's turn
+                key = self.playerTurn() #Player's turn
                 if mapchanged or turn:
                     self.resetFov()
-                    fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                    fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
                             self.isBlocking)                        
                 if turn or mapchanged:
                     self.drawmap()
@@ -397,10 +398,10 @@ class Game:                # Main game class
     def load(self):
         """Load game from save"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
-        global gold,kills,score,levs,level,regen,maxhp
+        global gold,kills,score,levs,level,regen,maxhp,frad
         saved = gzip.open(save,"rb",-1)
         (level,info,gamemap,levs) = cPickle.load(saved)
-        (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen) = info
+        (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad) = info
         saved.close()
         pstack.append((23,0,"Loaded...",1))
         if not wizmode:
@@ -409,9 +410,9 @@ class Game:                # Main game class
     def save(self):
         """Save game"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
-        global gold,kills,score,levs,level,regen,maxhp
+        global gold,kills,score,levs,level,regen,maxhp,frad
         saved = gzip.open(save,"wb",-1)
-        info = (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen)
+        info = (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad)
         cPickle.dump((level,info,gamemap,levs), saved,2)
         pstack.append((23,0,"Saved...",1))
         if not wizmode:
@@ -452,14 +453,14 @@ class Game:                # Main game class
         if rev:
             points.reverse()
         return points
+
     def moveMob(self,x,y,mx,my):
         """Moves mob"""
         global gamemap
-        if near(x, y, mx, my):
-            ucell = gamemap[mx][my]
-            gamemap[mx][my] = gamemap[x][y]
-            gamemap[x][y] = gamemap[x][y].undercell
-            gamemap[mx][my].undercell = ucell
+        ucell = gamemap[mx][my]
+        gamemap[mx][my] = gamemap[x][y]
+        gamemap[x][y] = gamemap[x][y].undercell
+        gamemap[mx][my].undercell = ucell
         
     def inLos(self,x1,y1,x,y):
         """Checks if point is in LOS"""
@@ -636,7 +637,7 @@ class Game:                # Main game class
     def playerTurn(self):
         global x,y,gamemap,killer,addmsg,pstack,x1,y1
         global turn,p1,level,score,kills,gold,mapchanged
-        global rx,ry
+        global rx,ry,fovblock
         key = -1
         
         if addmsg:
@@ -686,7 +687,7 @@ class Game:                # Main game class
                 self.floodFill()
                 self.resetFov()
                 self.drawmap()
-                fov.fieldOfView(x, y, MAP_W, MAP_H, 9, self.setVisible,\
+                fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
                                 self.isBlocking)                        
             io.printex(0,0,"")
         elif key == ";":  #Farlook
@@ -826,7 +827,7 @@ class Game:                # Main game class
                     mapchanged = True
                     self.resetFov()
                     self.resetFlood()
-                    fov.fieldOfView(x, y, MAP_W, MAP_H, 9,\
+                    fov.fieldOfView(x, y, MAP_W, MAP_H, frad,\
                                      self.setVisible, self.isBlocking)
             else:
                 pstack.append((23,0,"There is no stairs!",2))
@@ -973,7 +974,7 @@ class Game:                # Main game class
                 score += gold_
                 gold += gold_
                 pstack.append((23, 0, "You found some gold!",4))
-
+        return key
 
 def hasSpaceAround(x,y):
     """Checks if there is free cells

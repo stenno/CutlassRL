@@ -29,14 +29,11 @@ class levGen:
                 self.lmap[y][x].type =  True,True
                 if lit:
                     self.lmap[y][x].lit = True
-                    self.lmap[y - 1][x].lit = True
-                    self.lmap[y + 1][x].lit = True
-                    self.lmap[y + 1][x - 1].lit = True
-                    self.lmap[y + 1][x + 1].lit = True
-                    self.lmap[y - 1][x - 1].lit = True
-                    self.lmap[y - 1][x + 1].lit = True
-                    self.lmap[y][x - 1].lit = True
-                    self.lmap[y][x + 1].lit = True
+                    for x2 in xrange(-2,2):
+                        for y2 in xrange(-2,2):
+                            if self.near(y, x,y + y2,x + x2):
+                                if not self.lmap[y + y2][x + x2].type[0]:
+                                    self.lmap[y + y2][x + x2].lit = True
     def vCorridor(self,y1,y2,x):
         boulder = False
         for y in range(min(y1, y2), max(y1, y2) + 1):
