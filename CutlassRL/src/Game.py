@@ -940,7 +940,7 @@ class Game:                # Main game class
         else:
             if gamemap[x][y].fval ==\
                 gamemap[mapx][mapy].undercell.fval and\
-                gamemap[mapx][mapy].visible and\
+                self.inLos(x, y, mapx, mapy) and\
                 hasSpaceAround(mapx, mapy):
                     mx,my = self.aStarPathfind(mapx, mapy,\
                                                 x, y)
