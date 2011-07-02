@@ -19,10 +19,11 @@ from Modules.constants import *  #Import constants
 
 class Cell:
     __slots__ = ("visible","explored","type","mob","stairs","sdoor","door",\
-                 "item","lit","fval","color")
+                 "item","lit","fval","color","plain_cell")
     visible = False  #All cells are invisible by default
     explored = False #All cells are unexplored by default
     mob = False
+    plain_cell = False
     stairs = False
     sdoor = False
     item = False
@@ -33,6 +34,7 @@ class Cell:
     color = 4
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent)
+        self.plain_cell = True
     def char(self):
         if self.type[0]:
             return '.'
@@ -89,6 +91,18 @@ class Newt(Mob):
     color = 4
     damage = 3
 
+class altar(Mob):
+    def __init__(self,char):
+        self.chr = char
+    mob = False
+    name = "Altar"
+    type = [True,True]
+    chr = "="
+    lit = True
+    color = 6
+    def char(self):
+        return self.chr
+
 class Door(Cell):
     opened = True
     door = True
@@ -113,7 +127,6 @@ class Door(Cell):
 class secretDoor(Cell):
     known = False
     sdoor = True
-    color = 4
     def __init__(self):
         self.type = [False,False]
     def  char(self):
@@ -125,7 +138,13 @@ class item(Mob): #Yeah, it is funny :D
     chr = "$"
     name = "Gold"
     color = 4
-    type = (True,True)
+    type = [True,True]
+
+class cutlass(item): #Yeah, it is funny :D
+    chr = "|"
+    name = "The Dark Cutlass"
+    color = 6
+    type = [True,True]
 
 class Boulder(item):
     type = [False,False]

@@ -66,7 +66,7 @@ class Game:                # Main game class
         """Main loop of game.
             Drawing things, generating map, playing
         """
-        global gamemap,fovblock,turns,wizmode
+        global gamemap,fovblock,turns,wizmode,editmode
         global x,y,rx,ry,x1,y1,turn
         global hp,regen,maxhp
         global score,gold
@@ -85,6 +85,8 @@ class Game:                # Main game class
         gold  = 0
         kills = 0
         frad = 5
+        
+        editmode = False
         
         chars = []
         
@@ -295,8 +297,8 @@ class Game:                # Main game class
                             gamemap[mapx][mapy].undercell.explored = True
                             gamemap[mapx][mapy].explored = False
                         screen.attron(screen.A_BOLD) #Visible is bold
-                        if gamemap[mapx][mapy].type[0] and not gamemap[mapx]\
-                        [mapy].item:
+                        if gamemap[mapx][mapy].type[0] and gamemap[mapx]\
+                        [mapy].plain_cell:
                             color = 1 #Dots are white not yellow
                         else:
                             color = gamemap[mapx][mapy].color #Normal color
@@ -634,10 +636,13 @@ class Game:                # Main game class
                         ret = (mapx + mx, mapy + my)
         return ret
 
+    def invMenu(self): #Shows your inventory and returns selected thing.
+        global screen
+
     def playerTurn(self):
         global x,y,gamemap,killer,addmsg,pstack,x1,y1
         global turn,p1,level,score,kills,gold,mapchanged
-        global rx,ry,fovblock
+        global rx,ry,fovblock,editmode
         key = -1
         
         if addmsg:
@@ -666,6 +671,8 @@ class Game:                # Main game class
                 self.logWrite(name, score, hp, maxhp, VERSION,\
                               "Quit",gold,kills)
                 self.end()
+        elif key == "i": #Show inventory.
+            self.invMenu()
         elif key == "m":  #Message (for ttyrecs)
             io.printex(23,0,"")
             screen.curs_set(1)
@@ -831,12 +838,27 @@ class Game:                # Main game class
                                      self.setVisible, self.isBlocking)
             else:
                 pstack.append((23,0,"There is no stairs!",2))
+        elif key == "x" and wizmode and editmode:
+            gamemap[x][y].type = [False,False]
+            mapchanged = True
+        elif key == "a" and wizmode and editmode:
+            d = self.askDirection()
+            if d:
+                dx = d[0]
+                dy = d[1]
+                if dx <= 21 and dx >= 2 and dy <= 60 and dy >= 2:
+                    gamemap[dx][dy] = cell.Cell(True, True)
+            mapchanged = True
+
         else:
             if wizmode and key == "#": #Debug commands.
                 key = io.readkey()
                 if key == "x":
-                    gamemap[x][y].type = [False,False]
-                    mapchanged = True
+                    editmode = True
+                elif key == "S":
+                    gamemap[x][y] = cell.altar("=")
+                elif key == "Z":
+                    gamemap[x][y] = cell.Stair(True)
                 elif key == "z":
                     fovblock = not fovblock  
                 elif key == "F":
@@ -849,6 +871,16 @@ class Game:                # Main game class
                                         c = ">"
                                     io.printex(mapx,mapy,c,2)
                                     io.readkey()
+                elif key == "R":
+                    for mapx in xrange(MAP_W+1):
+                        for mapy in xrange(MAP_H+1):
+                            if mapx <= 21 and mapx >= 2 and mapy <= 60 and\
+                             mapy >= 2:
+                                gamemap[mapx][mapy] = cell.Cell(True,True)
+                            else:
+                                gamemap[mapx][mapy] = cell.Cell(False,False)
+                elif key == "u":
+                    gamemap[mapx][mapy]
                 elif key == "d":
                     gamemap[x][y] = cell.Door(True)
                     gamemap[x][y].close()
@@ -866,9 +898,9 @@ class Game:                # Main game class
                     self.floodFill()
                 elif key == "e":
                     d = self.askDirection()
+                    mapchanged = True
                     if d:
                         self.moveMob(d[0],d[1], x, y)
-                    mapchanged = True
                 elif key == "@":
                     io.debug_message(gamemap[x][y].fval)
                 elif key == "f":
