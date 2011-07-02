@@ -177,6 +177,7 @@ class Game:                # Main game class
                         if hp > maxhp:
                             hp = maxhp
                     
+            io.printex(x,y ,p1.char(),refresh=True)
             while p1.energy > 0:
                 self.playerTurn() #Player's turn
                 if mapchanged or turn:
@@ -185,7 +186,7 @@ class Game:                # Main game class
                             self.isBlocking)                        
                 if turn or mapchanged:
                     self.drawmap()
-                io.printex(x,y ,p1.char(),refresh=False)
+                io.printex(x,y ,p1.char(),refresh=True)
             if turn:
                 mc = 0
                 mobs = []
@@ -650,6 +651,7 @@ class Game:                # Main game class
     def playerTurn(self):
         global x,y,gamemap,killer,addmsg,pstack,x1,y1
         global turn,p1,level,score,kills,gold,mapchanged
+        global rx,ry
         key = -1
         
         if addmsg:
