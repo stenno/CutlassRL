@@ -17,16 +17,14 @@
 
 # CutlassRL - roguelike game.
 
-VERSION = 0.02;
+import lEdit  # importing main game library
 
-import Game  # importing main game library
-
-play = Game.Game()
+edit = lEdit.Game()
 
 try:
-    play.main_loop()
+    edit.main_loop()
 except KeyboardInterrupt:
-    play.end()
+    edit.end()
 
-play.end()
-del play
+edit.end()
+del edit

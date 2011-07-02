@@ -14,28 +14,18 @@
 #    You should have received a copy of the GNU General Public License
 #    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
 
-VERSION = 0.02;
-
 MAP_H=80
 MAP_W=24
 
 SAVE = "game.sav"
 
 import sys
-import pickle
+import cPickle
 import os.path
-import math
 
-from Modules import *
-
-try:
-    import curses               # Game will use curses to draw things
-except ImportError:
-    print "Curses library is missing."
-    exit()
-
-
-
+from Modules import constants
+from Modules import Level
+from Modules import Cell
 
 class Game:                # Main game class
     def __init__(self):
