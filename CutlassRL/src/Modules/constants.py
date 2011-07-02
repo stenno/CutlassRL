@@ -15,7 +15,7 @@
 #    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
 #    Copyright (c) init
 
-VERSION = 0.04;
+VERSION = 0.05;
 
 MAX_ROOM_SIZE = 8
 MIN_ROOM_SIZE = 8
