@@ -178,7 +178,7 @@ class Game:                # Main game class
                         if hp > maxhp:
                             hp = maxhp
                     
-            io.printex(x,y ,p1.char(),refresh=True)
+            io.printex(x,y ,p1.char(),refresh = False)
             while p1.energy > 0:
                 key = self.playerTurn() #Player's turn
                 if mapchanged or turn:
@@ -210,7 +210,7 @@ class Game:                # Main game class
                             else:
                                 moremobs = True
                         #TODO: Generate RANDOM monsters.
-                        if not random.randint(0,1000) and moremobs:
+                        if not random.randint(0,10000) and moremobs:
                             if gamemap[mapx][mapy].type[0] and not gamemap\
                             [mapx][mapy].visible and gamemap[mapx][mapy]\
                             .fval==gamemap[x][y].fval: 
@@ -258,7 +258,7 @@ class Game:                # Main game class
             elif len(pstack) == 1:
                     (mx,my,msg,attr) = pstack[0]                
                     io.printex(mx,my,msg,attr)
-                    addedmsg = True
+                    addmsg = True
             pstack = []
         else:
             io.printex(23, 0, "You died! --press any key--",2)
@@ -551,7 +551,7 @@ class Game:                # Main game class
         global gamemap,x,y
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):        
-                if not random.randint(0,1000):
+                if not random.randint(0,10000):
                     if gamemap[mapx][mapy].type[0] and not self.\
                     inLos(x, y, mapx, mapy) and gamemap[mapx][mapy].fval==\
                     gamemap[x][y].fval:
@@ -592,7 +592,7 @@ class Game:                # Main game class
         else:
             if gamemap[x][y].fval ==\
                 gamemap[mapx][mapy].undercell.fval and\
-                self.inLos(x, y, mapx, mapy) and\
+                gamemap[mapx][mapy].visible and\
                 hasSpaceAround(mapx, mapy):
                     mx,my = self.aStarPathfind(mapx, mapy,\
                                                 x, y)
@@ -956,7 +956,7 @@ class Game:                # Main game class
                     p1.energy -= 150
                     x,y = x1,y1
                 else:
-                    if gamemap[x1 + nx][y1 + ny].explored and not gamemap\
+                    if gamemap[x1 + nx][y1 + ny].explored and gamemap\
                     [x1 + nx][y1 + ny].mob:
                         turn = False
                     else:
@@ -997,8 +997,6 @@ def near(x1,y1,x2,y2):
     else:
         return False
 
-# TODO: Speed system should work somewhat different!
-#
 #  __           _       _  _    ___    
 # /        _/_  /  _   /  /   /   /  /
 #/   /   / /   /  / // |  \  /___/  /
