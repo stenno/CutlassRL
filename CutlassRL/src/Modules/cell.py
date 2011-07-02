@@ -57,7 +57,7 @@ class Stair(Cell):
         else:
             return 1
 class Mob(Cell):
-    speed = 95
+    speed = 100
     energy = 0
     mob = True
     hp = 10
@@ -82,6 +82,7 @@ class Newt(Mob):
         self.chr = char
         self.undercell = undercell        
     hp = 10
+    speed = 50
     name = "Newt"
     chr = ":"
     lit = True
