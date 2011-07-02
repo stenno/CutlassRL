@@ -72,7 +72,7 @@ class levGen:
             failed = False
             for other_room in rooms:
                 if new_room.intersect(other_room):
-                    if random.randint(0,10):
+                    if random.randint(0,50):
                         failed = True
                     break
             if not failed:
