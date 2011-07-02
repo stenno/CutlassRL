@@ -16,7 +16,7 @@
 #    Copyright (c) init
 class Player():
     name = None
-    speed = 105
+    speed = 100
     energy = 0
     chr = "@"
     has_turn = False
