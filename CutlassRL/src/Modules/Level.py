@@ -67,7 +67,8 @@ class levGen:
             failed = False
             for other_room in rooms:
                 if new_room.intersect(other_room):
-                    failed = True
+                    if random.randint(0,10):
+                        failed = True
                     break
             if not failed:
                 self.createRoom(new_room)
@@ -107,13 +108,27 @@ class levGen:
                             else:
                                 self.lmap[y][x] = lcell.Door(True)
         for boulder in self.boulders:
-            self.lmap[boulder[0]][boulder[1]] = lcell.Boulder(self.lmap\
-                                                    [boulder[0]][boulder[1]])
+            if not random.randint(0,5):
+                self.lmap[boulder[0]][boulder[1]] = lcell.Boulder(self.lmap\
+                                                      [boulder[0]][boulder[1]])
         (x1,y1) = rooms[0].center()
         rn = random.randint(1,len(rooms) - 1)
         (x,y) = rooms[rn].center()
-        self.lmap[y][x] = lcell.Stair(False)
-        self.lmap[y1][x1] = lcell.Stair(True)
+        ych = random.randint(-5,5)
+        xch = random.randint(-5,5)
+        while self.lmap[y + ych][x + xch].type[0] != False and (ych,xch) !=\
+         (0,0): 
+            ych = random.randint(-5,5)
+            xch = random.randint(-5,5)
+        self.lmap[y + ych][x + xch] = lcell.Stair(False)
+        ych = random.randint(-5,5)
+        xch = random.randint(-5,5)
+        while self.lmap[y1 + ych][x1 + xch].type[0] != False and (ych,xch) !=\
+             (0,0): 
+            ych = random.randint(-5,5)
+            xch = random.randint(-5,5)
+        self.lmap[y1 + ych][x1 + xch] = lcell.Stair(True)
+
         
         return lmap,playerx,playery
         
