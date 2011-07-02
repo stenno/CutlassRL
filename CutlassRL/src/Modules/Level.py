@@ -123,19 +123,20 @@ class levGen:
         (x,y) = rooms[rn].center()
         ych = random.randint(-5,5)
         xch = random.randint(-5,5)
-        while self.lmap[y + ych][x + xch].type[0] != False and (ych,xch) !=\
+        while not self.lmap[y + ych][x + xch].type[0] and (ych,xch) !=\
          (0,0): 
             ych = random.randint(-5,5)
             xch = random.randint(-5,5)
         self.lmap[y + ych][x + xch] = lcell.Stair(False)
         ych = random.randint(-5,5)
         xch = random.randint(-5,5)
-        while self.lmap[y1 + ych][x1 + xch].type[0] != False and (ych,xch) !=\
+        while not self.lmap[y1 + ych][x1 + xch].type[0] and (ych,xch) !=\
              (0,0): 
             ych = random.randint(-5,5)
             xch = random.randint(-5,5)
         self.lmap[y1 + ych][x1 + xch] = lcell.Stair(True)
-
+        playerx = x1 + xch
+        playery = y1 + ych
         
         return lmap,playerx,playery
         
