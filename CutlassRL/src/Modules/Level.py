@@ -29,6 +29,14 @@ class levGen:
                 self.lmap[y][x].type =  True,True
                 if lit:
                     self.lmap[y][x].lit = True
+                    self.lmap[y - 1][x].lit = True
+                    self.lmap[y + 1][x].lit = True
+                    self.lmap[y + 1][x - 1].lit = True
+                    self.lmap[y + 1][x + 1].lit = True
+                    self.lmap[y - 1][x - 1].lit = True
+                    self.lmap[y - 1][x + 1].lit = True
+                    self.lmap[y][x - 1].lit = True
+                    self.lmap[y][x + 1].lit = True
     def vCorridor(self,y1,y2,x):
         boulder = False
         for y in range(min(y1, y2), max(y1, y2) + 1):
@@ -78,7 +86,6 @@ class levGen:
                     playerx = new_x
                     playery = new_y
                     prev_x, prev_y = new_x, new_y
-                    self.lmap[new_y][new_x] = lcell.Stair(True)
                 else:
                     (prev_x, prev_y) = rooms[num_rooms-1].center()
                 if random.randint(0, 1) == 1:
