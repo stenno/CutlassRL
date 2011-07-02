@@ -173,8 +173,8 @@ class Game:                # Main game class
             if turn:
                 turns += 1
                 regen += random.randint(1,5)
-                regen = 0
                 if regen >= 15:
+                    regen = 0
                     if hp < maxhp:
                         hp += random.randint(1,3)
                         if hp > maxhp:
@@ -220,6 +220,37 @@ class Game:                # Main game class
                                                 ":",gamemap[mapx][mapy]) 
                                 mobs.append((mapx,mapy))
                 i = 0
+                mapx,mapy = 0,0
+                for gmap in levs:
+                    mc = 0
+                    if gmap != None:
+                        for mapx in xrange(MAP_W - 1):
+                            for mapy in xrange(MAP_H): 
+                                if gmap[mapx][mapy].mob:
+                                    mc += 1
+                                if mc >= MAX_MOBS:
+                                    moremobs= False
+                                else:
+                                    moremobs = True
+                                if not random.randint(0,10000) and moremobs:
+                                        gmap[mapx][mapy] = cell.Newt("Newt",\
+                                                        ":",gamemap[mapx][mapy]) 
+                                        mc += 1
+                                if gmap[mapx][mapy].mob and not\
+                                 random.randint(0,5):
+                                    if hasSpaceAround(mapx, mapy):
+                                        mx,my = 0,0
+                                        s = 0
+                                        while not gmap[mapx + mx][mapy+\
+                                                        my].type[0]:
+                                            s += 1
+                                            if s >= 5:
+                                                mx,my = 0,0
+                                                break
+                                            mx = random.choice([-1,1])
+                                            my = random.choice([-1,1])
+                                        self.moveMob(mapx, mapy,mapx +\
+                                                      mx,mapy+ my,gmap)
                 while i <= best_energy and best_energy != 0:
                     id = 0
                     for mob in mobs:
@@ -227,7 +258,7 @@ class Game:                # Main game class
                         mapy = mob[1]
                         if gamemap[mapx][mapy].mob:
                             if gamemap[mapx][mapy].energy > 0:
-                                (mvx,mvy) = self.mobTurn(mapx,mapy)
+                                (mvx,mvy) = self.mobTurn(mapx,mapy,gamemap)
                                 mobs[id] = (mvx,mvy) 
                         id += 1
                     i += 1        
@@ -456,9 +487,8 @@ class Game:                # Main game class
             points.reverse()
         return points
 
-    def moveMob(self,x,y,mx,my):
+    def moveMob(self,x,y,mx,my,gamemap):
         """Moves mob"""
-        global gamemap
         ucell = gamemap[mx][my]
         gamemap[mx][my] = gamemap[x][y]
         gamemap[x][y] = gamemap[x][y].undercell
@@ -579,8 +609,8 @@ class Game:                # Main game class
                 if gamemap[x][y].explored:
                     del char
 
-    def mobTurn(self,mapx,mapy):
-        global gamemap, pstack,hp,killer
+    def mobTurn(self,mapx,mapy,gamemap):
+        global levs, pstack,hp,killer
         ret = (mapx,mapy)
         if near(x,y,mapx,mapy):
                 pstack.append((23, 0, "%s hits!" %\
@@ -599,7 +629,7 @@ class Game:                # Main game class
                     mx,my = self.aStarPathfind(mapx, mapy,\
                                                 x, y)
                     self.moveMob(mapx, mapy,mapx + mx,\
-                                    mapy + my)
+                                    mapy + my,gamemap)
                     if (mx,my) != (0,0):
                         gamemap[mapx + mx][mapy + my].\
                         energy -= 100
@@ -611,7 +641,7 @@ class Game:                # Main game class
                     mx,my = self.aStarPathfind(mapx,\
                                                 mapy, x, y)
                     self.moveMob(mapx, mapy,mapx + mx,\
-                                            mapy + my)
+                                            mapy + my,gamemap)
                     if (mx,my) != (0,0):
                         gamemap[mapx + mx][mapy + my].\
                         energy -= 110
@@ -629,7 +659,7 @@ class Game:                # Main game class
                             mx = random.choice([-1,1])
                             my = random.choice([-1,1])
                         self.moveMob(mapx, mapy,mapx +\
-                                      mx,mapy+ my)
+                                      mx,mapy+ my,gamemap)
                         if (mx,my) != (0,0):
                             gamemap[mapx + mx][mapy + my].\
                             energy -= 115
@@ -642,7 +672,7 @@ class Game:                # Main game class
     def playerTurn(self):
         global x,y,gamemap,killer,addmsg,pstack,x1,y1
         global turn,p1,level,score,kills,gold,mapchanged
-        global rx,ry,fovblock,editmode
+        global rx,ry,fovblock,editmode,regen
         key = -1
         
         if addmsg:
@@ -900,7 +930,7 @@ class Game:                # Main game class
                     d = self.askDirection()
                     mapchanged = True
                     if d:
-                        self.moveMob(d[0],d[1], x, y)
+                        self.moveMob(d[0],d[1], x, y,gamemap)
                 elif key == "@":
                     io.debug_message(gamemap[x][y].fval)
                 elif key == "f":
@@ -981,7 +1011,7 @@ class Game:                # Main game class
                 nx = x1 - x
                 ny = y1 - y
                 if gamemap[x1 + nx][y1 + ny].type[0]:
-                    self.moveMob(x1, y1, x1 + nx, y1 + ny) #Not only mob 
+                    self.moveMob(x1, y1, x1 + nx, y1 + ny,gamemap) #Not only mob 
                     pstack.append((23,0,"You moved the boulder.",1))
                     mapchanged = True
                     turn = True
