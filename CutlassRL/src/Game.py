@@ -480,6 +480,9 @@ class Game:                # Main game class
         """Pathfinding for monsters"""
         global gamemap
         (mx1,my1) = AStar.getPath(mx, my, yx, yy, gamemap, MAP_W, MAP_H)
+        if (mx1,my1) == (9001, 9001):
+            self.floodFill()
+            mx1, my1 = 0,0
         if (mx1,my1) != (0,0):
             return mx1,my1
         else:
