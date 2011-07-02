@@ -44,6 +44,7 @@ class Cell:
 class Stair(Cell):
     up = False
     color = 1
+    lit = True
     stairs = True
     type = [True,True]
     def __init__(self,isUp):
@@ -151,6 +152,7 @@ class Boulder(item):
     color = WHITE
     item = False
     boulder = True
+    lit = False
     def char(self):
         return '0'
     def __init__(self,undercell):
