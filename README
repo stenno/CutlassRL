@@ -1,1 +1,26 @@
-Just put it to github.
+CutlassRL is a simple python roguelike.
+
+Please note that the game is still in development so I will be very glad
+to for any playtests or ideas for it.
+
+====Features====
+
+FOV.
+LOS.
+Level generation.
+A* pathfinding for monsters.
+Monsters.
+Items.
+Stairs.
+Moving between levels. 
+Speed system.
+Boulders.
+Secret doors.
+
+====Thanks====
+
+Very big thanks to people from #nethack on Freenode and people from #rgrn
+on QuakeNet for their great help.
+Thanks to rsaarelm from #rgrn for his great speed system,
+very big thanks for moebius from #rgrn for fix of stairs bug and rewrite of
+my ugly stairs code,Thanks for jday for his help with fixing speed system bugs.
