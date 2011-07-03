@@ -873,6 +873,9 @@ class Game:                # Main game class
                     self.resetFlood()
                     fov.fieldOfView(x, y, MAP_W, MAP_H, frad,\
                                      self.setVisible, self.isBlocking)
+                    for mapx in xrange(MAP_W - 1):
+                        for mapy in xrange(MAP_H):
+                            gamemap[mapx][mapy].changed = True
             else:
                 pstack.append((23,0,"There is no stairs!",2))
         elif key == "x" and wizmode and editmode:
