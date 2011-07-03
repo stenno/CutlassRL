@@ -221,7 +221,7 @@ class Game:                # Main game class
                                 mobs.append((mapx,mapy))
                 i = 0
                 mapx,mapy = 0,0
-                for lnum in xrange(level - 2,level + 3):
+                for lnum in xrange(level - 4,level + 6):
                     if lnum >= len(levs):
                         continue
                     gmap = levs[lnum]
