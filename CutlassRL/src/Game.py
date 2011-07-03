@@ -227,6 +227,12 @@ class Game:                # Main game class
                     gmap = levs[lnum]
                     mc = 0
                     if gmap != None:
+                        mmx = random.randint(0,MAP_W)
+                        mmy = random.randint(0,MAP_H- 1)
+                        if  moremobs and gmap[mmx][mmy].type[0] :
+                                gmap[mmx][mmy] = cell.Newt("Newt",\
+                                                ":",gmap[mmx][mmy]) 
+                                mc += 1
                         for mapx in xrange(MAP_W - 1):
                             for mapy in xrange(MAP_H): 
                                 if gmap[mapx][mapy].mob:
@@ -235,10 +241,6 @@ class Game:                # Main game class
                                     moremobs= False
                                 else:
                                     moremobs = True
-                                if not random.randint(0,10000) and moremobs:
-                                        gmap[mapx][mapy] = cell.Newt("Newt",\
-                                                        ":",gamemap[mapx][mapy]) 
-                                        mc += 1
                                 if gmap[mapx][mapy].mob and not\
                                  random.randint(0,5):
                                     if hasSpaceAround(mapx, mapy):
@@ -324,9 +326,10 @@ class Game:                # Main game class
                             and mapy <= 61 and mapy >= 1) and gamemap\
                             [mapx][mapy].changed:
                     gamemap[mapx][mapy].changed = False
+                    if gamemap[mapx][mapy].lit:
+                        gamemap[mapx][mapy].changed = True
                     if gamemap[mapx][mapy].lit and not gamemap[mapx][mapy].\
                     mob:
-                        gamemap[mapx][mapy].changed = True
                         if self.inLos(mapx, mapy, x, y):
                             gamemap[mapx][mapy].visible = True
                     if gamemap[mapx][mapy].visible: #Visible always explored
@@ -445,6 +448,9 @@ class Game:                # Main game class
         (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad) = info
         saved.close()
         pstack.append((23,0,"Loaded...",1))
+        for mapx in xrange(MAP_W - 1):
+            for mapy in xrange(MAP_H):
+                gamemap[mapx][mapy].changed = True
         if not wizmode:
             os.remove(save)
         
@@ -654,22 +660,22 @@ class Game:                # Main game class
                     ret = (mapx + mx, mapy + my)
                 #Move randomly.
             else:
+                mx,my = 0,0
+                s = 0
+                while not gamemap[mapx + mx][mapy+\
+                                     my].type[0]:
+                    s += 1
+                    if s >= 5:
                         mx,my = 0,0
-                        s = 0
-                        while not gamemap[mapx + mx][mapy+\
-                                             my].type[0]:
-                            s += 1
-                            if s >= 5:
-                                mx,my = 0,0
-                                break
-                            mx = random.choice([-1,1])
-                            my = random.choice([-1,1])
-                        self.moveMob(mapx, mapy,mapx +\
-                                      mx,mapy+ my,gamemap)
-                        if (mx,my) != (0,0):
-                            gamemap[mapx + mx][mapy + my].\
-                            energy -= 115
-                        ret = (mapx + mx, mapy + my)
+                        break
+                    mx = random.choice([-1,1])
+                    my = random.choice([-1,1])
+                self.moveMob(mapx, mapy,mapx +\
+                              mx,mapy+ my,gamemap)
+                if (mx,my) != (0,0):
+                    gamemap[mapx + mx][mapy + my].\
+                    energy -= 115
+                ret = (mapx + mx, mapy + my)
         return ret
 
     def invMenu(self): #Shows your inventory and returns selected thing.
