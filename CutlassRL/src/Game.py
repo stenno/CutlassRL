@@ -260,7 +260,8 @@ class Game:                # Main game class
                         mapx = mob[0]
                         mapy = mob[1]
                         if gamemap[mapx][mapy].mob:
-                            if gamemap[mapx][mapy].energy > 0:
+                            if gamemap[mapx][mapy].energy > 0 and\
+                             hasSpaceAround(mapx,mapy):
                                 (mvx,mvy) = self.mobTurn(mapx,mapy,gamemap)
                                 mobs[id] = (mvx,mvy) 
                         id += 1
@@ -627,8 +628,7 @@ class Game:                # Main game class
         else:
             if gamemap[x][y].fval ==\
                 gamemap[mapx][mapy].undercell.fval and\
-                gamemap[mapx][mapy].visible and\
-                hasSpaceAround(mapx, mapy):
+                gamemap[mapx][mapy].visible:
                     mx,my = self.aStarPathfind(mapx, mapy,\
                                                 x, y)
                     self.moveMob(mapx, mapy,mapx + mx,\
@@ -639,7 +639,6 @@ class Game:                # Main game class
                     ret = (mapx + mx, mapy + my)
             elif gamemap[x][y].fval ==\
                     gamemap[mapx][mapy].undercell.fval and\
-                    hasSpaceAround(mapx, mapy) and\
                     not random.randint(0,10):
                     mx,my = self.aStarPathfind(mapx,\
                                                 mapy, x, y)
@@ -650,7 +649,7 @@ class Game:                # Main game class
                         energy -= 110
                     ret = (mapx + mx, mapy + my)
                 #Move randomly.
-            elif hasSpaceAround(mapx, mapy):
+            else:
                         mx,my = 0,0
                         s = 0
                         while not gamemap[mapx + mx][mapy+\
@@ -1021,7 +1020,7 @@ class Game:                # Main game class
                     p1.energy -= 150
                     x,y = x1,y1
                 else:
-                    if gamemap[x1 + nx][y1 + ny].explored and gamemap\
+                    if gamemap[x1 + nx][y1 + ny].explored or gamemap\
                     [x1 + nx][y1 + ny].mob:
                         turn = False
                     else:
