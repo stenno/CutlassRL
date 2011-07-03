@@ -19,7 +19,7 @@ from Modules.constants import *  #Import constants
 
 class Cell:
     __slots__ = ("visible","explored","type","mob","stairs","sdoor","door",\
-                 "item","lit","fval","color","plain_cell")
+                 "item","lit","fval","color","plain_cell","changed")
     visible = False  #All cells are invisible by default
     explored = False #All cells are unexplored by default
     mob = False
@@ -32,6 +32,7 @@ class Cell:
     lit = False      #All cells are unlit by default
     fval = 0
     color = 4
+    changed = True
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent)
         self.plain_cell = True

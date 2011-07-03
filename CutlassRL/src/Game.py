@@ -321,9 +321,12 @@ class Game:                # Main game class
             for mapy in xrange(MAP_H - 1):
                 #If cell is in map range
                 if gamemap[mapx][mapy] != None and(mapx <= 22 and mapx >= 1\
-                                                and mapy <= 61 and mapy >= 1):
+                            and mapy <= 61 and mapy >= 1) and gamemap\
+                            [mapx][mapy].changed:
+                    gamemap[mapx][mapy].changed = False
                     if gamemap[mapx][mapy].lit and not gamemap[mapx][mapy].\
                     mob:
+                        gamemap[mapx][mapy].changed = True
                         if self.inLos(mapx, mapy, x, y):
                             gamemap[mapx][mapy].visible = True
                     if gamemap[mapx][mapy].visible: #Visible always explored
@@ -384,8 +387,10 @@ class Game:                # Main game class
         """Resets FOV"""
         global gamemap
         for mapx in xrange(MAP_W - 1):
-            for mapy in xrange(MAP_H):        
-                gamemap[mapx][mapy].visible = False
+            for mapy in xrange(MAP_H):
+                if gamemap[mapx][mapy].visible:        
+                    gamemap[mapx][mapy].visible = False
+                    gamemap[mapx][mapy].changed = True
 
     def resetFlood(self):
         """Resets flood fill"""
