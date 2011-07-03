@@ -349,7 +349,7 @@ class Game:                # Main game class
                                 io.printex(mapx, mapy,"-",5,False)
                             else:
                                 io.printex(mapx, mapy,".",5,False)                               
-                        else: 
+                        else:
                             io.printex(mapx, mapy, gamemap[mapx][mapy].\
                                          char(),5,False)
                     elif gamemap[mapx][mapy].mob: #For monsters.
