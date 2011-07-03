@@ -260,10 +260,10 @@ class Game:                # Main game class
                         mapx = mob[0]
                         mapy = mob[1]
                         if gamemap[mapx][mapy].mob:
-                            if gamemap[mapx][mapy].energy > 0 and\
-                             hasSpaceAround(mapx,mapy):
-                                (mvx,mvy) = self.mobTurn(mapx,mapy,gamemap)
-                                mobs[id] = (mvx,mvy) 
+                            if gamemap[mapx][mapy].energy > 0:
+                                if hasSpaceAround(mapx,mapy):
+                                    (mvx,mvy) = self.mobTurn(mapx,mapy,gamemap)
+                                    mobs[id] = (mvx,mvy) 
                         id += 1
                     i += 1        
             io.printex(x,y ,p1.char(),refresh=False)
@@ -364,7 +364,6 @@ class Game:                # Main game class
                                 screen.attroff(screen.A_BOLD)
                                 
                     else:
-                        io.printex(mapx, mapy, " ",5,False)
                         if chars:
                             self.drawChar(mapx, mapy, level)
                         screen.attroff(screen.A_DIM)
@@ -833,6 +832,7 @@ class Game:                # Main game class
                                       killer,gold,kills)
                         self.end()
                 else:
+                    screen.clear()
                     next = gamemap[x][y].move() + level
                     #restore or gen level:
                     if next <= len(levs):
