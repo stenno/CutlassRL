@@ -72,11 +72,11 @@ class Game:                # Main game class
         global score,gold
         global kills, killer
         global level,mapchanged
-        global name,save,p1,frad
+        global name,save,p1,frad,next
         global io,pstack,addmsg  
         global levs
         global chars
-        
+
         maxhp = random.randint(20,40)  #Max hp always random
         hp = maxhp                     #Hp is at max
         regen = 0
@@ -88,6 +88,8 @@ class Game:                # Main game class
         
         editmode = False
         
+        next = 0
+
         chars = []
         
         level = 1                       #Starting level
@@ -212,16 +214,21 @@ class Game:                # Main game class
                     self.drawmap()
                     io.printex(x,y ,p1.char(),refresh=True)
                 key = self.playerTurn() #Player's turn
-                if len(pstack) > 1:
+                if turn:
+                    next = 0
+                if len(pstack) > 0:
                     for line in pstack:
-                        (mx,my,msg,attr) = line
-                        io.printex(mx,my,msg + " --More--",attr)
-                        io.readkey()
-                        io.printex(23,0," " * 100)
-                elif len(pstack) == 1:
-                        (mx,my,msg,attr) = pstack[0]                
-                        io.printex(mx,my,msg,attr)
+                        (msg,attr) = line
+                        msg += " "
+                        io.printex(23,next,msg,attr)
+                        next += len(msg)
                         addmsg = True
+                        if next >= 40:
+                            io.printex(23,next,"--More--",GREEN)
+                            io.readkey()
+                            io.printex(23,0," " * 100)
+                            next = 0
+                            addmsg = True
                 pstack = []
             if turn:
                 mc = 0
@@ -421,6 +428,7 @@ class Game:                # Main game class
         global x,y
         global io
         x1,y1 = x,y
+        io.printex(23, 0, " " * 60)        
         io.printex(23, 0, "What direction:")
         key = io.readkey()
         if key == "8" or key == "k" or key == 259:
@@ -456,7 +464,7 @@ class Game:                # Main game class
         (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad,chars)\
          = info
         saved.close()
-        pstack.append((23,0,"Loaded...",1))
+        pstack.append(("Loaded...",1))
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):
                 gamemap[mapx][mapy].changed = True
@@ -471,7 +479,7 @@ class Game:                # Main game class
         info = (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad\
                 ,chars)
         cPickle.dump((level,info,gamemap,levs), saved,2)
-        pstack.append((23,0,"Saved...",1))
+        pstack.append(("Saved...",1))
         if not wizmode:
             saved.close()
             self.end()    
@@ -641,7 +649,7 @@ class Game:                # Main game class
         global levs, pstack,hp,killer
         ret = (mapx,mapy)
         if near(x,y,mapx,mapy):
-                pstack.append((23, 0, "%s hits!" %\
+                pstack.append(("%s hits!" %\
                         gamemap[mapx][mapy].name,2))
                 hp -= random.randint(1,gamemap[mapx][mapy]\
                                     .damage)
@@ -700,7 +708,7 @@ class Game:                # Main game class
         global screen
 
     def playerTurn(self):
-        global x,y,gamemap,killer,addmsg,pstack,x1,y1
+        global x,y,gamemap,killer,pstack,x1,y1
         global turn,p1,level,score,kills,gold,mapchanged
         global rx,ry,fovblock,editmode,regen,hp,maxhp
         key = -1
@@ -828,7 +836,7 @@ class Game:                # Main game class
                 dy = d[1]
                 if gamemap[dx][dy].door:
                     if gamemap[dx][dy].locked:
-                        pstack.append((23,0,"This door is locked!",RED))
+                        pstack.append(("This door is locked!",RED))
                     else:
                         gamemap[dx][dy].open()
                         turn = True
@@ -843,44 +851,44 @@ class Game:                # Main game class
                 if not gamemap[xk][yk].type[0]:
                     if gamemap[xk][yk].mob:
                         gamemap[xk][yk].hp -= random.randint(3,5)
-                        pstack.append((23,0,"You kicked %s!" % \
+                        pstack.append(("You kicked %s!" % \
                                        gamemap[xk][yk].name,GREEN))
                         if gamemap[xk][yk].hp <= 0:
-                            pstack.append((23,0,"You killed %s!" % gamemap\
+                            pstack.append(("You killed %s!" % gamemap\
                                            [xk][yk].name,GREEN))
                             gamemap[xk][yk] = gamemap[xk][yk].undercell
                     elif gamemap[xk][yk].door:
-                        pstack.append((23,0,"You kicked the door!" %\
+                        pstack.append(("You kicked the door!" %\
                                         gamemap[xk][yk],2))
                         if not random.randint(0,5):
-                            pstack.append((23,0,"It breaks!" %\
+                            pstack.append(("It breaks!" %\
                                             gamemap[xk][yk],2))
                             lit = gamemap[xk][yk].lit
                             gamemap[xk][yk] = cell.Cell(True,True)
                             gamemap[xk][yk].lit = lit
                     elif gamemap[xk][yk].sdoor:
-                        pstack.append((23,0,"You kicked the wall!" %\
+                        pstack.append(("You kicked the wall!" %\
                                         gamemap[xk][yk],2))
                         hp -= random.randint(3,5)
                         if not random.randint(0,8):
-                            pstack.append((23,0,"You found hidden door!" %\
+                            pstack.append(("You found hidden door!" %\
                                             gamemap[xk][yk],2))
                             lit = gamemap[xk][yk].lit
                             gamemap[xk][yk] = cell.Door(False,random.\
                                                     choice([True,False]))
                             gamemap[xk][yk].lit = lit
                             if random.randint(0,5):
-                                pstack.append((23,0,"It breaks!" %\
+                                pstack.append(("It breaks!" %\
                                                 gamemap[xk][yk],2))
                                 lit = gamemap[xk][yk].lit
                                 gamemap[xk][yk] = cell.Cell(True,True)
                                 gamemap[xk][yk].lit = lit
                     elif gamemap[xk][yk].plain_cell:
-                        pstack.append((23,0,"You kicked the wall!" %\
+                        pstack.append(("You kicked the wall!" %\
                                         gamemap[xk][yk],2))
                         hp -= random.randint(3,5)
                     elif gamemap[xk][yk].boulder:
-                        pstack.append((23,0,"You kicked the boulder!" %\
+                        pstack.append(("You kicked the boulder!" %\
                                         gamemap[xk][yk],2))
                         hp -= random.randint(3,5)
                 else:
@@ -893,7 +901,7 @@ class Game:                # Main game class
                         for m in xrange(5):
                             if not gamemap[xk + mx][yk + my].type[0]:
                                 if gamemap[xk + mx][yk + my].mob:
-                                    pstack.append((23,0,"%s hits %s!" %\
+                                    pstack.append(("%s hits %s!" %\
                                         (gamemap[xk][yk].name,gamemap[xk + mx]
                                          [yk + my].name),2))
                                     gamemap[xk + mx][yk + my].hp -= random.\
@@ -907,7 +915,7 @@ class Game:                # Main game class
                             gamemap[xk][yk].changed = True
                             self.drawmap()
                     else:
-                        pstack.append((23,0,"You kicked air!" %\
+                        pstack.append(("You kicked air!" %\
                                         gamemap[xk][yk],2))
                     
         elif key == "c": #Close door
@@ -980,7 +988,7 @@ class Game:                # Main game class
                         for mapy in xrange(MAP_H):
                             gamemap[mapx][mapy].changed = True
             else:
-                pstack.append((23,0,"There is no stairs!",2))
+                pstack.append(("There is no stairs!",2))
         elif key == "x" and wizmode and editmode:
             gamemap[x][y].type = [False,False]
             mapchanged = True
@@ -1055,7 +1063,7 @@ class Game:                # Main game class
                             gamemap[dx][dy] = gamemap[dx][dy].undercell 
                 elif key == "a":
                     self.amnesia()
-                    pstack.append((23, 0, \
+                    pstack.append((\
                         "Thinking of Maud you forget everything else.",1))
                         #NetHack reference
                 elif key == "i":
@@ -1102,18 +1110,18 @@ class Game:                # Main game class
             turn = False                        
             if gamemap[x1][y1].door:
                 if gamemap[x1][y1].locked:
-                    pstack.append((23,0,"The door is locked!",RED))
+                    pstack.append(("The door is locked!",RED))
                 else:
                     gamemap[x1][y1].open()
                     turn = True
                     p1.energy -= 120
                     mapchanged = True
             elif gamemap[x1][y1].mob:
-                pstack.append((23, 0, "You hit %s" % gamemap[x1][y1].name\
+                pstack.append(("You hit %s!" % gamemap[x1][y1].name\
                                ,3))
                 gamemap[x1][y1].hp -= random.randint(3,10)
                 if gamemap[x1][y1].hp <= 0:
-                    pstack.append((23, 0, "You kill the %s" %
+                    pstack.append(("You kill the %s!" %
                                 gamemap[x1][y1].name ,3))
                     score += 5
                     kills += 1
@@ -1131,7 +1139,7 @@ class Game:                # Main game class
                 ny = y1 - y
                 if gamemap[x1 + nx][y1 + ny].type[0]:
                     self.moveMob(x1, y1, x1 + nx, y1 + ny,gamemap) #Not only mob 
-                    pstack.append((23,0,"You moved the boulder.",1))
+                    pstack.append(("You moved the boulder.",1))
                     mapchanged = True
                     turn = True
                     p1.energy -= 150
@@ -1144,7 +1152,7 @@ class Game:                # Main game class
                         turn = True
                         p1.energy -= 90
                         self.setChar(level,x1 + nx,y1 + ny,"?",1)
-                    pstack.append((23,0,"You can't move the boulder.",2))
+                    pstack.append(("You can't move the boulder.",2))
                     x1,y1 = x,y
             else:
                 x1,y1 = x,y
@@ -1154,7 +1162,7 @@ class Game:                # Main game class
                 gold_ = random.randint(4,10)
                 score += gold_
                 gold += gold_
-                pstack.append((23, 0, "You found some gold!",4))
+                pstack.append(("You found some gold!",4))
         return key
     def canSeeYou(self,mapx,mapy):
         global x,y,gamemap
