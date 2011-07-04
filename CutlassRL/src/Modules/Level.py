@@ -109,13 +109,11 @@ class levGen:
                                     lit = self.lmap[y][x].lit;
                                     self.lmap[y][x] = lcell.secretDoor()
                                     self.lmap[y][x].lit = lit
-                                else:
-                                    lit = self.lmap[y][x].lit;
-                                    self.lmap[y][x] = lcell.Door(False)
-                                    self.lmap[y][x].lit = lit
                             else:
                                 lit = self.lmap[y][x].lit;
-                                self.lmap[y][x] = lcell.Door(True)
+                                self.lmap[y][x] = lcell.Door(random.\
+                                                choice([True,False]),random\
+                                                    .choice([True,False]))
                                 self.lmap[y][x].lit = lit
         for boulder in boulders:
             if not random.randint(0,5):

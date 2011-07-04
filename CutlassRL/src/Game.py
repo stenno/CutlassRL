@@ -443,7 +443,7 @@ class Game:                # Main game class
             y1+=1
         else:
             io.printex(23, 0, "Wrong direction!")
-            return False
+            return False, False
         return x1,y1
     def load(self):
         """Load game from save"""
@@ -829,8 +829,28 @@ class Game:                # Main game class
                 dx = d[0]
                 dy = d[1]
                 if gamemap[dx][dy].door:
-                    gamemap[dx][dy].open()
+                    if gamemap[dx][dy].locked:
+                        pstack.append((23,0,"This door is locked!",RED))
+                    else:
+                        gamemap[dx][dy].open()
             mapchanged = True
+        elif key == "K":
+            xk, yk = self.askDirection()
+            if xk == False:
+                turn = False
+            else:
+                turn = True
+                p1.energy -= 100
+                if gamemap[xk][yk].mob:
+                    gamemap[xk][yk].hp -= random.randint(3,5)
+                elif gamemap[xk][yk].door:
+                    pass
+                elif gamemap[xk][yk].sdoor:
+                    pass
+                elif gamemap[xk][yk].type[0]:
+                    pass
+                else:
+                    pstack.append((23,0,"You kicked air!",2))
         elif key == "c": #Close door
             d = self.askDirection()
             if d:
@@ -844,7 +864,8 @@ class Game:                # Main game class
             p1.energy -= 100
             mx,my = random.randint(-1,1),random.randint(-1,1)
             if gamemap[x+mx][y+my].sdoor:
-                gamemap[x+mx][y+my] = cell.Door(False)
+                gamemap[x+mx][y+my] = cell.Door(False,random.choice([True\
+                                                                     ,False]))
         elif key == ">" or key == "<": #Move up or down
             if gamemap[x][y].stairs:
                 moved = gamemap[x][y].up
@@ -942,7 +963,7 @@ class Game:                # Main game class
                 elif key == "u":
                     gamemap[mapx][mapy]
                 elif key == "d":
-                    gamemap[x][y] = cell.Door(True)
+                    gamemap[x][y] = cell.Door(True,False)
                     gamemap[x][y].close()
                     mapchanged = True
                 elif key == "v":
@@ -1018,7 +1039,10 @@ class Game:                # Main game class
         else:
             turn = False                        
             if gamemap[x1][y1].door:
-                gamemap[x1][y1].open()
+                if gamemap[x1][y1].locked:
+                    pstack.append((23,0,"The door is locked!",RED))
+                else:
+                    gamemap[x1][y1].open()
                 turn = True
                 p1.energy -= 120
                 mapchanged = True

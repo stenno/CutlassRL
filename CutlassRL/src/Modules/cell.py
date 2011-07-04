@@ -110,8 +110,10 @@ class altar(Mob):
 class Door(Cell):
     opened = True
     door = True
-    def __init__(self,isOpen):
+    locked = False
+    def __init__(self,isOpen,locked):
         self.opened = isOpen 
+        self.locked = locked
         if self.opened:
             self.type = (True,True)
         else:
