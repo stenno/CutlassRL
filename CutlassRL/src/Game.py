@@ -510,6 +510,8 @@ class Game:                # Main game class
         gamemap[mx][my] = gamemap[x][y]
         gamemap[x][y] = gamemap[x][y].undercell
         gamemap[mx][my].undercell = ucell
+        gamemap[mx][my].changed = True
+        gamemap[x][y].changed = True
         
     def inLos(self,x1,y1,x,y):
         """Checks if point is in LOS"""
@@ -524,6 +526,7 @@ class Game:                # Main game class
             jy = j[0]
             if not gamemap[jx][jy].type[1]:
                 b = True
+        gamemap[x1][y1].changed = True
         return ret
 
     def aStarPathfind(self,mx,my,yx,yy):
@@ -641,7 +644,7 @@ class Game:                # Main game class
         else:
             if gamemap[x][y].fval ==\
                 gamemap[mapx][mapy].undercell.fval and\
-                gamemap[mapx][mapy].visible:
+                self.canSeeYou(mapx,mapy):
                     mx,my = self.aStarPathfind(mapx, mapy,\
                                                 x, y)
                     self.moveMob(mapx, mapy,mapx + mx,\
@@ -1056,6 +1059,12 @@ class Game:                # Main game class
                 gold += gold_
                 pstack.append((23, 0, "You found some gold!",4))
         return key
+    def canSeeYou(self,mapx,mapy):
+        global x,y,gamemap
+        if gamemap[mapx][mapy].infra:
+            return self.inLos(mapx,mapy,x,y)
+        else:
+            return gamemap[mapx][mapy].visible
 
 def hasSpaceAround(x,y):
     """Checks if there is free cells

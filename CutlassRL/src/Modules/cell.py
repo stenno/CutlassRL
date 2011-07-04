@@ -67,6 +67,7 @@ class Mob(Cell):
     hp = 10
     name = "Mob"
     chr = "M"
+    infra = True
     lit = True
     color = 4
     type = (False,True)
