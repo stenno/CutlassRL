@@ -72,7 +72,7 @@ class Game:                # Main game class
         global score,gold
         global kills, killer
         global level,mapchanged
-        global name,save,p1,frad,mnext
+        global name,save,p1,frad,mnext,addmsg
         global io,pstack  
         global levs
         global chars
@@ -185,6 +185,11 @@ class Game:                # Main game class
                     
             while p1.energy > 0:
                 if turn or mapchanged:
+                    if addmsg:
+                        addmsg = not addmsg
+                    else:
+                        io.printex(23,0," " * 100)
+                        mnext = 0
                     io.printex(0,0," " * 60,refresh=False)
                     if wizmode:
                         io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+\
@@ -206,27 +211,11 @@ class Game:                # Main game class
                     self.resetFov()
                     fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
                             self.isBlocking)                        
-                    if addmsg:
-                        addmsg = False
-                    else:
-                        io.printex(23, 0, " " * 60, refresh = False)
                     mnext = 0
                     self.drawmap()
                     io.printex(x,y ,p1.char())
                 key = self.playerTurn() #Player's turn
-                if len(pstack) > 0:
-                    addmsg = True
-                    for line in pstack:
-                        (msg,attr) = line
-                        msg += " "
-                        io.printex(23,mnext,msg,attr)
-                        mnext += len(msg)
-                        if mnext >= 40:
-                            io.printex(23,mnext,"--More--",GREEN)
-                            io.readkey()
-                            io.printex(23,0," " * 100)
-                            mnext = 0
-                pstack = []
+                self.mstack()
             if turn:
                 mc = 0
                 mobs = []
@@ -643,7 +632,7 @@ class Game:                # Main game class
                 io.printex(x,y,char[3],char[4],False)
 
     def mobTurn(self,mapx,mapy,gamemap):
-        global levs, pstack,hp,killer
+        global levs, pstack,hp,killer,addmsg
         ret = (mapx,mapy)
         if near(x,y,mapx,mapy):
                 pstack.append(("%s hits!" %\
@@ -699,13 +688,14 @@ class Game:                # Main game class
                     gamemap[mapx + mx][mapy + my].\
                     energy -= 115
                 ret = (mapx + mx, mapy + my)
+        self.mstack()
         return ret
 
     def invMenu(self): #Shows your inventory and returns selected thing.
         global screen
 
     def playerTurn(self):
-        global x,y,gamemap,killer,pstack,x1,y1
+        global x,y,gamemap,killer,pstack,x1,y1,addmsg
         global turn,p1,level,score,kills,gold,mapchanged
         global rx,ry,fovblock,editmode,regen,hp,maxhp
         key = -1
@@ -1168,6 +1158,7 @@ class Game:                # Main game class
                 score += gold_
                 gold += gold_
                 pstack.append(("You found some gold!",4))
+        self.mstack()
         return key
     def canSeeYou(self,mapx,mapy):
         global x,y,gamemap
@@ -1191,6 +1182,22 @@ class Game:                # Main game class
                           mx,mapy+ my,gamemap)
             gamemap[mapx + mx][mapy + my].\
             energy -= 115
+
+    def mstack(self):
+        global pstack, addmsg, mnext, turn
+        if len(pstack) > 0:
+            for line in pstack:
+                addmsg = True
+                (msg,attr) = line
+                msg += " "
+                io.printex(23,mnext,msg,attr)
+                mnext += len(msg)
+                if mnext >= 40:
+                    io.printex(23,mnext,"--More--",GREEN)
+                    io.readkey()
+                    io.printex(23,0," " * 100)
+                    mnext = 0
+        pstack = []
 
 def hasSpaceAround(x,y):
     """Checks if there is free cells
