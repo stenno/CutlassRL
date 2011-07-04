@@ -194,12 +194,10 @@ class Game:                # Main game class
                         io.printex(mx,my,msg,attr)
                         addmsg = True
                 pstack = []
-                if mapchanged or turn:
-                    self.resetFov()
-                    fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
-                            self.isBlocking)                        
-                if turn or mapchanged:
-                    self.drawmap()
+                self.resetFov()
+                fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
+                        self.isBlocking)                        
+                self.drawmap()
                 io.printex(x,y ,p1.char(),refresh=True)
             if turn:
                 mc = 0
@@ -280,7 +278,6 @@ class Game:                # Main game class
                                     mobs[id] = (mvx,mvy) 
                         id += 1
                     i += 1        
-            io.printex(x,y ,p1.char(),refresh=False)
             if turn:
                 io.printex(0,0," " * 60,refresh=False)
             if wizmode:
@@ -698,7 +695,7 @@ class Game:                # Main game class
     def playerTurn(self):
         global x,y,gamemap,killer,addmsg,pstack,x1,y1
         global turn,p1,level,score,kills,gold,mapchanged
-        global rx,ry,fovblock,editmode,regen
+        global rx,ry,fovblock,editmode,regen,hp,maxhp
         key = -1
         
         if addmsg:
@@ -833,6 +830,7 @@ class Game:                # Main game class
                         pstack.append((23,0,"This door is locked!",RED))
                     else:
                         gamemap[dx][dy].open()
+                        turn = True
             mapchanged = True
         elif key == "K":
             xk, yk = self.askDirection()
@@ -841,16 +839,49 @@ class Game:                # Main game class
             else:
                 turn = True
                 p1.energy -= 100
-                if gamemap[xk][yk].mob:
-                    gamemap[xk][yk].hp -= random.randint(3,5)
-                elif gamemap[xk][yk].door:
-                    pass
-                elif gamemap[xk][yk].sdoor:
-                    pass
-                elif gamemap[xk][yk].type[0]:
-                    pass
+                if not gamemap[xk][yk].type[0]:
+                    if gamemap[xk][yk].mob:
+                        gamemap[xk][yk].hp -= random.randint(3,5)
+                        pstack.append((23,0,"You kicked %s!" % \
+                                       gamemap[xk][yk].name,2))
+                    elif gamemap[xk][yk].door:
+                        pstack.append((23,0,"You kicked the door!" %\
+                                        gamemap[xk][yk],2))
+                        if random.randint(0,5):
+                            pstack.append((23,0,"It breaks!" %\
+                                            gamemap[xk][yk],2))
+                            lit = gamemap[xk][yk].lit
+                            gamemap[xk][yk] = cell.Cell(True,True)
+                            gamemap[xk][yk].lit = lit
+                    elif gamemap[xk][yk].sdoor:
+                        pstack.append((23,0,"You kicked the wall!" %\
+                                        gamemap[xk][yk],2))
+                        hp -= random.randint(3,5)
+                        if random.randint(0,8):
+                            pstack.append((23,0,"You found hidden door!" %\
+                                            gamemap[xk][yk],2))
+                            lit = gamemap[xk][yk].lit
+                            gamemap[xk][yk] = cell.Door(False,random.\
+                                                    choice([True,False]))
+                            gamemap[xk][yk].lit = lit
+                            if random.randint(0,5):
+                                pstack.append((23,0,"It breaks!" %\
+                                                gamemap[xk][yk],2))
+                                lit = gamemap[xk][yk].lit
+                                gamemap[xk][yk] = cell.Cell(True,True)
+                                gamemap[xk][yk].lit = lit
+                    elif gamemap[xk][yk].plain_cell:
+                        pstack.append((23,0,"You kicked the wall!" %\
+                                        gamemap[xk][yk],2))
+                        hp -= random.randint(3,5)
+                    elif gamemap[xk][yk].boulder:
+                        pstack.append((23,0,"You kicked the boulder!" %\
+                                        gamemap[xk][yk],2))
+                        hp -= random.randint(3,5)
                 else:
-                    pstack.append((23,0,"You kicked air!",2))
+                    pstack.append((23,0,"You kicked air!" %\
+                                    gamemap[xk][yk],2))
+                    
         elif key == "c": #Close door
             d = self.askDirection()
             if d:
@@ -864,8 +895,10 @@ class Game:                # Main game class
             p1.energy -= 100
             mx,my = random.randint(-1,1),random.randint(-1,1)
             if gamemap[x+mx][y+my].sdoor:
+                lit = gamemap[x+mx][y+my].lit
                 gamemap[x+mx][y+my] = cell.Door(False,random.choice([True\
                                                                      ,False]))
+                gamemap[x+mx][y+my].lit = lit
         elif key == ">" or key == "<": #Move up or down
             if gamemap[x][y].stairs:
                 moved = gamemap[x][y].up
