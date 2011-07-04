@@ -183,28 +183,28 @@ class Game:                # Main game class
             while p1.energy > 0:
                 if turn:
                     io.printex(0,0," " * 60,refresh=False)
-                if wizmode:
-                    io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+\
-                               ";T:"+str(turns)+"; HP:"+str(hp)+"/"+str(maxhp),\
-                                 refresh=False) #DEBUG 
-                io.printex(4, 63, state, 2,refresh=False)
-                io.printex(6, 63, " " * 10,refresh=False)            
-                hpattr = GREEN
-                if hp == maxhp:
+                    if wizmode:
+                        io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+\
+                            str(key)+";T:"+str(turns)+"; HP:"+str(hp)+"/"+\
+                            str(maxhp),refresh=False) #DEBUG 
+                    io.printex(4, 63, state, 2,refresh=False)
+                    io.printex(6, 63, " " * 10,refresh=False)            
                     hpattr = GREEN
-                if hp <= maxhp / 2:
-                    hpattr = YELLOW
-                if hp <= 5:
-                    hpattr = RED
-                io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr,refresh=False)
-                io.printex(8, 63, "T:%d" % (turns),refresh=False)
-                io.printex(10, 63, "Score:%d" % (score),3,refresh=False)
-                io.printex(12, 63, "Level:%d" % (level),3)
-                self.resetFov()
-                fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
-                        self.isBlocking)                        
-                self.drawmap()
-                io.printex(x,y ,p1.char(),refresh=True)
+                    if hp == maxhp:
+                        hpattr = GREEN
+                    if hp <= maxhp / 2:
+                        hpattr = YELLOW
+                    if hp <= 5:
+                        hpattr = RED
+                    io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr,refresh=False)
+                    io.printex(8, 63, "T:%d" % (turns),refresh=False)
+                    io.printex(10, 63, "Score:%d" % (score),3,refresh=False)
+                    io.printex(12, 63, "Level:%d" % (level),3)
+                    self.resetFov()
+                    fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
+                            self.isBlocking)                        
+                    self.drawmap()
+                    io.printex(x,y ,p1.char(),refresh=True)
                 key = self.playerTurn() #Player's turn
                 if len(pstack) > 1:
                     for line in pstack:
