@@ -539,12 +539,9 @@ class Game:                # Main game class
         global gamemap
         (mx1,my1) = AStar.getPath(mx, my, yx, yy, gamemap, MAP_W, MAP_H)
         if (mx1,my1) == (9001, 9001):
-            self.floodFill()
+            self.floodFill() 
             mx1, my1 = 0,0
-        if (mx1,my1) != (0,0):
-            return mx1,my1
-        else:
-            return 0,0
+        return mx1,my1
             
 
     def floodFill(self):
@@ -561,6 +558,7 @@ class Game:                # Main game class
                     xl,yl = mapx,mapy
                     self.flood(xl,yl,0,x)
                     x += 1
+
     def flood(self,x,y,old,new):
         global gamemap
         seed_pos = (x,y)
@@ -624,15 +622,16 @@ class Game:                # Main game class
                       (version,name,score,hp,maxhp,death,gold,kills))
     def setChar(self,levl,x,y,char,attr):
         global chars
+        for item in chars:
+            if (item[1],item[2]) == (x,y):
+                return False
         chars.append((level,x,y,char,attr))
                      
     def drawChar(self,x,y,level):
         global chars
         for char in chars:
             if (char[0],char[1],char[2]) == (level,x,y):
-                io.printex(x,y,char[3],char[4])
-                if gamemap[x][y].explored:
-                    del char
+                io.printex(x,y,char[3],char[4],False)
 
     def mobTurn(self,mapx,mapy,gamemap):
         global levs, pstack,hp,killer
@@ -652,6 +651,8 @@ class Game:                # Main game class
                 self.canSeeYou(mapx,mapy):
                     mx,my = self.aStarPathfind(mapx, mapy,\
                                                 x, y)
+                    if (mx,my) == (0,0):
+                        return (mapx + mx, mapy + my)
                     self.moveMob(mapx, mapy,mapx + mx,\
                                     mapy + my,gamemap)
                     if (mx,my) != (0,0):
@@ -663,6 +664,8 @@ class Game:                # Main game class
                     not random.randint(0,10):
                     mx,my = self.aStarPathfind(mapx,\
                                                 mapy, x, y)
+                    if (mx,my) == (0,0):
+                        return (mapx + mx, mapy + my)
                     self.moveMob(mapx, mapy,mapx + mx,\
                                             mapy + my,gamemap)
                     if (mx,my) != (0,0):
