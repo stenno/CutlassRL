@@ -69,6 +69,7 @@ class Mob(Cell):
     chr = "M"
     infra = True
     lit = True
+    phasing = False
     color = 4
     type = (False,True)
     has_turn = False

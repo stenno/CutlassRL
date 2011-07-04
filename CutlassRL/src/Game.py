@@ -260,17 +260,14 @@ class Game:                # Main game class
                                         list = []
                                         for x2 in xrange(-1,2):
                                             for y2 in xrange(-1,2):
-                                                if gamemap[mapx + x2]\
+                                                if gmap[mapx + x2]\
                                                 [mapy + y2].type[0]:
                                                     list.append((x2,y2))
                                         move = random.choice(list)
                                         mx,my = move
                                         if (mx,my) != (0,0):
-                                            gamemap[mapx + mx][mapy + my].\
-                                            energy -= 115
                                             self.moveMob(mapx, mapy,mapx +\
                                                           mx,mapy+ my,gamemap)
-                                        ret = (mapx + mx, mapy + my)
                 while i <= best_energy and best_energy != 0:
                     id = 0
                     for mob in mobs:
@@ -381,8 +378,6 @@ class Game:                # Main game class
                         if chars:
                             self.drawChar(mapx, mapy, level)
                         screen.attroff(screen.A_DIM)
-                if gamemap[mapx][mapy].mob:
-                    io.printex(mapx,mapy,"&",RED)        
         screen.refresh()
 
     def isBlocking(self,x,y):
@@ -404,7 +399,7 @@ class Game:                # Main game class
             for mapy in xrange(MAP_H):
                 if gamemap[mapx][mapy].visible:        
                     gamemap[mapx][mapy].visible = False
-                gamemap[mapx][mapy].changed = True 
+                    gamemap[mapx][mapy].changed = True 
 
     def resetFlood(self):
         """Resets flood fill"""
@@ -514,13 +509,14 @@ class Game:                # Main game class
 
     def moveMob(self,x,y,mx,my,gamemap):
         """Moves mob"""
-        ucell = gamemap[mx][my]
-        gamemap[mx][my] = gamemap[x][y]
-        gamemap[x][y] = gamemap[x][y].undercell
-        gamemap[mx][my].undercell = ucell
-        gamemap[mx][my].lit = gamemap[mx][my].undercell.lit
-        gamemap[mx][my].changed = True
-        gamemap[x][y].changed = True
+        if gamemap[mx][my].type[0] or gamemap[x][y].phasing:
+            ucell = gamemap[mx][my]
+            gamemap[mx][my] = gamemap[x][y]
+            gamemap[x][y] = gamemap[x][y].undercell
+            gamemap[mx][my].undercell = ucell
+            gamemap[mx][my].lit = gamemap[mx][my].undercell.lit
+            gamemap[mx][my].changed = True
+            gamemap[x][y].changed = True
         
     def inLos(self,x1,y1,x,y):
         """Checks if point is in LOS"""
@@ -676,7 +672,7 @@ class Game:                # Main game class
                 #Move randomly.
             elif hasSpaceAround(mapx,mapy):
                 mx,my = 0,0
-                list = []
+                list = [(0,0)]
                 for x2 in xrange(-1,2):
                     for y2 in xrange(-1,2):
                         if gamemap[mapx + x2][mapy + y2].type[0]:
@@ -684,10 +680,10 @@ class Game:                # Main game class
                 move = random.choice(list)
                 mx,my = move
                 if (mx,my) != (0,0):
-                    gamemap[mapx + mx][mapy + my].\
-                    energy -= 115
                     self.moveMob(mapx, mapy,mapx +\
                                   mx,mapy+ my,gamemap)
+                    gamemap[mapx + mx][mapy + my].\
+                    energy -= 115
                 ret = (mapx + mx, mapy + my)
         return ret
 
