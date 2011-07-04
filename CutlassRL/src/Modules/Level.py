@@ -22,7 +22,6 @@ from Modules.constants import *
 from Modules import cell as lcell
 
 class levGen:
-    boulders = []
     def createRoom(self,room):
         lit = random.randint(0,1)
         for x in range(room.x1 + 1, room.x2):
@@ -49,6 +48,7 @@ class levGen:
                 self.boulders.append((y,x))
     def generateLevel(self,lmap):
         global playerx, playery
+        boulders = []
         self.lmap = lmap
         rooms = []
         num_rooms = 0
@@ -115,7 +115,7 @@ class levGen:
                                 lit = self.lmap[y][x].lit;
                                 self.lmap[y][x] = lcell.Door(True)
                                 self.lmap[y][x].lit = lit
-        for boulder in self.boulders:
+        for boulder in boulders:
             if not random.randint(0,5):
                 self.lmap[boulder[0]][boulder[1]] = lcell.Boulder(self.lmap\
                                                       [boulder[0]][boulder[1]])
