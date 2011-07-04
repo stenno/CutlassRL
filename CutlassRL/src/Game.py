@@ -183,6 +183,17 @@ class Game:                # Main game class
             io.printex(x,y ,p1.char(),refresh = False)
             while p1.energy > 0:
                 key = self.playerTurn() #Player's turn
+                if len(pstack) > 1:
+                    for line in pstack:
+                        (mx,my,msg,attr) = line
+                        io.printex(mx,my,msg + " --More--",attr)
+                        io.readkey()
+                        io.printex(23,0," " * 100)
+                elif len(pstack) == 1:
+                        (mx,my,msg,attr) = pstack[0]                
+                        io.printex(mx,my,msg,attr)
+                        addmsg = True
+                pstack = []
                 if mapchanged or turn:
                     self.resetFov()
                     fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
@@ -289,17 +300,6 @@ class Game:                # Main game class
             io.printex(8, 63, "T:%d" % (turns),refresh=False)
             io.printex(10, 63, "Score:%d" % (score),3,refresh=False)
             io.printex(12, 63, "Level:%d" % (level),3)
-            if len(pstack) > 1:
-                for line in pstack:
-                    (mx,my,msg,attr) = line
-                    io.printex(mx,my,msg + " --More--",attr)
-                    io.readkey()
-                    io.printex(23,0," " * 100)
-            elif len(pstack) == 1:
-                    (mx,my,msg,attr) = pstack[0]                
-                    io.printex(mx,my,msg,attr)
-                    addmsg = True
-            pstack = []
         else:
             io.printex(23, 0, "You died! --press any key--",2)
             io.readkey()
