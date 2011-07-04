@@ -1004,6 +1004,9 @@ class Game:                # Main game class
                     turn = False # You haven't moved
                 if gamemap[x1][y1].door:
                     x1,y1 = x,y
+                    turn = False
+            else:
+                turn = False
         if gamemap[x1][y1].type[0]:
             x,y = x1,y1
             p1.energy -= 95
