@@ -375,9 +375,9 @@ class Game:                # Main game class
                                 screen.attroff(screen.A_BOLD)
                                 
                     else:
-                        if chars:
-                            self.drawChar(mapx, mapy, level)
                         screen.attroff(screen.A_DIM)
+                if chars and not gamemap[mapx][mapy].explored:
+                    self.drawChar(mapx, mapy, level)
         screen.refresh()
 
     def isBlocking(self,x,y):
