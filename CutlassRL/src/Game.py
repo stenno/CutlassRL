@@ -72,7 +72,7 @@ class Game:                # Main game class
         global score,gold
         global kills, killer
         global level,mapchanged
-        global name,save,p1,frad,next
+        global name,save,p1,frad,mnext
         global io,pstack  
         global levs
         global chars
@@ -89,7 +89,7 @@ class Game:                # Main game class
         editmode = False
         addmsg = False
         
-        next = 0
+        mnext = 0
 
         chars = []
         
@@ -210,22 +210,22 @@ class Game:                # Main game class
                         addmsg = False
                     else:
                         io.printex(23, 0, " " * 60, refresh = False)
-                    next = 0
+                    mnext = 0
                     self.drawmap()
-                    io.printex(x,y ,p1.char(),refresh=True)
+                    io.printex(x,y ,p1.char())
                 key = self.playerTurn() #Player's turn
                 if len(pstack) > 0:
+                    addmsg = True
                     for line in pstack:
                         (msg,attr) = line
                         msg += " "
-                        io.printex(23,next,msg,attr)
-                        addmsg = True
-                        next += len(msg)
-                        if next >= 40:
-                            io.printex(23,next,"--More--",GREEN)
+                        io.printex(23,mnext,msg,attr)
+                        mnext += len(msg)
+                        if mnext >= 40:
+                            io.printex(23,mnext,"--More--",GREEN)
                             io.readkey()
                             io.printex(23,0," " * 100)
-                            next = 0
+                            mnext = 0
                 pstack = []
             if turn:
                 mc = 0
@@ -828,7 +828,7 @@ class Game:                # Main game class
             screen.curs_set(0)
         elif key == "o": #Open door
             d = self.askDirection()
-            next = 0
+            mnext = 0
             if d:
                 dx = d[0]
                 dy = d[1]
@@ -841,7 +841,7 @@ class Game:                # Main game class
             mapchanged = True
         elif key == "K":
             xk, yk = self.askDirection()
-            next = 0
+            mnext = 0
             if xk == False:
                 turn = False
             else:
@@ -919,7 +919,7 @@ class Game:                # Main game class
                     
         elif key == "c": #Close door
             d = self.askDirection()
-            next = 0
+            mnext = 0
             if d:
                 dx = d[0]
                 dy = d[1]
@@ -949,14 +949,14 @@ class Game:                # Main game class
                 else:
                     turn = True
                     screen.clear()
-                    next = gamemap[x][y].move() + level
+                    lnext = gamemap[x][y].move() + level
                     #restore or gen level:
-                    if next <= len(levs):
+                    if lnext <= len(levs):
                         levs.append(None)
-                    if levs[next]:
+                    if levs[lnext]:
                         levs[level] = copy.deepcopy(gamemap)
-                        gamemap = copy.deepcopy(levs[next])
-                        level = next
+                        gamemap = copy.deepcopy(levs[lnext])
+                        level = lnext
                     else:
                         levs[level] = copy.deepcopy(gamemap)
                         for mapx in xrange(MAP_W - 1):
@@ -965,8 +965,8 @@ class Game:                # Main game class
                                 Cell(False,False)
                         gen = Level.levGen()
                         (gamemap,y,x) = gen.generateLevel(gamemap)
-                        levs[next] = copy.deepcopy(gamemap)
-                        level = next
+                        levs[lnext] = copy.deepcopy(gamemap)
+                        level = lnext
                         self.amnesia()
                     #end gen level
                     for mapx in xrange(MAP_W - 1):
@@ -994,7 +994,7 @@ class Game:                # Main game class
             mapchanged = True
         elif key == "a" and wizmode and editmode:
             d = self.askDirection()
-            next = 0
+            mnext = 0
             if d:
                 dx = d[0]
                 dy = d[1]
@@ -1041,7 +1041,7 @@ class Game:                # Main game class
                     gamemap[x][y].lit = not gamemap[x][y].lit
                 elif key == "p":
                     d = self.askDirection()
-                    next = 0
+                    mnext = 0
                     rx = d[0]
                     ry = d[1]
                 elif key == "g":
@@ -1051,7 +1051,7 @@ class Game:                # Main game class
                     self.floodFill()
                 elif key == "e":
                     d = self.askDirection()
-                    next = 0
+                    mnext = 0
                     mapchanged = True
                     if d:
                         self.moveMob(d[0],d[1], x, y,gamemap)
@@ -1059,7 +1059,7 @@ class Game:                # Main game class
                     io.debug_message(gamemap[x][y].fval)
                 elif key == "f":
                     d = self.askDirection()
-                    next = 0
+                    mnext = 0
                     if d:
                         dx = d[0]
                         dy = d[1]
@@ -1072,7 +1072,7 @@ class Game:                # Main game class
                         #NetHack reference
                 elif key == "i":
                     d = self.askDirection()
-                    next = 0
+                    mnext = 0
                     if d:
                         dx = d[0]
                         dy = d[1]
