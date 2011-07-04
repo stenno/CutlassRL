@@ -73,7 +73,7 @@ class Game:                # Main game class
         global kills, killer
         global level,mapchanged
         global name,save,p1,frad,next
-        global io,pstack,addmsg  
+        global io,pstack  
         global levs
         global chars
 
@@ -87,6 +87,7 @@ class Game:                # Main game class
         frad = 5
         
         editmode = False
+        addmsg = False
         
         next = 0
 
@@ -163,7 +164,6 @@ class Game:                # Main game class
         else:
             io.printex(0, 0,"")
         turn = False
-        addmsg = True
         p1.energy += p1.speed
         while hp >= 1 or wizmode:
             mapx,mapy = 0,0               #Start from first tile
@@ -185,11 +185,6 @@ class Game:                # Main game class
                     
             while p1.energy > 0:
                 if turn or mapchanged:
-                    if addmsg:
-                        addmsg = False
-                    else:
-                        if turn:
-                            io.printex(23, 0, " " * 60, refresh = False)
                     io.printex(0,0," " * 60,refresh=False)
                     if wizmode:
                         io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+\
@@ -211,24 +206,26 @@ class Game:                # Main game class
                     self.resetFov()
                     fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
                             self.isBlocking)                        
+                    if addmsg:
+                        addmsg = False
+                    else:
+                        io.printex(23, 0, " " * 60, refresh = False)
+                    next = 0
                     self.drawmap()
                     io.printex(x,y ,p1.char(),refresh=True)
                 key = self.playerTurn() #Player's turn
-                if turn:
-                    next = 0
                 if len(pstack) > 0:
                     for line in pstack:
                         (msg,attr) = line
                         msg += " "
                         io.printex(23,next,msg,attr)
-                        next += len(msg)
                         addmsg = True
+                        next += len(msg)
                         if next >= 40:
                             io.printex(23,next,"--More--",GREEN)
                             io.readkey()
                             io.printex(23,0," " * 100)
                             next = 0
-                            addmsg = True
                 pstack = []
             if turn:
                 mc = 0
@@ -831,6 +828,7 @@ class Game:                # Main game class
             screen.curs_set(0)
         elif key == "o": #Open door
             d = self.askDirection()
+            next = 0
             if d:
                 dx = d[0]
                 dy = d[1]
@@ -843,6 +841,7 @@ class Game:                # Main game class
             mapchanged = True
         elif key == "K":
             xk, yk = self.askDirection()
+            next = 0
             if xk == False:
                 turn = False
             else:
@@ -920,6 +919,7 @@ class Game:                # Main game class
                     
         elif key == "c": #Close door
             d = self.askDirection()
+            next = 0
             if d:
                 dx = d[0]
                 dy = d[1]
@@ -994,6 +994,7 @@ class Game:                # Main game class
             mapchanged = True
         elif key == "a" and wizmode and editmode:
             d = self.askDirection()
+            next = 0
             if d:
                 dx = d[0]
                 dy = d[1]
@@ -1040,6 +1041,7 @@ class Game:                # Main game class
                     gamemap[x][y].lit = not gamemap[x][y].lit
                 elif key == "p":
                     d = self.askDirection()
+                    next = 0
                     rx = d[0]
                     ry = d[1]
                 elif key == "g":
@@ -1049,6 +1051,7 @@ class Game:                # Main game class
                     self.floodFill()
                 elif key == "e":
                     d = self.askDirection()
+                    next = 0
                     mapchanged = True
                     if d:
                         self.moveMob(d[0],d[1], x, y,gamemap)
@@ -1056,6 +1059,7 @@ class Game:                # Main game class
                     io.debug_message(gamemap[x][y].fval)
                 elif key == "f":
                     d = self.askDirection()
+                    next = 0
                     if d:
                         dx = d[0]
                         dy = d[1]
@@ -1068,6 +1072,7 @@ class Game:                # Main game class
                         #NetHack reference
                 elif key == "i":
                     d = self.askDirection()
+                    next = 0
                     if d:
                         dx = d[0]
                         dy = d[1]
