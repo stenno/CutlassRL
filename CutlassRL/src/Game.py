@@ -514,6 +514,7 @@ class Game:                # Main game class
         gamemap[mx][my] = gamemap[x][y]
         gamemap[x][y] = gamemap[x][y].undercell
         gamemap[mx][my].undercell = ucell
+        gamemap[mx][my].lit = gamemap[mx][my].undercell.lit
         gamemap[mx][my].changed = True
         gamemap[x][y].changed = True
         

@@ -136,8 +136,8 @@ class levGen:
             ych = random.randint(-5,5)
             xch = random.randint(-5,5)
         lit = self.lmap[y + ych][x + xch].lit
-        self.lmap[y + ych][x + xch] = lcell.Stair(True)
-        self.lmap[y + ych][x + xch].lit = lit
+        self.lmap[y1 + ych][x1 + xch] = lcell.Stair(True)
+        self.lmap[y1 + ych][x1 + xch].lit = lit
         playerx = x1 + xch
         playery = y1 + ych
         self.oMap()
