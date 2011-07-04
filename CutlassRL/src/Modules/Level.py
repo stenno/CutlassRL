@@ -30,11 +30,9 @@ class levGen:
                 self.lmap[y][x].type =  True,True
                 if lit:
                     self.lmap[y][x].lit = True
-                    for x2 in xrange(-2,2):
-                        for y2 in xrange(-2,2):
-                            if self.near(y, x,y + y2,x + x2):
-                                if not self.lmap[y + y2][x + x2].type[0]:
-                                    self.lmap[y + y2][x + x2].lit = True
+                    for x2 in xrange(-1,2):
+                        for y2 in xrange(-1,2):
+                            self.lmap[y + y2][x + x2].lit = True
     def vCorridor(self,y1,y2,x):
         boulder = False
         for y in range(min(y1, y2), max(y1, y2) + 1):
@@ -75,7 +73,7 @@ class levGen:
                 if new_room.intersect(other_room):
                     if random.randint(0,50):
                         failed = True
-                    break
+                        break
             if not failed:
                 self.createRoom(new_room)
                 (new_x, new_y) = new_room.center()
