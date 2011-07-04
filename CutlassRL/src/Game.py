@@ -180,8 +180,31 @@ class Game:                # Main game class
                         if hp > maxhp:
                             hp = maxhp
                     
-            io.printex(x,y ,p1.char(),refresh = False)
             while p1.energy > 0:
+                if turn:
+                    io.printex(0,0," " * 60,refresh=False)
+                if wizmode:
+                    io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+\
+                               ";T:"+str(turns)+"; HP:"+str(hp)+"/"+str(maxhp),\
+                                 refresh=False) #DEBUG 
+                io.printex(4, 63, state, 2,refresh=False)
+                io.printex(6, 63, " " * 10,refresh=False)            
+                hpattr = GREEN
+                if hp == maxhp:
+                    hpattr = GREEN
+                if hp <= maxhp / 2:
+                    hpattr = YELLOW
+                if hp <= 5:
+                    hpattr = RED
+                io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr,refresh=False)
+                io.printex(8, 63, "T:%d" % (turns),refresh=False)
+                io.printex(10, 63, "Score:%d" % (score),3,refresh=False)
+                io.printex(12, 63, "Level:%d" % (level),3)
+                self.resetFov()
+                fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
+                        self.isBlocking)                        
+                self.drawmap()
+                io.printex(x,y ,p1.char(),refresh=True)
                 key = self.playerTurn() #Player's turn
                 if len(pstack) > 1:
                     for line in pstack:
@@ -194,11 +217,6 @@ class Game:                # Main game class
                         io.printex(mx,my,msg,attr)
                         addmsg = True
                 pstack = []
-                self.resetFov()
-                fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
-                        self.isBlocking)                        
-                self.drawmap()
-                io.printex(x,y ,p1.char(),refresh=True)
             if turn:
                 mc = 0
                 mobs = []
@@ -278,25 +296,6 @@ class Game:                # Main game class
                                     mobs[id] = (mvx,mvy) 
                         id += 1
                     i += 1        
-            if turn:
-                io.printex(0,0," " * 60,refresh=False)
-            if wizmode:
-                io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+str(key)+\
-                           ";T:"+str(turns)+"; HP:"+str(hp)+"/"+str(maxhp),\
-                             refresh=False) #DEBUG 
-            io.printex(4, 63, state, 2,refresh=False)
-            io.printex(6, 63, " " * 10,refresh=False)            
-            hpattr = GREEN
-            if hp == maxhp:
-                hpattr = GREEN
-            if hp <= maxhp / 2:
-                hpattr = YELLOW
-            if hp <= 5:
-                hpattr = RED
-            io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr,refresh=False)
-            io.printex(8, 63, "T:%d" % (turns),refresh=False)
-            io.printex(10, 63, "Score:%d" % (score),3,refresh=False)
-            io.printex(12, 63, "Level:%d" % (level),3)
         else:
             io.printex(23, 0, "You died! --press any key--",2)
             io.readkey()
