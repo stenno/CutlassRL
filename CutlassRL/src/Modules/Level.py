@@ -37,7 +37,7 @@ class levGen:
         boulder = False
         for y in range(min(y1, y2), max(y1, y2) + 1):
             self.lmap[y][x].type =  True,True
-            if not random.randint(0,40) and not boulder:
+            if not random.randint(0,20) and not boulder:
                 boulder = True
                 boulders.append((y,x))
     def hCorridor(self,x1,x2,y):
@@ -45,7 +45,7 @@ class levGen:
         boulder = False
         for x in range(min(x1, x2), max(x1, x2) + 1):
             self.lmap[y][x].type = True,True
-            if not random.randint(0,40) and not boulder:
+            if not random.randint(0,20) and not boulder:
                 boulder = True
                 boulders.append((y,x))
     def generateLevel(self,lmap):
