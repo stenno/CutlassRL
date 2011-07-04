@@ -129,6 +129,7 @@ class Game:                # Main game class
         x1,y1 = x,y
         mapchanged = True #Map has been changed
         # Calculate fov
+        self.resetFov()
         fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
                          self.isBlocking)                        
         self.drawmap()
@@ -181,7 +182,12 @@ class Game:                # Main game class
                             hp = maxhp
                     
             while p1.energy > 0:
-                if turn:
+                if turn or mapchanged:
+                    if addmsg:
+                        addmsg = False
+                    else:
+                        if turn:
+                            io.printex(23, 0, " " * 60, refresh = False)
                     io.printex(0,0," " * 60,refresh=False)
                     if wizmode:
                         io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+\
@@ -444,10 +450,11 @@ class Game:                # Main game class
     def load(self):
         """Load game from save"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
-        global gold,kills,score,levs,level,regen,maxhp,frad
+        global gold,kills,score,levs,level,regen,maxhp,frad,chars
         saved = gzip.open(save,"rb",-1)
         (level,info,gamemap,levs) = cPickle.load(saved)
-        (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad) = info
+        (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad,chars)\
+         = info
         saved.close()
         pstack.append((23,0,"Loaded...",1))
         for mapx in xrange(MAP_W - 1):
@@ -459,9 +466,10 @@ class Game:                # Main game class
     def save(self):
         """Save game"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
-        global gold,kills,score,levs,level,regen,maxhp,frad
+        global gold,kills,score,levs,level,regen,maxhp,frad,chars
         saved = gzip.open(save,"wb",-1)
-        info = (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad)
+        info = (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad\
+                ,chars)
         cPickle.dump((level,info,gamemap,levs), saved,2)
         pstack.append((23,0,"Saved...",1))
         if not wizmode:
@@ -696,12 +704,6 @@ class Game:                # Main game class
         global turn,p1,level,score,kills,gold,mapchanged
         global rx,ry,fovblock,editmode,regen,hp,maxhp
         key = -1
-        
-        if addmsg:
-            addmsg = False
-        else:
-            if turn:
-                io.printex(23, 0, " " * 60, refresh = False)
         turn = False
         key = io.rkey()
         if key == "8" or key == "k" or key == 259:
@@ -739,7 +741,7 @@ class Game:                # Main game class
             regen = 0
             self.save()
         elif key == "r":
-            if os.path.isfile(save):   #If there is savefile        
+            if os.path.isfile(save) and wizmode:   #If there is savefile        
                 self.load()                    
                 x1,y1 = x,y
                 self.resetFlood()
@@ -842,11 +844,15 @@ class Game:                # Main game class
                     if gamemap[xk][yk].mob:
                         gamemap[xk][yk].hp -= random.randint(3,5)
                         pstack.append((23,0,"You kicked %s!" % \
-                                       gamemap[xk][yk].name,2))
+                                       gamemap[xk][yk].name,GREEN))
+                        if gamemap[xk][yk].hp <= 0:
+                            pstack.append((23,0,"You killed %s!" % gamemap\
+                                           [xk][yk].name,GREEN))
+                            gamemap[xk][yk] = gamemap[xk][yk].undercell
                     elif gamemap[xk][yk].door:
                         pstack.append((23,0,"You kicked the door!" %\
                                         gamemap[xk][yk],2))
-                        if random.randint(0,5):
+                        if not random.randint(0,5):
                             pstack.append((23,0,"It breaks!" %\
                                             gamemap[xk][yk],2))
                             lit = gamemap[xk][yk].lit
@@ -856,7 +862,7 @@ class Game:                # Main game class
                         pstack.append((23,0,"You kicked the wall!" %\
                                         gamemap[xk][yk],2))
                         hp -= random.randint(3,5)
-                        if random.randint(0,8):
+                        if not random.randint(0,8):
                             pstack.append((23,0,"You found hidden door!" %\
                                             gamemap[xk][yk],2))
                             lit = gamemap[xk][yk].lit
@@ -910,6 +916,7 @@ class Game:                # Main game class
                                       killer,gold,kills)
                         self.end()
                 else:
+                    turn = True
                     screen.clear()
                     next = gamemap[x][y].move() + level
                     #restore or gen level:
@@ -1075,9 +1082,9 @@ class Game:                # Main game class
                     pstack.append((23,0,"The door is locked!",RED))
                 else:
                     gamemap[x1][y1].open()
-                turn = True
-                p1.energy -= 120
-                mapchanged = True
+                    turn = True
+                    p1.energy -= 120
+                    mapchanged = True
             elif gamemap[x1][y1].mob:
                 pstack.append((23, 0, "You hit %s" % gamemap[x1][y1].name\
                                ,3))
@@ -1169,6 +1176,10 @@ def near(x1,y1,x2,y2):
         return True
     else:
         return False
+
+if __name__ == "__main__":
+    print "Please run main.py"
+    sys.exit()
 
 #  __           _       _  _    ___    
 # /        _/_  /  _   /  /   /   /  /
