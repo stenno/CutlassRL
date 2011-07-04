@@ -111,3 +111,20 @@ class IO:
         except IOError:
             key = ""
         return key
+
+    def frkey(self):
+        """Realtime readkey function.
+            reads one key from stdin.
+        """
+        global screen
+        try:
+            screen.nocbreak()
+            screen.halfdelay(1)
+            screen.timeout(-1000)
+            key = screen.getch()
+            if key > -1 and key < 257:
+                key = chr(key)
+            screen.cbreak()
+        except IOError:
+            key = ""
+        return key

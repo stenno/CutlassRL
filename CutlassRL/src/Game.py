@@ -884,8 +884,31 @@ class Game:                # Main game class
                                         gamemap[xk][yk],2))
                         hp -= random.randint(3,5)
                 else:
-                    pstack.append((23,0,"You kicked air!" %\
-                                    gamemap[xk][yk],2))
+                    if gamemap[xk][yk].item:
+                        gamemap[xk][yk].changed = True
+                        self.drawmap()
+                        io.printex(x,y,p1.char(),1)
+                        mx = xk - x
+                        my = yk - y
+                        for m in xrange(5):
+                            if not gamemap[xk + mx][yk + my].type[0]:
+                                if gamemap[xk + mx][yk + my].mob:
+                                    pstack.append((23,0,"%s hits %s!" %\
+                                        (gamemap[xk][yk].name,gamemap[xk + mx]
+                                         [yk + my].name),2))
+                                    gamemap[xk + mx][yk + my].hp -= random.\
+                                        randint(1,4)
+                                break
+                            io.frkey()
+                            gamemap[xk][yk].changed = True
+                            self.moveMob(xk, yk,xk + mx,yk + my, gamemap)
+                            xk += mx
+                            yk += my
+                            gamemap[xk][yk].changed = True
+                            self.drawmap()
+                    else:
+                        pstack.append((23,0,"You kicked air!" %\
+                                        gamemap[xk][yk],2))
                     
         elif key == "c": #Close door
             d = self.askDirection()

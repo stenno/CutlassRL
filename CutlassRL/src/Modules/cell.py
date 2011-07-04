@@ -35,6 +35,8 @@ class Cell:
     changed = True
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent)
+        if isWalkable and isTransparent:
+            color = 1
         self.plain_cell = True
     def char(self):
         if self.type[0]:
