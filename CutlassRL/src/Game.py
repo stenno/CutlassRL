@@ -652,6 +652,7 @@ class Game:                # Main game class
                     mx,my = self.aStarPathfind(mapx, mapy,\
                                                 x, y)
                     if (mx,my) == (0,0):
+                        self.rmove(mapx,mapy)
                         return (mapx + mx, mapy + my)
                     self.moveMob(mapx, mapy,mapx + mx,\
                                     mapy + my,gamemap)
@@ -665,6 +666,7 @@ class Game:                # Main game class
                     mx,my = self.aStarPathfind(mapx,\
                                                 mapy, x, y)
                     if (mx,my) == (0,0):
+                        self.rmove(mapx,mapy)
                         return (mapx + mx, mapy + my)
                     self.moveMob(mapx, mapy,mapx + mx,\
                                             mapy + my,gamemap)
@@ -1074,6 +1076,22 @@ class Game:                # Main game class
             return self.inLos(mapx,mapy,x,y)
         else:
             return gamemap[mapx][mapy].visible
+
+    def rmove(self,mapx,mapy):
+        global gamemap
+        mx,my = 0,0
+        list = [(0,0)]
+        for x2 in xrange(-1,2):
+            for y2 in xrange(-1,2):
+                if gamemap[mapx + x2][mapy + y2].type[0]:
+                    list.append((x2,y2))
+        move = random.choice(list)
+        mx,my = move
+        if (mx,my) != (0,0):
+            self.moveMob(mapx, mapy,mapx +\
+                          mx,mapy+ my,gamemap)
+            gamemap[mapx + mx][mapy + my].\
+            energy -= 115
 
 def hasSpaceAround(x,y):
     """Checks if there is free cells
