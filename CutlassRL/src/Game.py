@@ -328,6 +328,10 @@ class Game:                # Main game class
                             [mapx][mapy].changed:
                     gamemap[mapx][mapy].changed = False
                     if gamemap[mapx][mapy].lit:
+                        if gamemap[mapx][mapy].item or\
+                         gamemap[mapx][mapy].boulder:
+                            gamemap[mapx][mapy].lit = gamemap[mapx][mapy].\
+                            undercell.lit
                         gamemap[mapx][mapy].changed = True
                     if gamemap[mapx][mapy].lit and not gamemap[mapx][mapy].\
                     mob:

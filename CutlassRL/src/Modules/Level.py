@@ -16,6 +16,7 @@
 #    Copyright (c) init
 
 import random
+import sys
 
 from Modules.constants import *
 from Modules import cell as lcell
@@ -124,17 +125,22 @@ class levGen:
          (0,0): 
             ych = random.randint(-5,5)
             xch = random.randint(-5,5)
+        lit = self.lmap[y + ych][x + xch].lit
         self.lmap[y + ych][x + xch] = lcell.Stair(False)
+        self.lmap[y + ych][x + xch].lit = lit
+        
         ych = random.randint(-5,5)
         xch = random.randint(-5,5)
         while not self.lmap[y1 + ych][x1 + xch].type[0] and (ych,xch) !=\
              (0,0): 
             ych = random.randint(-5,5)
             xch = random.randint(-5,5)
-        self.lmap[y1 + ych][x1 + xch] = lcell.Stair(True)
+        lit = self.lmap[y + ych][x + xch].lit
+        self.lmap[y + ych][x + xch] = lcell.Stair(True)
+        self.lmap[y + ych][x + xch].lit = lit
         playerx = x1 + xch
         playery = y1 + ych
-        
+        self.oMap()
         return lmap,playerx,playery
         
     def near(self,x1,y1,x2,y2):
@@ -145,7 +151,7 @@ class levGen:
             return False
 
     def oMap(self):
-        self.flood(0,0,5,0,gamemap)
+        self.flood(0,0,5,0,self.lmap)
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):        
                 if self.lmap[mapx][mapy].fval == 5:
