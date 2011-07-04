@@ -107,11 +107,17 @@ class levGen:
                         not self.lmap[y][x + 1].type[0]:
                             if not random.randint(0,5):
                                 if not random.randint(0,3):
+                                    lit = self.lmap[y][x].lit;
                                     self.lmap[y][x] = lcell.secretDoor()
+                                    self.lmap[y][x].lit = lit
                                 else:
+                                    lit = self.lmap[y][x].lit;
                                     self.lmap[y][x] = lcell.Door(False)
+                                    self.lmap[y][x].lit = lit
                             else:
+                                lit = self.lmap[y][x].lit;
                                 self.lmap[y][x] = lcell.Door(True)
+                                self.lmap[y][x].lit = lit
         for boulder in self.boulders:
             if not random.randint(0,5):
                 self.lmap[boulder[0]][boulder[1]] = lcell.Boulder(self.lmap\
