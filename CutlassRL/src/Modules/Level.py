@@ -33,21 +33,23 @@ class levGen:
                         for y2 in xrange(-1,2):
                             self.lmap[y + y2][x + x2].lit = True
     def vCorridor(self,y1,y2,x):
+        global boulders
         boulder = False
         for y in range(min(y1, y2), max(y1, y2) + 1):
             self.lmap[y][x].type =  True,True
             if not random.randint(0,40) and not boulder:
                 boulder = True
-                self.boulders.append((y,x))
+                boulders.append((y,x))
     def hCorridor(self,x1,x2,y):
+        global boulders
         boulder = False
         for x in range(min(x1, x2), max(x1, x2) + 1):
             self.lmap[y][x].type = True,True
             if not random.randint(0,40) and not boulder:
                 boulder = True
-                self.boulders.append((y,x))
+                boulders.append((y,x))
     def generateLevel(self,lmap):
-        global playerx, playery
+        global playerx, playery, boulders
         boulders = []
         self.lmap = lmap
         rooms = []
