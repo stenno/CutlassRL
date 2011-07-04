@@ -222,14 +222,15 @@ class Game:                # Main game class
                 i = 0
                 mapx,mapy = 0,0
                 for lnum in xrange(level - 4,level + 6):
-                    if lnum >= len(levs):
+                    if lnum >= len(levs) or lnum <= len(levs):
                         continue
                     gmap = levs[lnum]
                     mc = 0
                     if gmap != None:
                         mmx = random.randint(0,MAP_W)
                         mmy = random.randint(0,MAP_H- 1)
-                        if  moremobs and gmap[mmx][mmy].type[0] :
+                        if  moremobs and gmap[mmx][mmy].type[0] and\
+                         not random.randint(0,50) :
                                 gmap[mmx][mmy] = cell.Newt("Newt",\
                                                 ":",gmap[mmx][mmy]) 
                                 mc += 1
@@ -384,7 +385,9 @@ class Game:                # Main game class
     def setVisible(self,x,y):
         """Sets tile as visible"""
         global gamemap,fovblock
-        gamemap[x][y].visible = not fovblock
+        if not gamemap[x][y].visible:
+            gamemap[x][y].visible = not fovblock
+            gamemap[x][y].changed = True
 
     def resetFov(self):
         """Resets FOV"""
