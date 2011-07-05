@@ -63,12 +63,13 @@ class Game:                # Main game class
         if name == "Wizard":
             wizmode = True
         p1 = You.Player(name)
+
     def mainLoop(self):
         """Main loop of game.
             Drawing things, generating map, playing
         """
         global gamemap,fovblock,turns,wizmode,editmode
-        global x,y,rx,ry,x1,y1,turn
+        global x,y,rx,ry,x1,y1,turn,state
         global hp,regen,maxhp,key
         global score,gold
         global kills, killer
@@ -294,7 +295,8 @@ class Game:                # Main game class
                         id += 1
                     i += 1        
         else:
-            io.printex(23, 0, "You died! --press any key--",2)
+            io.printex(22, 0, " " * 100,2)
+            io.printex(22, 0, "You died! --press any key--",2)
             io.readkey()
             # Write to log
             self.logWrite(name, score, hp, maxhp, VERSION,killer,gold,kills)
@@ -425,8 +427,8 @@ class Game:                # Main game class
         global x,y
         global io
         x1,y1 = x,y
-        io.printex(23, 0, " " * 60)        
-        io.printex(23, 0, "What direction:")
+        io.printex(22, 0, " " * 60)        
+        io.printex(22, 0, "What direction:")
         key = io.readkey()
         if key == "8" or key == "k" or key == 259:
             x1-=1
@@ -449,7 +451,7 @@ class Game:                # Main game class
             x1+=1
             y1+=1
         else:
-            io.printex(23, 0, "Wrong direction!")
+            io.printex(22, 0, "Wrong direction!")
             return False, False
         return x1,y1
     def load(self):
@@ -702,18 +704,43 @@ class Game:                # Main game class
         return ret
 
     def invMenu(self): #Shows your inventory and returns selected thing.
-        global screen,gamemap,p1
+        global screen,gamemap,p1,x,y,state
         screen.clear()
         for i in range(0,23):
-            io.printex(i,0,'|' + " " * 29 + "|" + " " * 48 + "|")
-        io.printex(0,0,'-' * 80)
-        io.printex(23,0,'-' * 80)
-        io.printex(0,34,"[Inventory]")
+            io.printex(i,0,'#' + " " * 29 + "#" + " " * 48 + "#",BLUE)
+        io.printex(0,0,'#' * 80,BLUE)
+        io.printex(23,0,'#' * 80,BLUE)
+        io.printex(0,34,"[Inventory]",YELLOW)
         io.readkey()
         screen.clear()
         for line in gamemap:
             for cell in line:
                 cell.changed = True
+        self.drawMap()
+        io.printex(0,0," " * 60,refresh=False)
+        if wizmode:
+            io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+\
+                str(key)+";T:"+str(turns)+"; HP:"+str(hp)+"/"+\
+                str(maxhp),refresh=False) #DEBUG 
+        io.printex(4, 63, state, 2,refresh=False)
+        io.printex(6, 63, " " * 10,refresh=False)            
+        hpattr = GREEN
+        if hp == maxhp:
+            hpattr = GREEN
+        if hp <= maxhp / 2:
+            hpattr = YELLOW
+        if hp <= 5:
+            hpattr = RED
+        io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr,refresh=False)
+        io.printex(8, 63, "T:%d" % (turns),refresh=False)
+        io.printex(10, 63, "Score:%d" % (score),3,refresh=False)
+        io.printex(12, 63, "Level:%d" % (level),3)
+        self.resetFov()
+        Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
+                self.isBlocking)                        
+        self.drawMap()
+        io.printex(x,y ,p1.char())
+        io.printex(x,y,p1.char(),1)
     def playerTurn(self):
         global x,y,gamemap,killer,x1,y1
         global turn,turn2,p1,level,score,kills,gold,mapchanged
@@ -907,6 +934,7 @@ class Game:                # Main game class
                         mx = xk - x
                         my = yk - y
                         for m in xrange(5):
+                            io.printex(x,y,p1.char(),1)
                             if not gamemap[xk + mx][yk + my].type[0]:
                                 if gamemap[xk + mx][yk + my].mob:
                                     self.addMsg("%s hits %s!" %\
@@ -1017,7 +1045,7 @@ class Game:                # Main game class
                 if key == "x":
                     editmode = True
                 elif key == "S":
-                    gamemap[x][y] = Cell.altar("=")
+                    gamemap[x][y + 1] = Cell.item("Gold","$",gamemap[x][y + 1])
                 elif key == "Z":
                     gamemap[x][y] = Cell.Stair(True)
                 elif key == "z":
@@ -1174,7 +1202,7 @@ class Game:                # Main game class
             if gamemap[x][y].name == "Gold":
                 score += gamemap[x][y].howmany
                 gold += gamemap[x][y].howmany
-                p1.cont[0].append(gamemap[x][y])
+                p1.cont[0].inv.append(gamemap[x][y])
                 self.addMsg("You found %d gold!" % gamemap[x][y].howmany,4)
                 gamemap[x][y] = gamemap[x][y].undercell
         return key
@@ -1223,6 +1251,8 @@ class Game:                # Main game class
     def addMsg(self,msg,attr):
         global addmsg,mnext
         msg += " "
+        if mnext == 0:
+            io.printex(22,0," " * 100)
         io.printex(22,mnext,msg,attr)
         addmsg = True
         mnext += len(msg)

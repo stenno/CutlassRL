@@ -19,7 +19,7 @@ import random
 import sys
 
 from Modules.Constants import *
-from Modules import cell as Lcell
+from Modules import Cell as Lcell
 
 class levGen:
     def createRoom(self,room):

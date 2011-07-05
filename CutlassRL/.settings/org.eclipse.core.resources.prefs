@@ -1,9 +1,8 @@
-#Mon Jun 27 13:53:55 MSD 2011
+#Tue Jul 05 20:25:24 MSD 2011
 eclipse.preferences.version=1
 encoding//src/Game.py=utf-8
 encoding//src/Modules/AStar.py=utf-8
 encoding//src/Modules/IO.py=utf-8
 encoding//src/Modules/Level.py=utf-8
-encoding//src/Modules/constants.py=utf-8
-encoding//src/Modules/fov.py=utf-8
+encoding//src/Modules/You.py=utf-8
 encoding//src/main.py=utf-8
