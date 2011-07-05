@@ -19,7 +19,7 @@
 
 import sys
 
-from Modules.constants import *
+from Modules.Constants import *
 
 import Game  # importing main game library
 
@@ -34,7 +34,7 @@ except IndexError:
 play = Game.Game(name)
 
 try:
-    play.main_loop()
+    play.mainLoop()
 except KeyboardInterrupt:
     play.end()
 

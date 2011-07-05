@@ -15,7 +15,7 @@
 #    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
 #    Copyright (c) init
 
-from Modules.constants import *  #Import constants
+from Modules.Constants import *  #Import constants
 
 class Cell:
     __slots__ = ("visible","explored","type","mob","stairs","sdoor","door",\

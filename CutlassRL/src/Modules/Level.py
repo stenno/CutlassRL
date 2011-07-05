@@ -18,8 +18,8 @@
 import random
 import sys
 
-from Modules.constants import *
-from Modules import cell as lcell
+from Modules.Constants import *
+from Modules import cell as Lcell
 
 class levGen:
     def createRoom(self,room):
@@ -107,17 +107,19 @@ class levGen:
                             if not random.randint(0,5):
                                 if not random.randint(0,3):
                                     lit = self.lmap[y][x].lit;
-                                    self.lmap[y][x] = lcell.secretDoor()
+                                    self.lmap[y][x] = Lcell.secretDoor()
                                     self.lmap[y][x].lit = lit
                             else:
                                 lit = self.lmap[y][x].lit;
-                                self.lmap[y][x] = lcell.Door(random.\
+                                self.lmap[y][x] = Lcell.Door(random.\
                                                 choice([True,False]),random\
                                                     .choice([True,False]))
+                                if self.lmap[y][x].locked:
+                                    self.lmap[y][x].close()
                                 self.lmap[y][x].lit = lit
         for boulder in boulders:
             if not random.randint(0,5):
-                self.lmap[boulder[0]][boulder[1]] = lcell.Boulder(self.lmap\
+                self.lmap[boulder[0]][boulder[1]] = Lcell.Boulder(self.lmap\
                                                       [boulder[0]][boulder[1]])
         (x1,y1) = rooms[0].center()
         rn = random.randint(1,len(rooms) - 1)
@@ -129,7 +131,7 @@ class levGen:
             ych = random.randint(-5,5)
             xch = random.randint(-5,5)
         lit = self.lmap[y + ych][x + xch].lit
-        self.lmap[y + ych][x + xch] = lcell.Stair(False)
+        self.lmap[y + ych][x + xch] = Lcell.Stair(False)
         self.lmap[y + ych][x + xch].lit = lit
         
         ych = random.randint(-5,5)
@@ -139,7 +141,7 @@ class levGen:
             ych = random.randint(-5,5)
             xch = random.randint(-5,5)
         lit = self.lmap[y1 + ych][x1 + xch].lit
-        self.lmap[y1 + ych][x1 + xch] = lcell.Stair(True)
+        self.lmap[y1 + ych][x1 + xch] = Lcell.Stair(True)
         self.lmap[y1 + ych][x1 + xch].lit = lit
         playerx = x1 + xch
         playery = y1 + ych

@@ -25,11 +25,11 @@ import gzip
 import copy
 
 from Modules import AStar  #Pathfinding
-from Modules import cell   #Cell class
-from Modules import fov    #FOV algorithm
+from Modules import Cell   #Cell class
+from Modules import Fov    #FOV algorithm
 from Modules import Level  #Level generation
 from Modules import IO     #Input/Output
-from Modules import you    #Character.
+from Modules import You    #Character.
 
 
 class Game:                # Main game class
@@ -61,8 +61,8 @@ class Game:                # Main game class
         screen.curs_set(0)
         if name == "Wizard":
             wizmode = True
-        p1 = you.Player(name)
-    def main_loop(self):
+        p1 = You.Player(name)
+    def mainLoop(self):
         """Main loop of game.
             Drawing things, generating map, playing
         """
@@ -116,9 +116,9 @@ class Game:                # Main game class
             gamemap.append([])
             for mapy in xrange(MAP_H+1):
                 if mapx <= 21 and mapx >= 2 and mapy <= 60 and mapy >= 2:
-                    gamemap[mapx].append(cell.Cell(True,True))
+                    gamemap[mapx].append(Cell.Cell(True,True))
                 else:
-                    gamemap[mapx].append(cell.Cell(False,False))
+                    gamemap[mapx].append(Cell.Cell(False,False))
 
         levs = [None,None]
         if os.path.isfile(save):           
@@ -133,9 +133,9 @@ class Game:                # Main game class
         mapchanged = True #Map has been changed
         # Calculate fov
         self.resetFov()
-        fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
+        Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
                          self.isBlocking)                        
-        self.drawmap()
+        self.drawMap()
         io.printex(x,y ,p1.char(), refresh=False) #Draw player
         io.printex(2, 63, name, 3)
         if wizmode:
@@ -185,11 +185,6 @@ class Game:                # Main game class
                     
             while p1.energy > 0:
                 if turn or mapchanged:
-                    if addmsg:
-                        addmsg = not addmsg
-                    else:
-                        io.printex(23,0," " * 100)
-                        mnext = 0
                     io.printex(0,0," " * 60,refresh=False)
                     if wizmode:
                         io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+\
@@ -209,13 +204,13 @@ class Game:                # Main game class
                     io.printex(10, 63, "Score:%d" % (score),3,refresh=False)
                     io.printex(12, 63, "Level:%d" % (level),3)
                     self.resetFov()
-                    fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
+                    Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
                             self.isBlocking)                        
                     mnext = 0
-                    self.drawmap()
+                    self.drawMap()
                     io.printex(x,y ,p1.char())
                 key = self.playerTurn() #Player's turn
-                self.mstack()
+                self.mStack()
             if turn:
                 mc = 0
                 mobs = []
@@ -242,7 +237,7 @@ class Game:                # Main game class
                             if gamemap[mapx][mapy].type[0] and not gamemap\
                             [mapx][mapy].visible and gamemap[mapx][mapy]\
                             .fval==gamemap[x][y].fval: 
-                                gamemap[mapx][mapy] = cell.Newt("Newt",\
+                                gamemap[mapx][mapy] = Cell.Newt("Newt",\
                                                 ":",gamemap[mapx][mapy]) 
                                 mobs.append((mapx,mapy))
                 i = 0
@@ -257,7 +252,7 @@ class Game:                # Main game class
                         mmy = random.randint(0,MAP_H- 1)
                         if  moremobs and gmap[mmx][mmy].type[0] and\
                          not random.randint(0,50) :
-                                gmap[mmx][mmy] = cell.Newt("Newt",\
+                                gmap[mmx][mmy] = Cell.Newt("Newt",\
                                                 ":",gmap[mmx][mmy]) 
                                 mc += 1
                         for mapx in xrange(MAP_W - 1):
@@ -308,7 +303,7 @@ class Game:                # Main game class
         screen.endwin()
         sys.exit()
         
-    def drawmap(self):  
+    def drawMap(self):  
         """Drawmap function.
             Will draw map. Working with fov.
         """
@@ -470,7 +465,7 @@ class Game:                # Main game class
             saved.close()
             self.end()    
 
-    def get_line(self,x1, y1, x2, y2):
+    def getLine(self,x1, y1, x2, y2):
         """Bresenham's line algorithm"""
         points = []
         issteep = abs(y2-y1) > abs(x2-x1)
@@ -521,7 +516,7 @@ class Game:                # Main game class
         global gamemap
         b = False
         ret = True
-        line = self.get_line(y, x, y1, x1) 
+        line = self.getLine(y, x, y1, x1) 
         for j in line:
             if b:
                 ret = False
@@ -608,7 +603,7 @@ class Game:                # Main game class
                     if gamemap[mapx][mapy].type[0] and not self.\
                     inLos(x, y, mapx, mapy) and gamemap[mapx][mapy].fval==\
                     gamemap[x][y].fval:
-                        gamemap[mapx][mapy] = cell.Newt("Newt",":",gamemap\
+                        gamemap[mapx][mapy] = Cell.Newt("Newt",":",gamemap\
                                                         [mapx][mapy])
     def logWrite(self,name,score,hp,maxhp,version,death,gold,kills):
         """Write text to log"""
@@ -688,7 +683,6 @@ class Game:                # Main game class
                     gamemap[mapx + mx][mapy + my].\
                     energy -= 115
                 ret = (mapx + mx, mapy + my)
-        self.mstack()
         return ret
 
     def invMenu(self): #Shows your inventory and returns selected thing.
@@ -742,8 +736,8 @@ class Game:                # Main game class
                 self.resetFlood()
                 self.floodFill()
                 self.resetFov()
-                self.drawmap()
-                fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
+                self.drawMap()
+                Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
                                 self.isBlocking)                        
             io.printex(0,0,"")
         elif key == ";":  #Farlook
@@ -853,7 +847,7 @@ class Game:                # Main game class
                             pstack.append(("It breaks!" %\
                                             gamemap[xk][yk],2))
                             lit = gamemap[xk][yk].lit
-                            gamemap[xk][yk] = cell.Cell(True,True)
+                            gamemap[xk][yk] = Cell.Cell(True,True)
                             gamemap[xk][yk].lit = lit
                     elif gamemap[xk][yk].sdoor:
                         pstack.append(("You kicked the wall!" %\
@@ -863,14 +857,14 @@ class Game:                # Main game class
                             pstack.append(("You found hidden door!" %\
                                             gamemap[xk][yk],2))
                             lit = gamemap[xk][yk].lit
-                            gamemap[xk][yk] = cell.Door(False,random.\
+                            gamemap[xk][yk] = Cell.Door(False,random.\
                                                     choice([True,False]))
                             gamemap[xk][yk].lit = lit
                             if random.randint(0,5):
                                 pstack.append(("It breaks!" %\
                                                 gamemap[xk][yk],2))
                                 lit = gamemap[xk][yk].lit
-                                gamemap[xk][yk] = cell.Cell(True,True)
+                                gamemap[xk][yk] = Cell.Cell(True,True)
                                 gamemap[xk][yk].lit = lit
                     elif gamemap[xk][yk].plain_cell:
                         pstack.append(("You kicked the wall!" %\
@@ -883,7 +877,7 @@ class Game:                # Main game class
                 else:
                     if gamemap[xk][yk].item:
                         gamemap[xk][yk].changed = True
-                        self.drawmap()
+                        self.drawMap()
                         io.printex(x,y,p1.char(),1)
                         mx = xk - x
                         my = yk - y
@@ -902,7 +896,7 @@ class Game:                # Main game class
                             xk += mx
                             yk += my
                             gamemap[xk][yk].changed = True
-                            self.drawmap()
+                            self.drawMap()
                     else:
                         pstack.append(("You kicked air!" %\
                                         gamemap[xk][yk],2))
@@ -922,7 +916,7 @@ class Game:                # Main game class
             mx,my = random.randint(-1,1),random.randint(-1,1)
             if gamemap[x+mx][y+my].sdoor:
                 lit = gamemap[x+mx][y+my].lit
-                gamemap[x+mx][y+my] = cell.Door(False,random.choice([True\
+                gamemap[x+mx][y+my] = Cell.Door(False,random.choice([True\
                                                                      ,False]))
                 gamemap[x+mx][y+my].lit = lit
         elif key == ">" or key == "<": #Move up or down
@@ -951,7 +945,7 @@ class Game:                # Main game class
                         levs[level] = copy.deepcopy(gamemap)
                         for mapx in xrange(MAP_W - 1):
                             for mapy in xrange(MAP_H):
-                                gamemap[mapx][mapy] = cell.\
+                                gamemap[mapx][mapy] = Cell.\
                                 Cell(False,False)
                         gen = Level.levGen()
                         (gamemap,y,x) = gen.generateLevel(gamemap)
@@ -972,7 +966,7 @@ class Game:                # Main game class
                     mapchanged = True
                     self.resetFov()
                     self.resetFlood()
-                    fov.fieldOfView(x, y, MAP_W, MAP_H, frad,\
+                    Fov.fieldOfView(x, y, MAP_W, MAP_H, frad,\
                                      self.setVisible, self.isBlocking)
                     for mapx in xrange(MAP_W - 1):
                         for mapy in xrange(MAP_H):
@@ -989,7 +983,7 @@ class Game:                # Main game class
                 dx = d[0]
                 dy = d[1]
                 if dx <= 21 and dx >= 2 and dy <= 60 and dy >= 2:
-                    gamemap[dx][dy] = cell.Cell(True, True)
+                    gamemap[dx][dy] = Cell.Cell(True, True)
             mapchanged = True
 
         else:
@@ -998,9 +992,9 @@ class Game:                # Main game class
                 if key == "x":
                     editmode = True
                 elif key == "S":
-                    gamemap[x][y] = cell.altar("=")
+                    gamemap[x][y] = Cell.altar("=")
                 elif key == "Z":
-                    gamemap[x][y] = cell.Stair(True)
+                    gamemap[x][y] = Cell.Stair(True)
                 elif key == "z":
                     fovblock = not fovblock  
                 elif key == "F":
@@ -1018,13 +1012,13 @@ class Game:                # Main game class
                         for mapy in xrange(MAP_H+1):
                             if mapx <= 21 and mapx >= 2 and mapy <= 60 and\
                              mapy >= 2:
-                                gamemap[mapx][mapy] = cell.Cell(True,True)
+                                gamemap[mapx][mapy] = Cell.Cell(True,True)
                             else:
-                                gamemap[mapx][mapy] = cell.Cell(False,False)
+                                gamemap[mapx][mapy] = Cell.Cell(False,False)
                 elif key == "u":
                     gamemap[mapx][mapy]
                 elif key == "d":
-                    gamemap[x][y] = cell.Door(True,False)
+                    gamemap[x][y] = Cell.Door(True,False)
                     gamemap[x][y].close()
                     mapchanged = True
                 elif key == "v":
@@ -1035,7 +1029,7 @@ class Game:                # Main game class
                     rx = d[0]
                     ry = d[1]
                 elif key == "g":
-                    gamemap[rx][ry] = cell.Newt("Newt",":",gamemap[rx][ry])
+                    gamemap[rx][ry] = Cell.Newt("Newt",":",gamemap[rx][ry])
                     mapchanged = True
                 elif key == "!":
                     self.floodFill()
@@ -1067,11 +1061,11 @@ class Game:                # Main game class
                         dx = d[0]
                         dy = d[1]
                         if dx <= 21 and dx >= 2 and dy <= 60 and dy >= 2:
-                            gamemap[dx][dy] = cell.Cell(True, True)
+                            gamemap[dx][dy] = Cell.Cell(True, True)
                     mapchanged = True
                 elif key == "t":
                     ucell = gamemap[x][y]
-                    gamemap[x][y] = cell.Newt("Newt",":",ucell)
+                    gamemap[x][y] = Cell.Newt("Newt",":",ucell)
                     mapchanged = True
             if not gamemap[x][y].door:       #You can't use diagonal keys
                                             #while you are in door.
@@ -1124,7 +1118,7 @@ class Game:                # Main game class
                         .undercell
                     gamemap[x1][y1].visible = True
                     if random.choice([True,False] + [False] * 10):
-                        gamemap[x1][y1] = cell.item("Gold",\
+                        gamemap[x1][y1] = Cell.item("Gold",\
                                 "$",gamemap[x1][y1])
                     mapchanged = True
                 p1.energy -= 100
@@ -1158,8 +1152,8 @@ class Game:                # Main game class
                 score += gold_
                 gold += gold_
                 pstack.append(("You found some gold!",4))
-        self.mstack()
         return key
+    
     def canSeeYou(self,mapx,mapy):
         global x,y,gamemap
         if gamemap[mapx][mapy].infra:
@@ -1183,11 +1177,13 @@ class Game:                # Main game class
             gamemap[mapx + mx][mapy + my].\
             energy -= 115
 
-    def mstack(self):
+    def mStack(self):
         global pstack, addmsg, mnext, turn
+        if turn:
+            io.printex(23,0," " * 100)
+            mnext = 0
         if len(pstack) > 0:
             for line in pstack:
-                addmsg = True
                 (msg,attr) = line
                 msg += " "
                 io.printex(23,mnext,msg,attr)
