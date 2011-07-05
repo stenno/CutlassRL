@@ -835,7 +835,9 @@ class Game:                # Main game class
             messages = copy.copy(mstack)
             messages.reverse()
             oldmsg = ""
-            mnum = 0
+            mnum = 1
+            if len(mstack) == 0:
+                    io.printex(0,0,"There is no messages.",RED)
             for message in messages:
                 msg = message[0]
                 attr = message[1]
