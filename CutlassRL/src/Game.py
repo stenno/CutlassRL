@@ -849,8 +849,11 @@ class Game:                # Main game class
                     io.printex(i,0,msg,attr)
                 oldmsg = msg
                 i += 1
-                if i == 22:
+                if i >= 22:
                     io.printex(23,0,"--More--",GREEN)
+                    io.readkey()
+                    screen.clear()
+                    i = 0
             io.readkey()
             screen.clear()
             for line in gamemap:
