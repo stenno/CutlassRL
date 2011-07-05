@@ -422,14 +422,14 @@ class Game:                # Main game class
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):        
                 gamemap[mapx][mapy].explored = False
+
     def askDirection(self):
         """Asks direction"""
-        global x,y,mnext
+        global x,y
         global io
         x1,y1 = x,y
         io.printex(23, 0, " " * 60)        
         io.printex(23, 0, "What direction:")
-        mnext = 0
         key = io.readkey()
         if key == "8" or key == "k" or key == 259:
             x1-=1
@@ -883,7 +883,6 @@ class Game:                # Main game class
             if xk == False:
                 turn = False
             else:
-                p1.energy -= 100
                 if not gamemap[xk][yk].type[0]:
                     if gamemap[xk][yk].mob:
                         gamemap[xk][yk].hp -= random.randint(3,5)
