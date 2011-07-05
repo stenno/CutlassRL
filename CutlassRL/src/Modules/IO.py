@@ -108,6 +108,8 @@ class IO:
             key = screen.getch()
             if key > -1 and key < 257:
                 key = chr(key)
+            else:
+                return -1
             screen.cbreak()
         except IOError:
             key = ""

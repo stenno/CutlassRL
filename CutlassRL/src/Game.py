@@ -69,12 +69,12 @@ class Game:                # Main game class
         """
         global gamemap,fovblock,turns,wizmode,editmode
         global x,y,rx,ry,x1,y1,turn
-        global hp,regen,maxhp
+        global hp,regen,maxhp,key
         global score,gold
         global kills, killer
         global level,mapchanged
         global name,save,p1,frad,mnext,addmsg
-        global io,pstack  
+        global io,msgturns
         global levs
         global chars
                 
@@ -86,9 +86,11 @@ class Game:                # Main game class
         gold  = 0
         kills = 0
         frad = 5
+
+        msgturns = 0
         
         editmode = False
-        addmsg = False
+        addmsg = True
         
         mnext = 0
 
@@ -96,7 +98,6 @@ class Game:                # Main game class
         
         level = 1                       #Starting level
                 
-        pstack = []
 
         fovblock = False   #Fov is not blocked
         
@@ -116,7 +117,7 @@ class Game:                # Main game class
         for mapx in xrange(MAP_W+1):
             gamemap.append([])
             for mapy in xrange(MAP_H+1):
-                if mapx <= 21 and mapx >= 2 and mapy <= 60 and mapy >= 2:
+                if mapx <= 20 and mapx >= 2 and mapy <= 60 and mapy >= 2:
                     gamemap[mapx].append(Cell.Cell(True,True))
                 else:
                     gamemap[mapx].append(Cell.Cell(False,False))
@@ -185,8 +186,9 @@ class Game:                # Main game class
                             hp = maxhp
                     
             while p1.energy > 0:
-                if turn or mapchanged:
+                if key != -1 and key != None:
                     self.messageStack()
+                if turn or mapchanged:
                     io.printex(0,0," " * 60,refresh=False)
                     if wizmode:
                         io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+\
@@ -388,7 +390,7 @@ class Game:                # Main game class
         """Sets tile as visible"""
         global gamemap,fovblock,x,y,frad
         if not gamemap[sx][sy].visible:
-            if self.inCircle(x, y, frad, sx, sy):
+            if self.inCircle(x, y, frad + 1, sx, sy):
                 gamemap[sx][sy].visible = not fovblock
                 gamemap[sx][sy].changed = True
         if gamemap[sx][sy].mob:
@@ -580,33 +582,33 @@ class Game:                # Main game class
         stack.append(seed_pos)
         iterations = 0
         while(stack):
-           iterations += 1
-           x,y = stack.pop()
-           y1 = y
-           while y1 >= 0 and gamemap[x][y1].fval == old:
+            iterations += 1
+            x,y = stack.pop()
+            y1 = y
+            while y1 >= 0 and gamemap[x][y1].fval == old:
                 y1 -= 1
-           y1 += 1
-           spanLeft = spanRight = False
-           inner_iterations = 0
-           while(y1 < h and gamemap[x][y1].fval == old):
-               inner_iterations += 1
-               gamemap[x][y1].fval = new
-               min_x = min(min_x, x)
-               max_x = max(max_x, x)
-               min_y = min(min_y, y1)
-               max_y = max(max_y, y1)
-               if not spanLeft and x > 0 and gamemap[x - 1][y1].fval == old:
-                   stack.append((x - 1, y1))
-                   spanLeft = True
-               elif spanLeft and x > 0 and gamemap[x - 1][y1].fval != old:
-                   spanLeft = False
-               if not spanRight and x < w - 1 and gamemap[x + 1][y1].fval ==\
-                old:
-                   stack.append((x + 1, y1))
-                   spanRight = True
-               elif spanRight and x < w - 1 and gamemap[x + 1][y1].fval != old:
-                   spanRight = False
-               y1 += 1
+            y1 += 1
+            spanLeft = spanRight = False
+            inner_iterations = 0
+            while(y1 < h and gamemap[x][y1].fval == old):
+                inner_iterations += 1
+                gamemap[x][y1].fval = new
+                min_x = min(min_x, x)
+                max_x = max(max_x, x)
+                min_y = min(min_y, y1)
+                max_y = max(max_y, y1)
+                if not spanLeft and x > 0 and gamemap[x - 1][y1].fval == old:
+                    stack.append((x - 1, y1))
+                    spanLeft = True
+                elif spanLeft and x > 0 and gamemap[x - 1][y1].fval != old:
+                    spanLeft = False
+                if not spanRight and x < w - 1 and gamemap[x + 1][y1].fval ==\
+                 old:
+                    stack.append((x + 1, y1))
+                    spanRight = True
+                elif spanRight and x < w - 1 and gamemap[x + 1][y1].fval != old:
+                    spanRight = False
+                y1 += 1
 
     def spawnMobs(self):
         """Spawn mobs"""
@@ -641,7 +643,7 @@ class Game:                # Main game class
                 io.printex(x,y,char[3],char[4],False)
 
     def mobTurn(self,mapx,mapy,gamemap):
-        global levs, pstack,hp,killer,addmsg
+        global levs,hp,killer
         ret = (mapx,mapy)
         if self.near(x,y,mapx,mapy):
                 self.addMsg("%s hits!" %\
@@ -703,10 +705,9 @@ class Game:                # Main game class
         global screen
 
     def playerTurn(self):
-        global x,y,gamemap,killer,pstack,x1,y1,addmsg
-        global turn,p1,level,score,kills,gold,mapchanged
+        global x,y,gamemap,killer,x1,y1
+        global turn,turn2,p1,level,score,kills,gold,mapchanged
         global rx,ry,fovblock,editmode,regen,hp,maxhp
-        key = -1
         turn = False
         key = io.rkey()
         if key == "8" or key == "k" or key == 259:
@@ -838,12 +839,12 @@ class Game:                # Main game class
                         turn = True
             mapchanged = True
         elif key == "K":
+            turn = True
             xk, yk = self.askDirection()
             mnext = 0
             if xk == False:
                 turn = False
             else:
-                turn = True
                 p1.energy -= 100
                 if not gamemap[xk][yk].type[0]:
                     if gamemap[xk][yk].mob:
@@ -996,7 +997,7 @@ class Game:                # Main game class
             if d:
                 dx = d[0]
                 dy = d[1]
-                if dx <= 21 and dx >= 2 and dy <= 60 and dy >= 2:
+                if dx <= 20 and dx >= 2 and dy <= 60 and dy >= 2:
                     gamemap[dx][dy] = Cell.Cell(True, True)
             mapchanged = True
 
@@ -1024,7 +1025,7 @@ class Game:                # Main game class
                 elif key == "R":
                     for mapx in xrange(MAP_W+1):
                         for mapy in xrange(MAP_H+1):
-                            if mapx <= 21 and mapx >= 2 and mapy <= 60 and\
+                            if mapx <= 20 and mapx >= 2 and mapy <= 60 and\
                              mapy >= 2:
                                 gamemap[mapx][mapy] = Cell.Cell(True,True)
                             else:
@@ -1074,7 +1075,7 @@ class Game:                # Main game class
                     if d:
                         dx = d[0]
                         dy = d[1]
-                        if dx <= 21 and dx >= 2 and dy <= 60 and dy >= 2:
+                        if dx <= 20 and dx >= 2 and dy <= 60 and dy >= 2:
                             gamemap[dx][dy] = Cell.Cell(True, True)
                     mapchanged = True
                 elif key == "t":
@@ -1122,6 +1123,7 @@ class Game:                # Main game class
             elif gamemap[x1][y1].mob:
                 self.addMsg("You hit %s!" % gamemap[x1][y1].name\
                                ,3)
+                turn = True
                 gamemap[x1][y1].hp -= random.randint(3,10)
                 if gamemap[x1][y1].hp <= 0:
                     self.addMsg("You kill the %s!" %
@@ -1136,7 +1138,6 @@ class Game:                # Main game class
                                 "$",gamemap[x1][y1])
                     mapchanged = True
                 p1.energy -= 100
-                turn = True
             if gamemap[x1][y1].boulder:
                 nx = x1 - x
                 ny = y1 - y
@@ -1177,7 +1178,6 @@ class Game:                # Main game class
 
     def rmove(self,mapx,mapy):
         global gamemap
-        mx,my = 0,0
         list = [(0,0)]
         for x2 in xrange(-1,2):
             for y2 in xrange(-1,2):
@@ -1213,23 +1213,24 @@ class Game:                # Main game class
     def addMsg(self,msg,attr):
         global addmsg,mnext
         msg += " "
-        io.printex(23,mnext,msg,attr)
+        if addmsg:
+            io.printex(22,0," " * 100)
+            addmsg = False
+            return
+        io.printex(22,mnext,msg,attr)
+        addmsg = True
         mnext += len(msg)
-        addmsg =  True
-        if mnext >= 42:
-            io.printex(23,mnext,"--More--",attr)
-            io.readkey()
+        if mnext > 40:
+            io.printex(22,mnext,"--More--",GREEN)
             mnext = 0
-            io.printex(23,mnext," " * 100)
-            addmsg = True
+            io.readkey()
+            io.printex(22,0," " * 100)
     def messageStack(self):
         global mnext,addmsg
-        mnext = 0
-        if not addmsg:
-            io.printex(23,mnext," " * 100)
-            addmsg = True
-        else:
+        if addmsg:
             addmsg = False
+        else:
+            io.printex(22,0," " * 100)
     def inCircle(self,center_x, center_y, radius, x, y):
         square_dist = (center_x - x) ** 2 + (center_y - y) ** 2
         return square_dist <= radius ** 2
@@ -1241,6 +1242,7 @@ class Game:                # Main game class
 
 if __name__ == "__main__":
     print "Please run main.py"
+    raw_input()
     sys.exit()
 
 #  __           _       _  _    ___    

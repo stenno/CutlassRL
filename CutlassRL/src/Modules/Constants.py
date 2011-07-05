@@ -27,7 +27,7 @@ MAP_H=80
 MAP_W=24
 
 MAX_H = 59
-MAX_W = 20
+MAX_W = 19
 
 DEFAULT = 1
 RED     = 2
