@@ -626,12 +626,17 @@ class Game:                # Main game class
                                                         [mapx][mapy])
     def logWrite(self,name,score,hp,maxhp,version,death,gold,kills):
         """Write text to log"""
-        global wizmode
+        global wizmode,levs,level
+        mlev = 0
+        for lev in levs:
+            if lev == None:
+                break
+            mlev += 1
         if not wizmode:
             log = open("mainlog.log","a")
-            log.write(("version=%f:name=%s:score=%d:hp=%d:maxhp=%d:killer=%s:"
-                    + "gold=%d:kills=%d\n") %
-                      (version,name,score,hp,maxhp,death,gold,kills))
+            log.write(("version=%1.2f:name=%s:score=%d:hp=%d:maxhp=%d:"
+                    +"killer=%s:gold=%d:kills=%d:maxdlvl=%s:dlvl=%s\n") %
+                      (version,name,score,hp,maxhp,death,gold,kills,mlev,level))
     def setChar(self,levl,x,y,char,attr):
         global chars
         for item in chars:
