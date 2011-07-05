@@ -236,13 +236,15 @@ class Game:                # Main game class
                                 moremobs= False
                             else:
                                 moremobs = True
-                        #TODO: Generate RANDOM monsters.
                         if not random.randint(0,10000) and moremobs:
                             if gamemap[mapx][mapy].type[0] and not gamemap\
                             [mapx][mapy].visible and gamemap[mapx][mapy]\
                             .fval==gamemap[x][y].fval: 
-                                gamemap[mapx][mapy] = Cell.Newt("Newt",\
-                                                ":",gamemap[mapx][mapy]) 
+                                gamemap[mapx][mapy] = random.choice([\
+                                    Cell.Newt("Newt",":",gamemap[mapx][mapy])\
+                                    ,Cell.Leprechaun(gamemap[mapx][mapy])\
+                                    ,Cell.Ghost(gamemap[mapx][mapy])
+                                              ])
                                 mobs.append((mapx,mapy))
                 i = 0
                 mapx,mapy = 0,0
@@ -392,9 +394,12 @@ class Game:                # Main game class
         """Sets tile as visible"""
         global gamemap,fovblock,x,y,frad
         if not gamemap[sx][sy].visible:
-            if self.inCircle(x, y, frad + 1, sx, sy):
+            if self.inCircle(x, y, frad + 1, sx, sy) and CIRCLE_FOV:
+                gamemap[sx][sy].visible = not fovblock
+            else:
                 gamemap[sx][sy].visible = not fovblock
                 gamemap[sx][sy].changed = True
+            gamemap[sx][sy].changed = True
         if gamemap[sx][sy].mob:
                 gamemap[sx][sy].changed = True
 
@@ -663,6 +668,11 @@ class Game:                # Main game class
                     #Mob killed you.
                     killer = gamemap[mapx][mapy].name
         else:
+            if gamemap[mapx][mapy].phasing:
+                path = self.getLine(mapx, mapy, x, y)
+                mx,my = path[0][0],path[0][1]
+                self.moveMob(mapx, mapy, mx, my, gamemap)
+                return (mx,my)
             if gamemap[x][y].fval ==\
                 gamemap[mapx][mapy].undercell.fval and\
                 self.canSeeYou(mapx,mapy):
@@ -1324,7 +1334,8 @@ class Game:                # Main game class
                           mx,mapy+ my,gamemap)
             gamemap[mapx + mx][mapy + my].\
             energy -= 115
-
+        return mx,my
+    
     def hasSpaceAround(self,x,y):
         """Checks if there is free cells
             around x,y"""

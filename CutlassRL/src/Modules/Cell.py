@@ -98,6 +98,32 @@ class Newt(Mob):
     color = 4
     damage = 3
 
+class Leprechaun(Mob):
+    def __init__(self,undercell):
+        self.undercell = undercell        
+    hp = 25
+    speed = 150
+    name = "Leprechaun"
+    chr = "l"
+    infra = True
+    lit = True
+    color = GREEN
+    damage = 2
+
+class Ghost(Mob):
+    def __init__(self,undercell):
+        self.undercell = undercell        
+    hp = 50
+    speed = 30
+    name = "Ghost"
+    chr = " "
+    infra = True
+    lit = True
+    color = GREEN
+    damage = 5
+    phasing = True
+
+
 class altar(Mob):
     def __init__(self,char):
         self.chr = char
@@ -154,7 +180,7 @@ class item(Mob): #Yeah, it is funny :D
         self.undercell = undercell        
         self.howmany = random.randint(4,10)
 
-class cutlass(item): #Yeah, it is funny :D
+class cutlass(item): 
     chr = "|"
     name = "The Dark Cutlass"
     color = 6
