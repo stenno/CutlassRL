@@ -889,7 +889,7 @@ class Game:                # Main game class
                         self.addMsg("You kicked %s!" % \
                                        gamemap[xk][yk].name,GREEN)
                         if gamemap[xk][yk].hp <= 0:
-                            self.addMsg("You killed %s!" % gamemap\
+                            self.addMsg("You kill %s!" % gamemap\
                                            [xk][yk].name,GREEN)
                             gamemap[xk][yk] = gamemap[xk][yk].undercell
                     elif gamemap[xk][yk].door:
@@ -905,6 +905,8 @@ class Game:                # Main game class
                         self.addMsg("You kicked the wall!" %\
                                         gamemap[xk][yk],2)
                         hp -= random.randint(3,5)
+                        if hp<= 0:
+                            killer = "Kicking hidden door"
                         if not random.randint(0,8):
                             self.addMsg("You found hidden door!" %\
                                             gamemap[xk][yk],2)
@@ -922,6 +924,8 @@ class Game:                # Main game class
                         self.addMsg("You kicked the wall!" %\
                                         gamemap[xk][yk],2)
                         hp -= random.randint(3,5)
+                        if hp<= 0:
+                            killer = "Kicking wall"
                     elif gamemap[xk][yk].boulder:
                         self.addMsg("You kicked the boulder!" %\
                                         gamemap[xk][yk],2)
@@ -1187,8 +1191,8 @@ class Game:                # Main game class
                     p1.energy -= 150
                     x,y = x1,y1
                 else:
-                    if gamemap[x1 + nx][y1 + ny].explored or gamemap\
-                    [x1 + nx][y1 + ny].mob:
+                    if gamemap[x1 + nx][y1 + ny].explored and not gamemap[x1 +\
+                     nx][y1 + ny].mob:
                         turn = False
                     else:
                         turn = True
