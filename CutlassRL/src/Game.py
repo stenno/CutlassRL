@@ -711,13 +711,43 @@ class Game:                # Main game class
 
     def invMenu(self): #Shows your inventory and returns selected thing.
         global screen,gamemap,p1,x,y,state
-        screen.clear()
-        for i in range(0,23):
-            io.printex(i,0,'#' + " " * 29 + "#" + " " * 48 + "#",BLUE)
-        io.printex(0,0,'#' * 80,BLUE)
-        io.printex(23,0,'#' * 80,BLUE)
-        io.printex(0,34,"[Inventory]",YELLOW)
-        io.readkey()
+        key = -1
+        sx,sy = 4,4
+        max = 4
+        c = 1
+        gold = 0
+        while key != "q":
+            screen.clear()
+            for i in range(0,23):
+                io.printex(i,0,'#' + " " * 10 + "#" + " " * 67 + "#",BLUE)
+            io.printex(0,0,'#' * 80,BLUE)
+            io.printex(23,0,'#' * 80,BLUE)
+            io.printex(0,34,"[Inventory]",YELLOW)
+            io.printex(sx,1,"[",RED)
+            io.printex(sy,10,"]",RED)
+            io.printex(4,4,"Armor",GREEN)
+            io.printex(6,4,"Weapns",GREEN)
+            io.printex(8,4,"Sack",GREEN)
+            io.printex(10,4,"Gold",GREEN)
+            gold = 0
+            for item in p1.cont[0].inv:
+                if item.item:
+                    if item.name == "Gold":
+                        gold += item.howmany
+            if c == 4:
+                io.printex(4,16,"You have %d gold." % gold,YELLOW)
+            key = io.readkey()
+            if key == "j" or key == "8":
+                if not (c - 1) < 1:
+                    sx -= 2
+                    sy -= 2
+                    c -= 1
+            elif key == "k" or key == "2":
+                if not (c + 1) > max:
+                    sx += 2
+                    sy += 2
+                    c += 1
+
         screen.clear()
         for line in gamemap:
             for cell in line:
