@@ -70,12 +70,12 @@ class Game:                # Main game class
         """
         global gamemap,fovblock,turns,wizmode,editmode
         global x,y,rx,ry,x1,y1,turn,state
-        global hp,regen,maxhp,key
+        global hp,regen,maxhp,key,mstack
         global score,gold
         global kills, killer
         global level,mapchanged
         global name,save,p1,frad,mnext,addmsg
-        global io,msgturns
+        global io
         global levs
         global chars
                 
@@ -88,8 +88,8 @@ class Game:                # Main game class
         kills = 0
         frad = 5
 
-        msgturns = 0
-        
+        mstack = []
+
         editmode = False
         addmsg = True
         
@@ -457,12 +457,12 @@ class Game:                # Main game class
         return x1,y1
     def load(self):
         """Load game from save"""
-        global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
+        global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode,mstack
         global gold,kills,score,levs,level,regen,maxhp,frad,chars
         saved = gzip.open(save,"rb",-1)
         (level,info,gamemap,levs) = cPickle.load(saved)
-        (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad,chars)\
-         = info
+        (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad,chars,\
+         mstack) = info
         saved.close()
         self.addMsg("Loaded...",1)
         for mapx in xrange(MAP_W - 1):
@@ -474,10 +474,10 @@ class Game:                # Main game class
     def save(self):
         """Save game"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode
-        global gold,kills,score,levs,level,regen,maxhp,frad,chars
+        global gold,kills,score,levs,level,regen,maxhp,frad,chars,mstack
         saved = gzip.open(save,"wb",-1)
         info = (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad\
-                ,chars)
+                ,chars,mstack)
         cPickle.dump((level,info,gamemap,levs), saved,2)
         self.addMsg("Saved...",1)
         if not wizmode:
@@ -745,10 +745,11 @@ class Game:                # Main game class
         Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
                 self.isBlocking)                        
         self.drawMap()
-        io.printex(x,y ,p1.char())
+        io.printex(2, 63, name, 3)
         io.printex(x,y,p1.char(),1)
+
     def playerTurn(self):
-        global x,y,gamemap,killer,x1,y1
+        global x,y,gamemap,killer,x1,y1,mstack
         global turn,turn2,p1,level,score,kills,gold,mapchanged
         global rx,ry,fovblock,editmode,regen,hp,maxhp
         turn = False
@@ -798,6 +799,57 @@ class Game:                # Main game class
                 Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
                                 self.isBlocking)                        
             io.printex(0,0,"")
+        elif key == "=":  #Last messages
+            i = 0
+            screen.clear()
+            messages = copy.copy(mstack)
+            messages.reverse()
+            oldmsg = ""
+            mnum = 0
+            for message in messages:
+                msg = message[0]
+                attr = message[1]
+                if oldmsg == msg:
+                    i -= 1
+                    mnum += 1
+                    io.printex(i,50,"(%sx)" % mnum,attr)
+                else:
+                    io.printex(i,0,msg,attr)
+                oldmsg = msg
+                i += 1
+                if i == 22:
+                    io.printex(23,0,"--More--",GREEN)
+            io.readkey()
+            screen.clear()
+            for line in gamemap:
+                for cell in line:
+                    cell.changed = True
+            self.drawMap()
+            io.printex(0,0," " * 60,refresh=False)
+            if wizmode:
+                io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+\
+                    str(key)+";T:"+str(turns)+"; HP:"+str(hp)+"/"+\
+                    str(maxhp),refresh=False) #DEBUG 
+            io.printex(4, 63, state, 2,refresh=False)
+            io.printex(6, 63, " " * 10,refresh=False)            
+            hpattr = GREEN
+            if hp == maxhp:
+                hpattr = GREEN
+            if hp <= maxhp / 2:
+                hpattr = YELLOW
+            if hp <= 5:
+                hpattr = RED
+            io.printex(6, 63, "HP:%d/%d" % (hp, maxhp), hpattr,refresh=False)
+            io.printex(8, 63, "T:%d" % (turns),refresh=False)
+            io.printex(10, 63, "Score:%d" % (score),3,refresh=False)
+            io.printex(12, 63, "Level:%d" % (level),3)
+            self.resetFov()
+            Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
+                    self.isBlocking)                        
+            self.drawMap()
+            io.printex(x,y ,p1.char())
+            io.printex(x,y,p1.char(),1)
+            io.printex(2, 63, name, 3)
         elif key == ";":  #Farlook
             io.printex(23, 0, "You")
             screen.curs_set(1)
@@ -1258,10 +1310,11 @@ class Game:                # Main game class
 
         
     def addMsg(self,msg,attr):
-        global addmsg,mnext
+        global addmsg,mnext,mstack
         msg += " "
         if mnext == 0:
             io.printex(22,0," " * 100)
+        mstack.append((msg,attr))
         io.printex(22,mnext,msg,attr)
         addmsg = True
         mnext += len(msg)
