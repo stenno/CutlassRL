@@ -737,12 +737,12 @@ class Game:                # Main game class
             if c == 4:
                 io.printex(4,16,"You have %d gold." % gold,YELLOW)
             key = io.readkey()
-            if key == "j" or key == "8":
+            if key == "k" or key == "8":
                 if not (c - 1) < 1:
                     sx -= 2
                     sy -= 2
                     c -= 1
-            elif key == "k" or key == "2":
+            elif key == "j" or key == "2":
                 if not (c + 1) > max:
                     sx += 2
                     sy += 2
