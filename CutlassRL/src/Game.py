@@ -1213,10 +1213,6 @@ class Game:                # Main game class
     def addMsg(self,msg,attr):
         global addmsg,mnext
         msg += " "
-        if addmsg:
-            io.printex(22,0," " * 100)
-            addmsg = False
-            return
         io.printex(22,mnext,msg,attr)
         addmsg = True
         mnext += len(msg)
@@ -1231,6 +1227,7 @@ class Game:                # Main game class
             addmsg = False
         else:
             io.printex(22,0," " * 100)
+            addmsg = True
     def inCircle(self,center_x, center_y, radius, x, y):
         square_dist = (center_x - x) ** 2 + (center_y - y) ** 2
         return square_dist <= radius ** 2
