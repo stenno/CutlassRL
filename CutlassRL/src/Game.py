@@ -424,11 +424,12 @@ class Game:                # Main game class
                 gamemap[mapx][mapy].explored = False
     def askDirection(self):
         """Asks direction"""
-        global x,y
+        global x,y,mnext
         global io
         x1,y1 = x,y
-        io.printex(22, 0, " " * 60)        
-        io.printex(22, 0, "What direction:")
+        io.printex(23, 0, " " * 60)        
+        io.printex(23, 0, "What direction:")
+        mnext = 0
         key = io.readkey()
         if key == "8" or key == "k" or key == 259:
             x1-=1
@@ -1268,6 +1269,8 @@ class Game:                # Main game class
         else:
             io.printex(22,0," " * 100)
             addmsg = True
+        if turn:
+            io.printex(23,0," " * 100)
     def inCircle(self,center_x, center_y, radius, x, y):
         square_dist = (center_x - x) ** 2 + (center_y - y) ** 2
         return square_dist <= radius ** 2
