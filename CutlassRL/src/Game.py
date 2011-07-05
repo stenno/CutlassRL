@@ -185,6 +185,7 @@ class Game:                # Main game class
                     
             while p1.energy > 0:
                 if turn or mapchanged:
+                    self.messageStack()
                     io.printex(0,0," " * 60,refresh=False)
                     if wizmode:
                         io.printex(0,0,"X:"+str(x)+", Y:"+str(y)+";key:"+\
@@ -210,7 +211,6 @@ class Game:                # Main game class
                     self.drawMap()
                     io.printex(x,y ,p1.char())
                 key = self.playerTurn() #Player's turn
-                self.mStack()
             if turn:
                 mc = 0
                 mobs = []
@@ -265,7 +265,7 @@ class Game:                # Main game class
                                     moremobs = True
                                 if gmap[mapx][mapy].mob and not\
                                  random.randint(0,5):
-                                    if hasSpaceAround(mapx,mapy):
+                                    if self.hasSpaceAround(mapx,mapy):
                                         mx,my = 0,0
                                         list = []
                                         for x2 in xrange(-1,2):
@@ -285,7 +285,7 @@ class Game:                # Main game class
                         mapy = mob[1]
                         if gamemap[mapx][mapy].mob:
                             if gamemap[mapx][mapy].energy > 0:
-                                if hasSpaceAround(mapx,mapy):
+                                if self.hasSpaceAround(mapx,mapy):
                                     (mvx,mvy) = self.mobTurn(mapx,mapy,gamemap)
                                     mobs[id] = (mvx,mvy) 
                         id += 1
@@ -375,12 +375,13 @@ class Game:                # Main game class
         global gamemap
         return not gamemap[x][y].type[1]
 
-    def setVisible(self,x,y):
+    def setVisible(self,sx,sy):
         """Sets tile as visible"""
-        global gamemap,fovblock
-        if not gamemap[x][y].visible:
-            gamemap[x][y].visible = not fovblock
-            gamemap[x][y].changed = True
+        global gamemap,fovblock,x,y,frad
+        if not gamemap[sx][sy].visible:
+            if self.in_circle(x, y, frad, sx, sy):
+                gamemap[sx][sy].visible = not fovblock
+                gamemap[sx][sy].changed = True
 
     def resetFov(self):
         """Resets FOV"""
@@ -445,7 +446,7 @@ class Game:                # Main game class
         (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad,chars)\
          = info
         saved.close()
-        pstack.append(("Loaded...",1))
+        self.addMsg("Loaded...",1)
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):
                 gamemap[mapx][mapy].changed = True
@@ -460,7 +461,7 @@ class Game:                # Main game class
         info = (gold,kills,score,x,y,rx,ry,fovblock,hp,maxhp,turns,regen,frad\
                 ,chars)
         cPickle.dump((level,info,gamemap,levs), saved,2)
-        pstack.append(("Saved...",1))
+        self.addMsg("Saved...",1)
         if not wizmode:
             saved.close()
             self.end()    
@@ -629,9 +630,9 @@ class Game:                # Main game class
     def mobTurn(self,mapx,mapy,gamemap):
         global levs, pstack,hp,killer,addmsg
         ret = (mapx,mapy)
-        if near(x,y,mapx,mapy):
-                pstack.append(("%s hits!" %\
-                        gamemap[mapx][mapy].name,2))
+        if self.near(x,y,mapx,mapy):
+                self.addMsg("%s hits!" %\
+                        gamemap[mapx][mapy].name,2)
                 hp -= random.randint(1,gamemap[mapx][mapy]\
                                     .damage)
                 gamemap[mapx][mapy].energy -= 80
@@ -668,7 +669,7 @@ class Game:                # Main game class
                         energy -= 110
                     ret = (mapx + mx, mapy + my)
                 #Move randomly.
-            elif hasSpaceAround(mapx,mapy):
+            elif self.hasSpaceAround(mapx,mapy):
                 mx,my = 0,0
                 list = [(0,0)]
                 for x2 in xrange(-1,2):
@@ -818,7 +819,7 @@ class Game:                # Main game class
                 dy = d[1]
                 if gamemap[dx][dy].door:
                     if gamemap[dx][dy].locked:
-                        pstack.append(("This door is locked!",RED))
+                        self.addMsg("This door is locked!",RED)
                     else:
                         gamemap[dx][dy].open()
                         turn = True
@@ -834,45 +835,45 @@ class Game:                # Main game class
                 if not gamemap[xk][yk].type[0]:
                     if gamemap[xk][yk].mob:
                         gamemap[xk][yk].hp -= random.randint(3,5)
-                        pstack.append(("You kicked %s!" % \
-                                       gamemap[xk][yk].name,GREEN))
+                        self.addMsg("You kicked %s!" % \
+                                       gamemap[xk][yk].name,GREEN)
                         if gamemap[xk][yk].hp <= 0:
-                            pstack.append(("You killed %s!" % gamemap\
-                                           [xk][yk].name,GREEN))
+                            self.addMsg("You killed %s!" % gamemap\
+                                           [xk][yk].name,GREEN)
                             gamemap[xk][yk] = gamemap[xk][yk].undercell
                     elif gamemap[xk][yk].door:
-                        pstack.append(("You kicked the door!" %\
-                                        gamemap[xk][yk],2))
+                        self.addMsg("You kicked the door!" %\
+                                        gamemap[xk][yk],2)
                         if not random.randint(0,5):
-                            pstack.append(("It breaks!" %\
-                                            gamemap[xk][yk],2))
+                            self.addMsg("It breaks!" %\
+                                            gamemap[xk][yk],2)
                             lit = gamemap[xk][yk].lit
                             gamemap[xk][yk] = Cell.Cell(True,True)
                             gamemap[xk][yk].lit = lit
                     elif gamemap[xk][yk].sdoor:
-                        pstack.append(("You kicked the wall!" %\
-                                        gamemap[xk][yk],2))
+                        self.addMsg("You kicked the wall!" %\
+                                        gamemap[xk][yk],2)
                         hp -= random.randint(3,5)
                         if not random.randint(0,8):
-                            pstack.append(("You found hidden door!" %\
-                                            gamemap[xk][yk],2))
+                            self.addMsg("You found hidden door!" %\
+                                            gamemap[xk][yk],2)
                             lit = gamemap[xk][yk].lit
                             gamemap[xk][yk] = Cell.Door(False,random.\
                                                     choice([True,False]))
                             gamemap[xk][yk].lit = lit
                             if random.randint(0,5):
-                                pstack.append(("It breaks!" %\
-                                                gamemap[xk][yk],2))
+                                self.addMsg("It breaks!" %\
+                                                gamemap[xk][yk],2)
                                 lit = gamemap[xk][yk].lit
                                 gamemap[xk][yk] = Cell.Cell(True,True)
                                 gamemap[xk][yk].lit = lit
                     elif gamemap[xk][yk].plain_cell:
-                        pstack.append(("You kicked the wall!" %\
-                                        gamemap[xk][yk],2))
+                        self.addMsg("You kicked the wall!" %\
+                                        gamemap[xk][yk],2)
                         hp -= random.randint(3,5)
                     elif gamemap[xk][yk].boulder:
-                        pstack.append(("You kicked the boulder!" %\
-                                        gamemap[xk][yk],2))
+                        self.addMsg("You kicked the boulder!" %\
+                                        gamemap[xk][yk],2)
                         hp -= random.randint(3,5)
                 else:
                     if gamemap[xk][yk].item:
@@ -884,9 +885,9 @@ class Game:                # Main game class
                         for m in xrange(5):
                             if not gamemap[xk + mx][yk + my].type[0]:
                                 if gamemap[xk + mx][yk + my].mob:
-                                    pstack.append(("%s hits %s!" %\
+                                    self.addMsg("%s hits %s!" %\
                                         (gamemap[xk][yk].name,gamemap[xk + mx]
-                                         [yk + my].name),2))
+                                         [yk + my].name),2)
                                     gamemap[xk + mx][yk + my].hp -= random.\
                                         randint(1,4)
                                 break
@@ -898,8 +899,8 @@ class Game:                # Main game class
                             gamemap[xk][yk].changed = True
                             self.drawMap()
                     else:
-                        pstack.append(("You kicked air!" %\
-                                        gamemap[xk][yk],2))
+                        self.addMsg("You kicked air!" %\
+                                        gamemap[xk][yk],2)
                     
         elif key == "c": #Close door
             d = self.askDirection()
@@ -972,7 +973,7 @@ class Game:                # Main game class
                         for mapy in xrange(MAP_H):
                             gamemap[mapx][mapy].changed = True
             else:
-                pstack.append(("There is no stairs!",2))
+                self.addMsg("There is no stairs!",2)
         elif key == "x" and wizmode and editmode:
             gamemap[x][y].type = [False,False]
             mapchanged = True
@@ -1051,8 +1052,8 @@ class Game:                # Main game class
                             gamemap[dx][dy] = gamemap[dx][dy].undercell 
                 elif key == "a":
                     self.amnesia()
-                    pstack.append((\
-                        "Thinking of Maud you forget everything else.",1))
+                    self.addMsg(\
+                        "Thinking of Maud you forget everything else.",1)
                         #NetHack reference
                 elif key == "i":
                     d = self.askDirection()
@@ -1099,19 +1100,19 @@ class Game:                # Main game class
             turn = False                        
             if gamemap[x1][y1].door:
                 if gamemap[x1][y1].locked:
-                    pstack.append(("The door is locked!",RED))
+                    self.addMsg("The door is locked!",RED)
                 else:
                     gamemap[x1][y1].open()
                     turn = True
                     p1.energy -= 120
                     mapchanged = True
             elif gamemap[x1][y1].mob:
-                pstack.append(("You hit %s!" % gamemap[x1][y1].name\
-                               ,3))
+                self.addMsg("You hit %s!" % gamemap[x1][y1].name\
+                               ,3)
                 gamemap[x1][y1].hp -= random.randint(3,10)
                 if gamemap[x1][y1].hp <= 0:
-                    pstack.append(("You kill the %s!" %
-                                gamemap[x1][y1].name ,3))
+                    self.addMsg("You kill the %s!" %
+                                gamemap[x1][y1].name ,3)
                     score += 5
                     kills += 1
                     gamemap[x1][y1] = gamemap[x1][y1]\
@@ -1128,7 +1129,7 @@ class Game:                # Main game class
                 ny = y1 - y
                 if gamemap[x1 + nx][y1 + ny].type[0]:
                     self.moveMob(x1, y1, x1 + nx, y1 + ny,gamemap) #Not only mob 
-                    pstack.append(("You moved the boulder.",1))
+                    self.addMsg("You moved the boulder.",1)
                     mapchanged = True
                     turn = True
                     p1.energy -= 150
@@ -1141,7 +1142,7 @@ class Game:                # Main game class
                         turn = True
                         p1.energy -= 90
                         self.setChar(level,x1 + nx,y1 + ny,"?",1)
-                    pstack.append(("You can't move the boulder.",2))
+                    self.addMsg("You can't move the boulder.",2)
                     x1,y1 = x,y
             else:
                 x1,y1 = x,y
@@ -1151,7 +1152,7 @@ class Game:                # Main game class
                 gold_ = random.randint(4,10)
                 score += gold_
                 gold += gold_
-                pstack.append(("You found some gold!",4))
+                self.addMsg("You found some gold!",4)
         return key
     
     def canSeeYou(self,mapx,mapy):
@@ -1177,44 +1178,34 @@ class Game:                # Main game class
             gamemap[mapx + mx][mapy + my].\
             energy -= 115
 
-    def mStack(self):
-        global pstack, addmsg, mnext, turn
-        if turn:
-            io.printex(23,0," " * 100)
-            mnext = 0
-        if len(pstack) > 0:
-            for line in pstack:
-                (msg,attr) = line
-                msg += " "
-                io.printex(23,mnext,msg,attr)
-                mnext += len(msg)
-                if mnext >= 40:
-                    io.printex(23,mnext,"--More--",GREEN)
-                    io.readkey()
-                    io.printex(23,0," " * 100)
-                    mnext = 0
-        pstack = []
+    def hasSpaceAround(self,x,y):
+        """Checks if there is free cells
+            around x,y"""
+        global gamemap
+        c = 0
+        for x2 in xrange(-1,2):
+            for y2 in xrange(-1,2):
+                if not gamemap[x + x2][y + y2].type[0]:
+                    c += 1
+                else:
+                    return True
+        else:
+            return False
+    
+    def near(self,x1,y1,x2,y2):
+        """Checks if x1,y1 near x2,y2"""
+        return abs(x1 - x2) <= 1 and abs(y1 - y2) <= 1
 
-def hasSpaceAround(x,y):
-    """Checks if there is free cells
-        around x,y"""
-    global gamemap
-    c = 0
-    for x2 in xrange(-1,2):
-        for y2 in xrange(-1,2):
-            if not gamemap[x + x2][y + y2].type[0]:
-                c += 1
-            else:
-                return True
-    else:
-        return False
+        
+    def addMsg(self,msg,attr):
+        pass
+    def messageStack(self):
+        pass
 
-def near(x1,y1,x2,y2):
-    """Checks if x1,y1 near x2,y2"""
-    if -1 <= (x1 - x2) <= 1 and -1 <= (y1 - y2) <= 1:
-        return True
-    else:
-        return False
+    def in_circle(self,center_x, center_y, radius, x, y):
+        square_dist = (center_x - x) ** 2 + (center_y - y) ** 2
+        return square_dist <= radius ** 2
+
 
 if __name__ == "__main__":
     print "Please run main.py"
