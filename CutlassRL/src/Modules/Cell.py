@@ -16,6 +16,7 @@
 #    Copyright (c) init
 
 from Modules.Constants import *  #Import constants
+import random
 
 class Cell:
     __slots__ = ("visible","explored","type","mob","stairs","sdoor","door",\
@@ -147,6 +148,11 @@ class item(Mob): #Yeah, it is funny :D
     name = "Gold"
     color = 4
     type = [True,True]
+    def __init__(self,name,char,undercell):
+        self.name = name
+        self.chr = char
+        self.undercell = undercell        
+        self.howmany = random.randint(4,10)
 
 class cutlass(item): #Yeah, it is funny :D
     chr = "|"

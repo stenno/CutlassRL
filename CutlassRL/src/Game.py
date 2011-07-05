@@ -702,8 +702,18 @@ class Game:                # Main game class
         return ret
 
     def invMenu(self): #Shows your inventory and returns selected thing.
-        global screen
-
+        global screen,gamemap,p1
+        screen.clear()
+        for i in range(0,23):
+            io.printex(i,0,'|' + " " * 29 + "|" + " " * 48 + "|")
+        io.printex(0,0,'-' * 80)
+        io.printex(23,0,'-' * 80)
+        io.printex(0,34,"[Inventory]")
+        io.readkey()
+        screen.clear()
+        for line in gamemap:
+            for cell in line:
+                cell.changed = True
     def playerTurn(self):
         global x,y,gamemap,killer,x1,y1
         global turn,turn2,p1,level,score,kills,gold,mapchanged
@@ -1162,11 +1172,11 @@ class Game:                # Main game class
                 x1,y1 = x,y
         if gamemap[x][y].item:
             if gamemap[x][y].name == "Gold":
+                score += gamemap[x][y].howmany
+                gold += gamemap[x][y].howmany
+                p1.cont[0].append(gamemap[x][y])
+                self.addMsg("You found %d gold!" % gamemap[x][y].howmany,4)
                 gamemap[x][y] = gamemap[x][y].undercell
-                gold_ = random.randint(4,10)
-                score += gold_
-                gold += gold_
-                self.addMsg("You found some gold!",4)
         return key
     
     def canSeeYou(self,mapx,mapy):

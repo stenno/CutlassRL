@@ -14,13 +14,19 @@
 #    You should have received a copy of the GNU General Public License
 #    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
 #    Copyright (c) init
-class Player():
+
+class container:
+    def __init__(self):
+        self.inv = []
+
+class Player:
     name = None
     speed = 100
-    energy = 0
+    energy =  0
     chr = "@"
     has_turn = False
-    
+    cont = []
+    cont.append(container())
     def __init__(self,name):
         self.name = name
     def char(self):
