@@ -15,7 +15,7 @@
 #    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
 #    Copyright (c) init
 
-from Modules.constants import *  #Import constants
+from Modules.Constants import *  #Import constants
 
 import sys
 import cPickle  #Used for saves
@@ -23,6 +23,7 @@ import os.path
 import random
 import gzip
 import copy
+import math
 
 from Modules import AStar  #Pathfinding
 from Modules import Cell   #Cell class
@@ -76,7 +77,7 @@ class Game:                # Main game class
         global io,pstack  
         global levs
         global chars
-
+                
         maxhp = random.randint(20,40)  #Max hp always random
         hp = maxhp                     #Hp is at max
         regen = 0
@@ -322,7 +323,6 @@ class Game:                # Main game class
                          gamemap[mapx][mapy].boulder:
                             gamemap[mapx][mapy].lit = gamemap[mapx][mapy].\
                             undercell.lit
-                        gamemap[mapx][mapy].changed = True
                     if gamemap[mapx][mapy].lit and not gamemap[mapx][mapy].\
                     mob:
                         if self.inLos(mapx, mapy, x, y):
@@ -332,11 +332,20 @@ class Game:                # Main game class
                         if gamemap[mapx][mapy].mob:
                             gamemap[mapx][mapy].undercell.explored = True
                             gamemap[mapx][mapy].explored = False
-                        screen.attron(screen.A_BOLD) #Visible is bold
                         if gamemap[mapx][mapy].type[0] and gamemap[mapx]\
                         [mapy].plain_cell:
-                            color = 1 #Dots are white not yellow
+                            if self.distance(x, y, mapx, mapy) <= frad / 2:
+                                screen.attron(screen.A_BOLD) #Visible is bold
+                                color = YELLOW
+                            elif self.distance(x, y, mapx, mapy) <= frad / 1.3:
+                                screen.attron(screen.A_BOLD) #Visible is bold
+                                color = 1
+                            else:
+                                screen.attron(screen.A_DIM) #Visible is bold
+                                color = 1
+                                
                         else:
+                            screen.attron(screen.A_BOLD) #Visible is bold
                             color = gamemap[mapx][mapy].color #Normal color
                                                                 # of cell
                         io.printex(mapx, mapy, gamemap[mapx][mapy].char(),\
@@ -379,8 +388,10 @@ class Game:                # Main game class
         """Sets tile as visible"""
         global gamemap,fovblock,x,y,frad
         if not gamemap[sx][sy].visible:
-            if self.in_circle(x, y, frad, sx, sy):
+            if self.inCircle(x, y, frad, sx, sy):
                 gamemap[sx][sy].visible = not fovblock
+                gamemap[sx][sy].changed = True
+        if gamemap[sx][sy].mob:
                 gamemap[sx][sy].changed = True
 
     def resetFov(self):
@@ -391,6 +402,8 @@ class Game:                # Main game class
                 if gamemap[mapx][mapy].visible:        
                     gamemap[mapx][mapy].visible = False
                     gamemap[mapx][mapy].changed = True 
+                if gamemap[mapx][mapy].mob:
+                        gamemap[mapx][mapy].changed = True
 
     def resetFlood(self):
         """Resets flood fill"""
@@ -1198,13 +1211,32 @@ class Game:                # Main game class
 
         
     def addMsg(self,msg,attr):
-        pass
+        global addmsg,mnext
+        msg += " "
+        io.printex(23,mnext,msg,attr)
+        mnext += len(msg)
+        addmsg =  True
+        if mnext >= 42:
+            io.printex(23,mnext,"--More--",attr)
+            io.readkey()
+            mnext = 0
+            io.printex(23,mnext," " * 100)
+            addmsg = True
     def messageStack(self):
-        pass
-
-    def in_circle(self,center_x, center_y, radius, x, y):
+        global mnext,addmsg
+        mnext = 0
+        if not addmsg:
+            io.printex(23,mnext," " * 100)
+            addmsg = True
+        else:
+            addmsg = False
+    def inCircle(self,center_x, center_y, radius, x, y):
         square_dist = (center_x - x) ** 2 + (center_y - y) ** 2
         return square_dist <= radius ** 2
+
+    def distance(self,x1,y1,x2,y2):
+        return math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
+
 
 
 if __name__ == "__main__":

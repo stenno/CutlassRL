@@ -16,9 +16,10 @@
 #    along with CutlassRL.  If not, see <http://www.gnu.org/licenses/>.
 #    Copyright (c) init
 
+
 import sys
 try:
-    from Modules import unicurses as curses# Game will use curses to draw things
+    from Modules import Unicurses as curses# Game will use curses to draw things
 except ImportError:
     print "Curses library is missing."
     sys.exit()
@@ -47,14 +48,14 @@ class IO:
         screen.init_pair(6,screen.COLOR_MAGENTA,-1)
         screen.init_pair(7,screen.COLOR_CYAN,-1) 
         screen.init_pair(8,screen.COLOR_WHITE,-1)
-
-        screen.attron(screen.color_pair(1))
+        
+           
     def retSceen(self):
         global  screen
         return screen
     def debug_message(self,msg):
         """Debug message subroutine,
-            Will say something like debugmsg: XXX
+            Will say something like debugmsg: text
         """
         global screen
         screen.attron(screen.A_BOLD)
