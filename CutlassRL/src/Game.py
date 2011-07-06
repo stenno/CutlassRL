@@ -245,11 +245,15 @@ class Game:                # Main game class
                                     ,Cell.Leprechaun(gamemap[mapx][mapy])\
                                     ,Cell.Ghost(gamemap[mapx][mapy])
                                               ])
+                                gamemap[mapx][mapy].changed = True
                                 mobs.append((mapx,mapy))
                 i = 0
                 mapx,mapy = 0,0
                 for lnum in xrange(level - 4,level + 6):
                     if lnum >= len(levs) or lnum <= len(levs):
+                        continue
+                    if lnum == level:
+                        exit()
                         continue
                     gmap = levs[lnum]
                     mc = 0
@@ -260,6 +264,7 @@ class Game:                # Main game class
                          not random.randint(0,50) :
                                 gmap[mmx][mmy] = Cell.Newt("Newt",\
                                                 ":",gmap[mmx][mmy]) 
+                                gmap[mmx][mmy].changed = True
                                 mc += 1
                         for mapx in xrange(MAP_W - 1):
                             for mapy in xrange(MAP_H): 
@@ -629,14 +634,15 @@ class Game:                # Main game class
                     gamemap[x][y].fval:
                         gamemap[mapx][mapy] = Cell.Newt("Newt",":",gamemap\
                                                         [mapx][mapy])
+                        gamemap[mapx][mapy].changed = True
     def logWrite(self,name,score,hp,maxhp,version,death,gold,kills):
         """Write text to log"""
         global wizmode,levs,level
         mlev = 0
         for lev in levs:
-            if lev == None:
-                break
-            mlev += 1
+            if lev != None:
+                mlev += 1
+        mlev -= 1
         if not wizmode:
             log = open("mainlog.log","a")
             log.write(("version=%1.2f:name=%s:score=%d:hp=%d:maxhp=%d:"
@@ -1189,6 +1195,7 @@ class Game:                # Main game class
                     ry = d[1]
                 elif key == "g":
                     gamemap[rx][ry] = Cell.Newt("Newt",":",gamemap[rx][ry])
+                    gamemap[rx][ry].changed = True
                     mapchanged = True
                 elif key == "!":
                     self.floodFill()
@@ -1225,6 +1232,7 @@ class Game:                # Main game class
                 elif key == "t":
                     ucell = gamemap[x][y]
                     gamemap[x][y] = Cell.Newt("Newt",":",ucell)
+                    gamemap[x][y].changed = True
                     mapchanged = True
             if not gamemap[x][y].door:       #You can't use diagonal keys
                                             #while you are in door.
