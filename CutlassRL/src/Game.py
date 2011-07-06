@@ -86,7 +86,7 @@ class Game:                # Main game class
         score = 0                       #Zero score
         gold  = 0
         kills = 0
-        frad = 5
+        frad = 6
 
         mstack = []
 
@@ -352,7 +352,7 @@ class Game:                # Main game class
                             if self.distance(x, y, mapx, mapy) <= frad / 2:
                                 screen.attron(screen.A_BOLD) #Visible is bold
                                 color = YELLOW
-                            elif self.distance(x, y, mapx, mapy) <= frad / 1.3:
+                            elif self.distance(x, y, mapx, mapy) <= frad / 1.5:
                                 screen.attron(screen.A_BOLD)
                                 color = 1
                             elif self.distance(x, y, mapx, mapy) <= frad / 1.01:
@@ -364,15 +364,16 @@ class Game:                # Main game class
                                 
                         else:
                             if not self.distance(x, y, mapx, mapy) <=\
-                             frad / 1.1 and not gamemap[mapx][mapy].lit:
-                                screen.attron(screen.A_DIM)
+                             frad / 1.01 and not gamemap[mapx][mapy].lit:
+                                screen.attron(screen.A_NORMAL)
                                 color = WHITE
                             else:
-                                if not gamemap[mapx][mapy].plain_cell:
+                                if gamemap[mapx][mapy].plain_cell:
                                     screen.attron(screen.A_BOLD) 
-                                screen.attron(screen.A_DIM)
-                                screen.attron(screen.A_BOLD) 
-                                color = gamemap[mapx][mapy].color #Normal color
+                                    color = YELLOW
+                                else:
+                                    screen.attron(screen.A_BOLD) 
+                                    color = gamemap[mapx][mapy].color #Normal color
                                                                 # of cell
                         io.printex(mapx, mapy, gamemap[mapx][mapy].char(),\
                            color,False) #Print cell.

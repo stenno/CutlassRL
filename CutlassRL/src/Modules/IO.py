@@ -48,8 +48,10 @@ class IO:
         screen.init_pair(6,screen.COLOR_MAGENTA,-1)
         screen.init_pair(7,screen.COLOR_CYAN,-1) 
         screen.init_pair(8,screen.COLOR_WHITE,-1)
+        screen.init_pair(9,screen.COLOR_WHITE,-1)
+        screen.init_pair(10,screen.COLOR_WHITE,-1)
+        screen.init_pair(11,screen.COLOR_WHITE,-1)
         
-           
     def retSceen(self):
         global  screen
         return screen
