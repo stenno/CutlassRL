@@ -262,8 +262,11 @@ class Game:                # Main game class
                         mmy = random.randint(0,MAP_H- 1)
                         if  moremobs and gmap[mmx][mmy].type[0] and\
                          not random.randint(0,50) :
-                                gmap[mmx][mmy] = Cell.Newt("Newt",\
-                                                ":",gmap[mmx][mmy]) 
+                                gmap[mmx][mmy] = random.choice([\
+                                    Cell.Newt("Newt",":",gmap[mmx][mmy])\
+                                    ,Cell.Leprechaun(gmap[mmx][mmy])\
+                                    ,Cell.Ghost(gmap[mmx][mmy])
+                                              ])
                                 gmap[mmx][mmy].changed = True
                                 mc += 1
                         for mapx in xrange(MAP_W - 1):
@@ -386,6 +389,7 @@ class Game:                # Main game class
                                 
                     else:
                         screen.attroff(screen.A_DIM)
+                        screen.mvaddstr(mapx, mapy, " ", BLUE)
                 if chars and not gamemap[mapx][mapy].explored:
                     self.drawChar(mapx, mapy, level)
         screen.refresh()
@@ -536,10 +540,13 @@ class Game:                # Main game class
             gamemap[mx][my] = gamemap[x][y]
             gamemap[x][y] = gamemap[x][y].undercell
             gamemap[mx][my].undercell = ucell
-            gamemap[mx][my].lit = gamemap[mx][my].undercell.lit
+            if gamemap[mx][my].infra_y:
+                gamemap[mx][my].lit = True
+            else:
+                gamemap[mx][my].lit = gamemap[mx][my].undercell.lit
             gamemap[mx][my].changed = True
             gamemap[x][y].changed = True
-        
+
     def inLos(self,x1,y1,x,y):
         """Checks if point is in LOS"""
         global gamemap
@@ -632,8 +639,11 @@ class Game:                # Main game class
                     if gamemap[mapx][mapy].type[0] and not self.\
                     inLos(x, y, mapx, mapy) and gamemap[mapx][mapy].fval==\
                     gamemap[x][y].fval:
-                        gamemap[mapx][mapy] = Cell.Newt("Newt",":",gamemap\
-                                                        [mapx][mapy])
+                        gamemap[mapx][mapy] = random.choice([\
+                            Cell.Newt("Newt",":",gamemap[mapx][mapy])\
+                            ,Cell.Leprechaun(gamemap[mapx][mapy])\
+                            ,Cell.Ghost(gamemap[mapx][mapy])
+                                      ])
                         gamemap[mapx][mapy].changed = True
     def logWrite(self,name,score,hp,maxhp,version,death,gold,kills):
         """Write text to log"""
@@ -1077,7 +1087,6 @@ class Game:                # Main game class
             mapchanged = True
         elif key == "w": #Wait
             turn = True
-            p1.energy -= 100
             mx,my = random.randint(-1,1),random.randint(-1,1)
             if gamemap[x+mx][y+my].sdoor:
                 lit = gamemap[x+mx][y+my].lit
@@ -1282,10 +1291,13 @@ class Game:                # Main game class
                                 gamemap[x1][y1].name ,3)
                     score += 5
                     kills += 1
+                    g_gold = False
+                    if gamemap[x1][y1].name == "Leprechaun":
+                        g_gold = True
                     gamemap[x1][y1] = gamemap[x1][y1]\
                         .undercell
                     gamemap[x1][y1].visible = True
-                    if random.choice([True,False] + [False] * 10):
+                    if random.choice([True,False] + [False] * 10) or g_gold:
                         gamemap[x1][y1] = Cell.item("Gold",\
                                 "$",gamemap[x1][y1])
                     mapchanged = True

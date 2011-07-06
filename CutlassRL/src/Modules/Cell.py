@@ -71,7 +71,8 @@ class Mob(Cell):
     name = "Mob"
     chr = "M"
     infra = True
-    lit = True
+    lit = False
+    infra_y = True
     phasing = False
     color = 4
     type = (False,True)
@@ -92,9 +93,9 @@ class Newt(Mob):
         self.undercell = undercell        
     hp = 10
     speed = 50
+    infra_y = False
     name = "Newt"
     chr = ":"
-    lit = True
     color = 4
     damage = 3
 
@@ -106,7 +107,7 @@ class Leprechaun(Mob):
     name = "Leprechaun"
     chr = "l"
     infra = True
-    lit = True
+    infray_y = True
     color = GREEN
     damage = 2
 
@@ -118,10 +119,10 @@ class Ghost(Mob):
     name = "Ghost"
     chr = " "
     infra = True
-    lit = True
+    infra_y = False
     color = GREEN
     damage = 5
-    phasing = True
+    phasing = False
 
 
 class altar(Mob):
