@@ -118,6 +118,7 @@ class Ghost(Mob):
     speed = 30
     name = "Ghost"
     chr = " "
+    phasing = True
     infra = True
     infra_y = False
     color = GREEN

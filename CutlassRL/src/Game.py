@@ -99,6 +99,7 @@ class Game:                # Main game class
         
         level = 1                       #Starting level
                 
+        key = -1
 
         fovblock = False   #Fov is not blocked
         
@@ -352,19 +353,32 @@ class Game:                # Main game class
                                 screen.attron(screen.A_BOLD) #Visible is bold
                                 color = YELLOW
                             elif self.distance(x, y, mapx, mapy) <= frad / 1.3:
-                                screen.attron(screen.A_BOLD) #Visible is bold
+                                screen.attron(screen.A_BOLD)
+                                color = 1
+                            elif self.distance(x, y, mapx, mapy) <= frad / 1.01:
+                                screen.attron(screen.A_NORMAL)
                                 color = 1
                             else:
-                                screen.attron(screen.A_DIM) #Visible is bold
-                                color = 1
+                                screen.attron(screen.A_DIM) 
+                                color = WHITE
                                 
                         else:
-                            screen.attron(screen.A_BOLD) #Visible is bold
-                            color = gamemap[mapx][mapy].color #Normal color
+                            if not self.distance(x, y, mapx, mapy) <=\
+                             frad / 1.1 and not gamemap[mapx][mapy].lit:
+                                screen.attron(screen.A_DIM)
+                                color = WHITE
+                            else:
+                                if not gamemap[mapx][mapy].plain_cell:
+                                    screen.attron(screen.A_BOLD) 
+                                screen.attron(screen.A_DIM)
+                                screen.attron(screen.A_BOLD) 
+                                color = gamemap[mapx][mapy].color #Normal color
                                                                 # of cell
                         io.printex(mapx, mapy, gamemap[mapx][mapy].char(),\
                            color,False) #Print cell.
                         screen.attroff(screen.A_BOLD)
+                        screen.attroff(screen.A_DIM)
+                        screen.attroff(screen.A_NORMAL)
                     elif gamemap[mapx][mapy].explored:
                         screen.attron(screen.A_DIM) #Explored is dim
                         if gamemap[mapx][mapy].mob and not\
@@ -688,6 +702,8 @@ class Game:                # Main game class
                 path = self.getLine(mapx, mapy, x, y)
                 mx,my = path[0][0],path[0][1]
                 self.moveMob(mapx, mapy, mx, my, gamemap)
+                io.printex(mx,my,"&",RED)
+                io.readkey()
                 return (mx,my)
             if gamemap[x][y].fval ==\
                 gamemap[mapx][mapy].undercell.fval and\
@@ -1172,15 +1188,25 @@ class Game:                # Main game class
                 elif key == "z":
                     fovblock = not fovblock  
                 elif key == "F":
-                        for mapx in xrange(MAP_W - 1): 
-                            for mapy in xrange(MAP_H):
-                                if gamemap[mapx][mapy].stairs:
-                                    if gamemap[mapx][mapy].up:
-                                        c = "<"
-                                    else:
-                                        c = ">"
-                                    io.printex(mapx,mapy,c,2)
-                                    io.readkey()
+                    for mapx in xrange(MAP_W - 1): 
+                        for mapy in xrange(MAP_H):
+                            if gamemap[mapx][mapy].stairs:
+                                if gamemap[mapx][mapy].up:
+                                    c = "<"
+                                else:
+                                    c = ">"
+                                io.printex(mapx,mapy,c,2)
+                                io.readkey()
+                elif key == "M":
+                    for mapx in xrange(MAP_W - 1): 
+                        for mapy in xrange(MAP_H):
+                            if gamemap[mapx][mapy].mob:
+                                if gamemap[mapx][mapy].phasing:
+                                    c = "%"
+                                else:
+                                    c = "!"
+                                io.printex(mapx,mapy,c,2)
+                    io.readkey()
                 elif key == "R":
                     for mapx in xrange(MAP_W+1):
                         for mapy in xrange(MAP_H+1):
@@ -1190,7 +1216,7 @@ class Game:                # Main game class
                             else:
                                 gamemap[mapx][mapy] = Cell.Cell(False,False)
                 elif key == "u":
-                    gamemap[mapx][mapy]
+                    pass
                 elif key == "d":
                     gamemap[x][y] = Cell.Door(True,False)
                     gamemap[x][y].close()
