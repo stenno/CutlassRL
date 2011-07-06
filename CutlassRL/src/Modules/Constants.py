@@ -38,4 +38,4 @@ MAGENTA = 6
 CYAN    = 7
 WHITE   = 8
 
-CIRCLE_FOV = False
+CIRCLE_FOV = True

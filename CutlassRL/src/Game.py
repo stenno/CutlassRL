@@ -86,7 +86,7 @@ class Game:                # Main game class
         score = 0                       #Zero score
         gold  = 0
         kills = 0
-        frad = 6
+        frad = 3
 
         mstack = []
 
@@ -418,11 +418,11 @@ class Game:                # Main game class
         """Sets tile as visible"""
         global gamemap,fovblock,x,y,frad
         if not gamemap[sx][sy].visible:
-            if self.inCircle(x, y, frad + 1, sx, sy) and CIRCLE_FOV:
-                gamemap[sx][sy].visible = not fovblock
+            if CIRCLE_FOV:
+                if self.inCircle(x, y, frad + 1, sx, sy):
+                    gamemap[sx][sy].visible = not fovblock
             else:
                 gamemap[sx][sy].visible = not fovblock
-                gamemap[sx][sy].changed = True
             gamemap[sx][sy].changed = True
         if gamemap[sx][sy].mob:
                 gamemap[sx][sy].changed = True
