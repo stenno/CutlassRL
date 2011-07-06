@@ -76,7 +76,7 @@ class Game:                # Main game class
         global level,mapchanged
         global name,save,p1,frad,mnext,addmsg
         global io
-        global levs
+        global levs,last
         global chars
                 
         maxhp = random.randint(20,40)  #Max hp always random
@@ -87,6 +87,9 @@ class Game:                # Main game class
         gold  = 0
         kills = 0
         frad = 3
+
+#        last = random.randint(30,40)
+        last = 2
 
         mstack = []
 
@@ -238,7 +241,7 @@ class Game:                # Main game class
                         if not random.randint(0,10000) and moremobs:
                             if gamemap[mapx][mapy].type[0] and not gamemap\
                             [mapx][mapy].visible and gamemap[mapx][mapy]\
-                            .fval==gamemap[x][y].fval: 
+                            .fval==gamemap[x][y].fval and not editmode: 
                                 gamemap[mapx][mapy] = random.choice([\
                                     Cell.Newt("Newt",":",gamemap[mapx][mapy])\
                                     ,Cell.Leprechaun(gamemap[mapx][mapy])\
@@ -260,7 +263,7 @@ class Game:                # Main game class
                         mmx = random.randint(0,MAP_W)
                         mmy = random.randint(0,MAP_H- 1)
                         if  moremobs and gmap[mmx][mmy].type[0] and\
-                         not random.randint(0,50) :
+                         not random.randint(0,50) and not editmode:
                                 gmap[mmx][mmy] = random.choice([\
                                     Cell.Newt("Newt",":",gmap[mmx][mmy])\
                                     ,Cell.Leprechaun(gmap[mmx][mmy])\
@@ -340,7 +343,8 @@ class Game:                # Main game class
                     mob:
                         if self.inLos(mapx, mapy, x, y):
                             gamemap[mapx][mapy].visible = True
-                    if gamemap[mapx][mapy].visible: #Visible always explored
+                    if gamemap[mapx][mapy].visible: 
+                        #Visible always explored
                         gamemap[mapx][mapy].explored = True
                         if gamemap[mapx][mapy].mob:
                             gamemap[mapx][mapy].undercell.explored = True
@@ -482,6 +486,7 @@ class Game:                # Main game class
             io.printex(22, 0, "Wrong direction!")
             return False, False
         return x1,y1
+
     def load(self):
         """Load game from save"""
         global gamemap,x,y,hp,turns,fovblock,rx,ry,save,wizmode,mstack
@@ -510,6 +515,25 @@ class Game:                # Main game class
         if not wizmode:
             saved.close()
             self.end()    
+
+    def saveLevel(self):
+        """Save this level"""
+        global gamemap,x,y,save
+        saved = gzip.open(save + ".tmp","wb",-1)
+        cPickle.dump((x,y,gamemap), saved,2)
+        saved.close()
+        self.addMsg("Saved...",1)
+
+    def loadLevel(self,save):
+        """Load level"""
+        global gamemap,x,y
+        saved = gzip.open(save,"rb",-1)
+        (x,y,gamemap) = cPickle.load(saved)
+        saved.close()
+        for mapx in xrange(MAP_W - 1):
+            for mapy in xrange(MAP_H):
+                gamemap[mapx][mapy].changed = True
+
 
     def getLine(self,x1, y1, x2, y2):
         """Bresenham's line algorithm"""
@@ -645,13 +669,13 @@ class Game:                # Main game class
 
     def spawnMobs(self):
         """Spawn mobs"""
-        global gamemap,x,y
+        global gamemap,x,y,editmode
         for mapx in xrange(MAP_W - 1):
             for mapy in xrange(MAP_H):        
                 if not random.randint(0,10000):
                     if gamemap[mapx][mapy].type[0] and not self.\
                     inLos(x, y, mapx, mapy) and gamemap[mapx][mapy].fval==\
-                    gamemap[x][y].fval:
+                    gamemap[x][y].fval and not editmode:
                         gamemap[mapx][mapy] = random.choice([\
                             Cell.Newt("Newt",":",gamemap[mapx][mapy])\
                             ,Cell.Leprechaun(gamemap[mapx][mapy])\
@@ -685,7 +709,9 @@ class Game:                # Main game class
                 io.printex(x,y,char[3],char[4],False)
 
     def mobTurn(self,mapx,mapy,gamemap):
-        global levs,hp,killer
+        global levs,hp,killer,editmode
+        if editmode:
+            return 0,0
         ret = (mapx,mapy)
         if self.near(x,y,mapx,mapy):
                 self.addMsg("%s hits!" %\
@@ -701,7 +727,6 @@ class Game:                # Main game class
                 path = self.getLine(mapx, mapy, x, y)
                 mx,my = path[0][0],path[0][1]
                 self.moveMob(mapx, mapy, mx, my, gamemap)
-                io.printex(mx,my,"&",RED)
                 io.readkey()
                 return (mx,my)
             if gamemap[x][y].fval ==\
@@ -819,7 +844,7 @@ class Game:                # Main game class
         io.printex(x,y,p1.char(),1)
 
     def playerTurn(self):
-        global x,y,gamemap,killer,x1,y1,mstack
+        global x,y,gamemap,killer,x1,y1,mstack,last
         global turn,turn2,p1,level,score,kills,gold,mapchanged
         global rx,ry,fovblock,editmode,regen,hp,maxhp
         turn = False
@@ -1123,7 +1148,10 @@ class Game:                # Main game class
                     #restore or gen level:
                     if lnext <= len(levs):
                         levs.append(None)
-                    if levs[lnext]:
+                    if next == last:
+                        self.loadLevel("last.lvl")
+                        exit()
+                    elif levs[lnext]:
                         levs[level] = copy.deepcopy(gamemap)
                         gamemap = copy.deepcopy(levs[lnext])
                         level = lnext
@@ -1176,8 +1204,18 @@ class Game:                # Main game class
                 key = io.readkey()
                 if key == "x":
                     editmode = True
-                elif key == "S":
+                elif key == "$":
                     gamemap[x][y + 1] = Cell.item("Gold","$",gamemap[x][y + 1])
+                elif key == "S":
+                    gamemap[x][y] = Cell.altar("=")
+                elif key == "L":
+                    self.saveLevel()
+                elif key == "B":
+                    for mapx in xrange(MAP_W - 1):
+                        for mapy in xrange(MAP_H):
+                            if gamemap[mapx][mapy].mob:
+                                gamemap[mapx][mapy] = gamemap[mapx][mapy]\
+                                .undercell
                 elif key == "Z":
                     gamemap[x][y] = Cell.Stair(True)
                 elif key == "z":

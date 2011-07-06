@@ -83,7 +83,8 @@ class Mob(Cell):
     def __init__(self,name,char,undercell):
         self.name = name
         self.chr = char
-        self.undercell = undercell        
+        self.undercell = undercell
+        self.lit = undercell.lit        
 
     def char(self):
         return self.chr
