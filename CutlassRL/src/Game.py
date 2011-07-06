@@ -137,8 +137,7 @@ class Game:                # Main game class
         mapchanged = True #Map has been changed
         # Calculate fov
         self.resetFov()
-        Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
-                         self.isBlocking)                        
+        self.calcFov()
         self.drawMap()
         io.printex(x,y ,p1.char(), refresh=False) #Draw player
         io.printex(2, 63, name, 3)
@@ -210,8 +209,7 @@ class Game:                # Main game class
                     io.printex(10, 63, "Score:%d" % (score),3,refresh=False)
                     io.printex(12, 63, "Level:%d" % (level),3)
                     self.resetFov()
-                    Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
-                            self.isBlocking)                        
+                    self.calcFov()
                     mnext = 0
                     self.drawMap()
                     io.printex(x,y ,p1.char())
@@ -371,10 +369,10 @@ class Game:                # Main game class
                                 if gamemap[mapx][mapy].plain_cell:
                                     screen.attron(screen.A_BOLD) 
                                     color = YELLOW
-                                else:
-                                    screen.attron(screen.A_BOLD) 
-                                    color = gamemap[mapx][mapy].color #Normal color
-                                                                # of cell
+                            if not gamemap[mapx][mapy].plain_cell:
+                                screen.attron(screen.A_BOLD) 
+                                color = gamemap[mapx][mapy].color
+                                #Normal color of cell
                         io.printex(mapx, mapy, gamemap[mapx][mapy].char(),\
                            color,False) #Print cell.
                         screen.attroff(screen.A_BOLD)
@@ -815,8 +813,7 @@ class Game:                # Main game class
         io.printex(10, 63, "Score:%d" % (score),3,refresh=False)
         io.printex(12, 63, "Level:%d" % (level),3)
         self.resetFov()
-        Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
-                self.isBlocking)                        
+        self.calcFov()
         self.drawMap()
         io.printex(2, 63, name, 3)
         io.printex(x,y,p1.char(),1)
@@ -869,8 +866,7 @@ class Game:                # Main game class
                 self.floodFill()
                 self.resetFov()
                 self.drawMap()
-                Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
-                                self.isBlocking)                        
+                self.calcFov()
             io.printex(0,0,"")
         elif key == "=":  #Last messages
             i = 0
@@ -922,8 +918,7 @@ class Game:                # Main game class
             io.printex(10, 63, "Score:%d" % (score),3,refresh=False)
             io.printex(12, 63, "Level:%d" % (level),3)
             self.resetFov()
-            Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
-                    self.isBlocking)                        
+            self.calcFov()
             self.drawMap()
             io.printex(x,y ,p1.char())
             io.printex(x,y,p1.char(),1)
@@ -1157,8 +1152,7 @@ class Game:                # Main game class
                     mapchanged = True
                     self.resetFov()
                     self.resetFlood()
-                    Fov.fieldOfView(x, y, MAP_W, MAP_H, frad,\
-                                     self.setVisible, self.isBlocking)
+                    self.calcFov()
                     for mapx in xrange(MAP_W - 1):
                         for mapy in xrange(MAP_H):
                             gamemap[mapx][mapy].changed = True
@@ -1433,7 +1427,28 @@ class Game:                # Main game class
         return math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
 
 
+    def calcFov(self):
+        Fov.fieldOfView(x, y, MAP_W, MAP_H, frad, self.setVisible,\
+                self.isBlocking)                        
+        self.visibleCorners()
 
+    def visibleCorners(self):
+        for mapx in xrange(MAP_W - 1):
+            for mapy in xrange(MAP_H):
+                c = 0
+                if gamemap[mapx][mapy].corner:
+                    for cell in gamemap[mapx][mapy].ccells:
+                        x2 = cell[0]
+                        y2 = cell[1]
+                        if gamemap[x2][y2].visible:
+                            if gamemap[x2][y2].lit:
+                                if self.inLos(x, y, x2, y2):
+                                    c += 1
+                            c += 1
+                    if c >= 2:
+                        gamemap[mapx][mapy].visible = True
+                        continue
+                    
 if __name__ == "__main__":
     print "Please run main.py"
     raw_input()

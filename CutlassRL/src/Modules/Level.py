@@ -32,6 +32,19 @@ class levGen:
                     for x2 in xrange(-1,2):
                         for y2 in xrange(-1,2):
                             self.lmap[y + y2][x + x2].lit = True
+        rx1 = room.y1
+        rx2 = room.y2
+        ry1 = room.x1
+        ry2 = room.x2
+        self.lmap[rx1][ry1].corner = True
+        self.lmap[rx1][ry1].ccells = [(rx1 + 1,ry1),(rx1,ry1 + 1)]
+        self.lmap[rx1][ry2].corner = True
+        self.lmap[rx1][ry2].ccells = [(rx1 + 1,ry2),(rx1,ry2 - 1)]
+        self.lmap[rx2][ry1].corner = True
+        self.lmap[rx2][ry1].ccells = [(rx2 - 1,ry1),(rx2,ry1 + 1)]
+        self.lmap[rx2][ry2].corner = True
+        self.lmap[rx2][ry2].ccells = [(rx2 - 1,ry2),(rx2,ry2 - 1)]
+
     def vCorridor(self,y1,y2,x):
         global boulders
         boulder = False

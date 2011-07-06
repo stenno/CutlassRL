@@ -33,11 +33,13 @@ class Cell:
     lit = False      #All cells are unlit by default
     fval = 0
     color = 4
+    corner = False
     changed = True
+    ccells = []
     def __init__(self,isWalkable,isTransparent):
         self.type = (isWalkable, isTransparent)
         if isWalkable and isTransparent:
-            color = 1
+            self.color = 1
         self.plain_cell = True
     def char(self):
         if self.type[0]:
