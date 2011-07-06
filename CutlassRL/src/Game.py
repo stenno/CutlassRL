@@ -1449,6 +1449,7 @@ class Game:                # Main game class
                         gamemap[mapx][mapy].visible = True
                         continue
                     
+
 if __name__ == "__main__":
     print "Please run main.py"
     raw_input()
