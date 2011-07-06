@@ -88,8 +88,7 @@ class Game:                # Main game class
         kills = 0
         frad = 3
 
-#        last = random.randint(30,40)
-        last = 2
+        last = random.randint(30,40)
 
         mstack = []
 
@@ -523,6 +522,7 @@ class Game:                # Main game class
         cPickle.dump((x,y,gamemap), saved,2)
         saved.close()
         self.addMsg("Saved...",1)
+        self.loadLevel(save + ".tmp")
 
     def loadLevel(self,save):
         """Load level"""
@@ -1148,9 +1148,8 @@ class Game:                # Main game class
                     #restore or gen level:
                     if lnext <= len(levs):
                         levs.append(None)
-                    if next == last:
-                        self.loadLevel("last.lvl")
-                        exit()
+                    if lnext == last:
+                        self.loadLevel(os.path.join('Levels','last.lvl'))
                     elif levs[lnext]:
                         levs[level] = copy.deepcopy(gamemap)
                         gamemap = copy.deepcopy(levs[lnext])
